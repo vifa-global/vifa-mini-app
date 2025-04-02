@@ -57,7 +57,6 @@ function loadHomeScreen() {
       </button>
     </nav>
   `;
-}
   
   // Initialize Telegram BackButton
   tg.BackButton.show();

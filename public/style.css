@@ -82,9 +82,9 @@ main {
   border-top: 1px solid #00FFFF;
 }
 
-.nav-btn {
-  background: none;
-  border: none;
+/* REPLACE .nav-btn.active img with: */
+.nav-btn.active img {
+  filter: drop-shadow(0 0 10px #FF007F); /* Changed from gold to pink */
 }
 
 .nav-btn.active img {

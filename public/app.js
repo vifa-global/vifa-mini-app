@@ -24,16 +24,40 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadHomeScreen() {
-  // TEMPORARY CONTENT - We'll design properly later
+  tg.BackButton.hide();
+  
   document.getElementById('app').innerHTML = `
     <header>
-      <h1>VIFA Rewards</h1>
-      <div class="balance">0 VP</div>
+      <img src="/assets/icons/logo.png" width="60">
+      <div class="balance">100 VP</div>
     </header>
+    
     <main>
-      <button class="checkin-btn">Daily Check-In</button>
+      <button id="clickBtn" class="cta-button">
+        <img src="/assets/icons/coin.png" width="20">
+        CLICK FOR 1 VP
+      </button>
+      
+      <button id="checkinBtn" class="cta-button">
+        DAILY CHECK-IN (+20 VP)
+      </button>
+      
+      <p class="streak-counter">Streak: 7 days</p>
     </main>
+    
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-page="home">
+        <img src="/assets/icons/home.png" width="24">
+      </button>
+      <button class="nav-btn" data-page="tasks">
+        <img src="/assets/icons/tasks.png" width="24">
+      </button>
+      <button class="nav-btn" data-page="profile">
+        <img src="/assets/icons/profile.png" width="24">
+      </button>
+    </nav>
   `;
+}
   
   // Initialize Telegram BackButton
   tg.BackButton.show();

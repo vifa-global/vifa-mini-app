@@ -57,7 +57,26 @@ function loadHomeScreen() {
       </button>
     </nav>
   `;
-  
+
+  // Set up navigation handlers
+  setupNavigation();
+}
+
+function setupNavigation() {
+  // Handle bottom nav clicks
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.nav-btn')) {
+      const page = e.target.closest('.nav-btn').dataset.page;
+      // Update active state
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.page === page);
+      });
+      // Load corresponding page
+      if (page === 'home') loadHomeScreen();
+      // We'll add task and profile screens later
+    }
+  });
+
   // Initialize Telegram BackButton
   tg.BackButton.show();
   tg.BackButton.onClick(() => {

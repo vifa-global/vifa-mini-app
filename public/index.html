@@ -7,14 +7,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Exo 2', sans-serif;
             background-color: #0A003E;
             color: white;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            position: relative;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        /* Background with 5% opacity */
+        .background-gif {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/assets/preloader.gif');
+            background-size: cover;
+            opacity: 0.05;
+            z-index: -1;
         }
 
         /* Logo in top left */
@@ -23,14 +42,17 @@
             top: 20px;
             left: 20px;
             height: 40px;
+            width: auto;
         }
 
-        /* Main app container */
+        /* Main app container - NO SCROLLING */
         #app {
-            display: flex;
+            display: none;
             flex-direction: column;
-            min-height: 100vh;
-            padding: 80px 20px 70px;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            overflow: hidden;
         }
 
         /* Points display in top right */
@@ -61,6 +83,7 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
+            padding: 20px;
         }
 
         /* Buttons */
@@ -104,10 +127,24 @@
             font-size: 20px;
             cursor: pointer;
             transition: color 0.3s;
+            padding: 10px;
         }
 
-        .nav-icon:hover {
+        .nav-icon:hover, .nav-icon.active {
             color: #FFD700;
+        }
+
+        /* Page containers */
+        .page {
+            display: none;
+            height: calc(100vh - 60px);
+            width: 100%;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .page.active {
+            display: block;
         }
 
         /* Preloader styles */
@@ -132,6 +169,8 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+    <div class="background-gif"></div>
+    
     <!-- PRELOADER -->
     <div class="preloader" id="preloader">
         <video autoplay muted playsinline>
@@ -141,31 +180,55 @@
     </div>
     
     <!-- MAIN APP CONTENT -->
-    <div id="app" style="display:none;">
-        <img src="/assets/logo.png" alt="VIFA Logo" class="logo">
+    <div id="app">
+        <img src="assets/logo.png" alt="VIFA Logo" class="logo">
         
         <div class="points-container">
             <div class="points-display">100 VP</div>
             <div class="streak-display">Streak: 7 days</div>
         </div>
         
-        <div class="content">
-            <button class="action-button">
-                <i class="fas fa-hand-pointer"></i> CLICK FOR 1 VP
-            </button>
-            <button class="action-button">
-                <i class="fas fa-calendar-check"></i> DAILY CHECK-IN (+20 VP)
-            </button>
-            <button class="action-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
-                <i class="fab fa-telegram"></i> VIFA TELEGRAM
-            </button>
+        <!-- Home Page -->
+        <div class="page active" id="home-page">
+            <div class="content">
+                <button class="action-button">
+                    <i class="fas fa-hand-pointer"></i> CLICK FOR 1 VP
+                </button>
+                <button class="action-button">
+                    <i class="fas fa-calendar-check"></i> DAILY CHECK-IN (+20 VP)
+                </button>
+                <button class="action-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
+                    <i class="fab fa-telegram"></i> VIFA TELEGRAM
+                </button>
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="https://t.me/VIFACoinBot" style="color: #FFD700; text-decoration: none;">
+                        @VIFACoinBot
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks Page -->
+        <div class="page" id="tasks-page">
+            <div class="content">
+                <h2>Tasks Page</h2>
+                <!-- Task content will go here -->
+            </div>
+        </div>
+        
+        <!-- Profile Page -->
+        <div class="page" id="profile-page">
+            <div class="content">
+                <h2>Profile Page</h2>
+                <!-- Profile content will go here -->
+            </div>
         </div>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
-            <i class="fas fa-home nav-icon"></i>
-            <i class="fas fa-tasks nav-icon"></i>
-            <i class="fas fa-user nav-icon"></i>
+            <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
+            <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
+            <i class="fas fa-user nav-icon" onclick="showPage('profile-page')"></i>
         </div>
     </div>
 
@@ -175,6 +238,23 @@
             document.getElementById('preloader').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
         });
+
+        // Page navigation function
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update active nav icon
+            document.querySelectorAll('.nav-icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
     </script>
 </body>
 </html>

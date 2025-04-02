@@ -1,6 +1,8 @@
 {
+  "name": "vifa-mini-app",
+  "version": "1.0.0",
   "scripts": {
-    "start": "serve"
+    "start": "serve public"
   },
   "dependencies": {
     "serve": "^14.2.0"

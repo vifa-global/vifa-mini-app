@@ -14,10 +14,12 @@ video {
     object-fit: cover;
 }
 
-/* WITH THIS */
+/* HIDE MAIN APP INITIALLY */
+/* ⚠️→ Changed .app-container to #app to match your HTML */
 #app {
     display: none;
 }
+
 /* Header */
 header {
   display: flex;

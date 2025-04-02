@@ -36,7 +36,7 @@
             z-index: -1;
         }
 
-        /* Logo in top left - FIXED PATH */
+        /* Logo in top left */
         .logo {
             position: absolute;
             top: 20px;
@@ -45,7 +45,7 @@
             width: auto;
         }
 
-        /* Main app container - NO SCROLLING */
+        /* Main app container */
         #app {
             display: none;
             flex-direction: column;
@@ -75,7 +75,7 @@
             font-size: 14px;
         }
 
-        /* Main content area - CENTERED BUTTONS */
+        /* Main content area */
         .content {
             position: absolute;
             top: 50%;
@@ -148,7 +148,7 @@
             display: block;
         }
 
-        /* Preloader styles - FULLSCREEN NO SIDES */
+        /* Preloader styles */
         .preloader {
             position: fixed;
             top: 0;
@@ -182,13 +182,94 @@
             text-decoration: none;
             font-size: 14px;
         }
+
+        /* TASKS PAGE STYLES */
+        .tasks-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .task-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            color: #FFD700;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .task-vp {
+            background: #FFD700;
+            color: #0A003E;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .task-command {
+            font-family: monospace;
+            color: #7fdbff;
+            font-size: 13px;
+            margin: 8px 0;
+        }
+
+        .task-button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .task-button:hover {
+            background: #0077b5;
+        }
+
+        .task-completed {
+            color: #2ecc40;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 5px;
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="background-gif"></div>
     
-    <!-- PRELOADER - FULLSCREEN -->
+    <!-- PRELOADER -->
     <div class="preloader" id="preloader">
         <video autoplay muted playsinline>
             <source src="assets/preloader.mp4" type="video/mp4">
@@ -225,9 +306,89 @@
         
         <!-- Tasks Page -->
         <div class="page" id="tasks-page">
-            <div class="content">
-                <h2>Tasks Page</h2>
-                <!-- Task content will go here -->
+            <div class="tasks-container">
+                <h2 style="text-align: center; margin-bottom: 25px; color: #FFD700;">Daily Tasks</h2>
+                
+                <!-- Twitter Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                        <span>Twitter Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Follow Twitter</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/follow_twitter</div>
+                        <button class="task-button">Complete Task</button>
+                        <!-- <div class="task-completed">✓ Completed</div> -->
+                    </div>
+                </div>
+                
+                <!-- Telegram Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fab fa-telegram" style="color: #0088cc;"></i>
+                        <span>Telegram Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-users"></i>
+                                <span>Join Telegram</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/join_telegram</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
+                
+                <!-- YouTube Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fab fa-youtube" style="color: #FF0000;"></i>
+                        <span>YouTube Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-bell"></i>
+                                <span>Subscribe YouTube</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/subscribe_yt</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
+                
+                <!-- Website Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fas fa-globe" style="color: #2ecc40;"></i>
+                        <span>Website Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-external-link-alt"></i>
+                                <span>Visit Website</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/visit_website</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -270,6 +431,24 @@
             });
             event.currentTarget.classList.add('active');
         }
+
+        // Task completion functionality (to be implemented)
+        document.querySelectorAll('.task-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // This will be replaced with actual task verification
+                const taskCard = this.closest('.task-card');
+                const completedDiv = document.createElement('div');
+                completedDiv.className = 'task-completed';
+                completedDiv.textContent = '✓ Completed';
+                taskCard.appendChild(completedDiv);
+                this.disabled = true;
+                
+                // Temporary - will be replaced with actual VP update
+                const vpDisplay = document.querySelector('.points-display');
+                const currentVP = parseInt(vpDisplay.textContent);
+                vpDisplay.textContent = (currentVP + 15) + ' VP';
+            });
+        });
     </script>
 </body>
 </html>

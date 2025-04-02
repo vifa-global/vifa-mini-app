@@ -14,8 +14,7 @@ video {
     object-fit: cover;
 }
 
-/* HIDE MAIN APP INITIALLY */
-/* ⚠️→ Changed .app-container to #app to match your HTML */
+/* MAIN APP CONTAINER */
 #app {
     display: none;
 }
@@ -28,38 +27,37 @@ header {
   padding: 15px;
 }
 
-/* REPLACE the .balance styles with: */
 .balance {
   background: rgba(0,0,0,0.3);
   padding: 8px 15px;
   border-radius: 20px;
-  color: #FF007F; /* Changed from gold to pink */
+  color: #FF007F; /* Pink color for points */
   font-weight: bold;
 }
 
-/* REPLACE the .cta-button styles with: */
+/* Buttons */
 .cta-button {
-  width: 80%; /* Changed from 100% to make centered */
+  width: 80%;
   padding: 15px;
-  background: #FF007F; /* Pink color */
+  background: #FF007F; /* Pink buttons */
   border: none;
   border-radius: 12px;
-  color: white; /* Changed from dark blue */
+  color: white;
   font-weight: bold;
-  margin: 10px auto; /* auto centers horizontally */
+  margin: 10px auto; /* Centered */
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
 }
 
-/* ADD this new rule to center the main content: */
+/* Main Content Area */
 main {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh; /* Centers vertically in most screens */
+  min-height: 60vh;
 }
 
 .streak-counter {
@@ -79,14 +77,14 @@ main {
   justify-content: space-around;
   background: #0A003E;
   padding: 10px 0;
-  border-top: 1px solid #00FFFF;
+  border-top: 1px solid #8000FF; /* Changed from #00FFFF to #8000FF */
 }
 
-/* REPLACE .nav-btn.active img with: */
-.nav-btn.active img {
-  filter: drop-shadow(0 0 10px #FF007F); /* Changed from gold to pink */
+.nav-btn {
+  background: none;
+  border: none;
 }
 
 .nav-btn.active img {
-  filter: drop-shadow(0 0 10px #FFD700);
+  filter: drop-shadow(0 0 10px #FF007F); /* Pink glow for active nav */
 }

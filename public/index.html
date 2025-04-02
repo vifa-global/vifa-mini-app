@@ -253,6 +253,146 @@
             text-align: center;
             margin-top: 5px;
         }
+
+        /* FRIENDS PAGE STYLES */
+        .friends-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .friends-title {
+            color: #FFD700;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .friends-subtitle {
+            color: #7fdbff;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .referral-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto 25px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            max-width: 300px;
+        }
+
+        .referral-code {
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px dashed #FFD700;
+        }
+
+        .copy-button {
+            background: #FFD700;
+            color: #0A003E;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: opacity 0.3s;
+        }
+
+        .copy-button:hover {
+            opacity: 0.9;
+        }
+
+        .share-button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .reward-info {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 0 auto 25px;
+            max-width: 300px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .reward-title {
+            color: #FFD700;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .reward-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 136, 204, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .social-icon:hover {
+            background: rgba(0, 136, 204, 0.4);
+        }
+
+        .invites-list {
+            margin-top: 20px;
+            text-align: left;
+            max-width: 300px;
+            margin: 20px auto 0;
+        }
+
+        .invites-title {
+            color: #FFD700;
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .invite-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -441,6 +581,59 @@
             </div>
         </div>
         
+        <!-- Friends Page -->
+        <div class="page" id="friends-page">
+            <div class="friends-container">
+                <h2 class="friends-title">Invite Friends</h2>
+                <p class="friends-subtitle">Earn rewards by sharing VIFA with friends</p>
+                
+                <div class="referral-card">
+                    <div>Your Referral Code</div>
+                    <div class="referral-code">VIFA-5A2B9C</div>
+                    <button class="copy-button" id="copyButton">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <button class="share-button" id="shareButton">
+                        <i class="fas fa-share-alt"></i> Share App
+                    </button>
+                </div>
+                
+                <div class="reward-info">
+                    <div class="reward-title">You'll Earn</div>
+                    <div class="reward-amount">20 VP</div>
+                    <div>for each friend who joins</div>
+                </div>
+                
+                <div class="social-icons">
+                    <div class="social-icon" onclick="shareVia('telegram')">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <div class="social-icon" onclick="shareVia('twitter')">
+                        <i class="fab fa-twitter"></i>
+                    </div>
+                    <div class="social-icon" onclick="shareVia('whatsapp')">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                </div>
+                
+                <div class="invites-list">
+                    <div class="invites-title">Your Invites (3)</div>
+                    <div class="invite-item">
+                        <span>@john_doe</span>
+                        <span>+20 VP</span>
+                    </div>
+                    <div class="invite-item">
+                        <span>@crypto_queen</span>
+                        <span>+20 VP</span>
+                    </div>
+                    <div class="invite-item">
+                        <span>@vifa_lover</span>
+                        <span>+20 VP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Profile Page -->
         <div class="page" id="profile-page">
             <div class="content">
@@ -453,6 +646,7 @@
         <div class="bottom-nav">
             <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
             <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
+            <i class="fas fa-user-friends nav-icon" onclick="showPage('friends-page')"></i>
             <i class="fas fa-user nav-icon" onclick="showPage('profile-page')"></i>
         </div>
     </div>
@@ -499,6 +693,49 @@
                 const currentVP = parseInt(vpDisplay.textContent);
                 vpDisplay.textContent = (currentVP + vpAmount) + ' VP';
             });
+        });
+
+        // Copy referral code
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const code = 'VIFA-5A2B9C';
+            navigator.clipboard.writeText(code).then(() => {
+                this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+                }, 2000);
+            });
+        });
+
+        // Share functionality
+        function shareVia(platform) {
+            const message = `Join me on VIFA Rewards! Use my code VIFA-5A2B9C to get bonus points. ${window.location.href}`;
+            
+            switch(platform) {
+                case 'telegram':
+                    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`);
+                    break;
+                case 'twitter':
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`);
+                    break;
+                case 'whatsapp':
+                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`);
+                    break;
+                default:
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'VIFA Rewards',
+                            text: message,
+                            url: window.location.href
+                        });
+                    } else {
+                        // Fallback for browsers without Web Share API
+                        alert('Share this link: ' + message);
+                    }
+            }
+        }
+
+        document.getElementById('shareButton').addEventListener('click', function() {
+            shareVia('default');
         });
     </script>
 </body>

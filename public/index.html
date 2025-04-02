@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>VIFA Rewards</title>
-    <meta charset="utf-8">
-    <link href="style.css" rel="stylesheet">
+  <title>VIFA Rewards</title>
+  <meta charset="utf-8">
+  <link href="style.css" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="/app.js"></script>
 <body>
-    <!-- PRELOADER -->
-    <div class="preloader" id="preloader">
-  <video autoplay muted playsinline>
-    <source src="/assets/preloader.mp4" type="video/mp4">
-    Your browser doesn't support HTML5 video.
-  </video>
-</div>
-    
-    <script src="app.js"></script>
+  <!-- PRELOADER -->
+  <div class="preloader" id="preloader">
+    <video autoplay muted playsinline>
+      <source src="/assets/preloader.mp4" type="video/mp4">
+      Your browser doesn't support HTML5 video.
+    </video>
+  </div>
+
+  <!-- MAIN APP CONTENT (hidden until video ends) -->
+  <div id="app" style="display:none;">
+    <!-- Your app UI will go here -->
+  </div>
+
+  <script src="/app.js"></script>
 </body>
 </html>

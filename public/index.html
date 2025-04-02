@@ -23,7 +23,6 @@
             position: fixed;
         }
 
-        /* Background with 5% opacity */
         .background-gif {
             position: fixed;
             top: 0;
@@ -36,7 +35,6 @@
             z-index: -1;
         }
 
-        /* Logo in top left */
         .logo {
             position: absolute;
             top: 20px;
@@ -45,7 +43,6 @@
             width: auto;
         }
 
-        /* Main app container */
         #app {
             display: none;
             flex-direction: column;
@@ -55,7 +52,6 @@
             overflow: hidden;
         }
 
-        /* Points display in top right */
         .points-container {
             position: absolute;
             top: 20px;
@@ -75,7 +71,6 @@
             font-size: 14px;
         }
 
-        /* Main content area */
         .content {
             position: absolute;
             top: 50%;
@@ -88,7 +83,6 @@
             width: 100%;
         }
 
-        /* Buttons */
         .action-button {
             background-color: #0088cc;
             color: white;
@@ -111,7 +105,6 @@
             background-color: #0077b5;
         }
 
-        /* Bottom navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -136,7 +129,6 @@
             color: #FFD700;
         }
 
-        /* Page containers */
         .page {
             display: none;
             height: 100vh;
@@ -148,7 +140,6 @@
             display: block;
         }
 
-        /* Preloader styles */
         .preloader {
             position: fixed;
             top: 0;
@@ -169,7 +160,6 @@
             object-fit: cover;
         }
 
-        /* Telegram bot link */
         .telegram-bot {
             position: absolute;
             bottom: 80px;
@@ -326,7 +316,30 @@
                         </div>
                         <div class="task-command">/follow_twitter</div>
                         <button class="task-button">Complete Task</button>
-                        <!-- <div class="task-completed">✓ Completed</div> -->
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-heart"></i>
+                                <span>Like our tweet</span>
+                            </div>
+                            <div class="task-vp">5 VP</div>
+                        </div>
+                        <div class="task-command">/like_tweet</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-at"></i>
+                                <span>Mention 3 friends</span>
+                            </div>
+                            <div class="task-vp">10 VP</div>
+                        </div>
+                        <div class="task-command">/mention_task</div>
+                        <button class="task-button">Complete Task</button>
                     </div>
                 </div>
                 
@@ -348,6 +361,18 @@
                         <div class="task-command">/join_telegram</div>
                         <button class="task-button">Complete Task</button>
                     </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-share-alt"></i>
+                                <span>Like & share posts</span>
+                            </div>
+                            <div class="task-vp">10 VP</div>
+                        </div>
+                        <div class="task-command">/engage_telegram</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
                 </div>
                 
                 <!-- YouTube Tasks -->
@@ -366,6 +391,30 @@
                             <div class="task-vp">15 VP</div>
                         </div>
                         <div class="task-command">/subscribe_yt</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>Like our video</span>
+                            </div>
+                            <div class="task-vp">5 VP</div>
+                        </div>
+                        <div class="task-command">/like_video</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-comment"></i>
+                                <span>Comment on video</span>
+                            </div>
+                            <div class="task-vp">10 VP</div>
+                        </div>
+                        <div class="task-command">/comment_video</div>
                         <button class="task-button">Complete Task</button>
                     </div>
                 </div>
@@ -432,21 +481,23 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Task completion functionality (to be implemented)
+        // Task completion functionality
         document.querySelectorAll('.task-button').forEach(button => {
             button.addEventListener('click', function() {
-                // This will be replaced with actual task verification
                 const taskCard = this.closest('.task-card');
+                const vpAmount = parseInt(this.closest('.task-card').querySelector('.task-vp').textContent);
+                
+                // Mark as completed
                 const completedDiv = document.createElement('div');
                 completedDiv.className = 'task-completed';
                 completedDiv.textContent = '✓ Completed';
                 taskCard.appendChild(completedDiv);
                 this.disabled = true;
                 
-                // Temporary - will be replaced with actual VP update
+                // Update VP
                 const vpDisplay = document.querySelector('.points-display');
                 const currentVP = parseInt(vpDisplay.textContent);
-                vpDisplay.textContent = (currentVP + 15) + ' VP';
+                vpDisplay.textContent = (currentVP + vpAmount) + ' VP';
             });
         });
     </script>

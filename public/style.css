@@ -14,8 +14,8 @@ video {
     object-fit: cover;
 }
 
-/* HIDE MAIN APP INITIALLY */
-.app-container {
+/* WITH THIS */
+#app {
     display: none;
 }
 /* Header */

@@ -672,8 +672,8 @@
                 
                 <div class="referral-card">
                     <div>Your Referral Link</div>
-                    <a href="https://t.me/VifaGlobal?ref=VIFA-5A2B9C" class="referral-link">
-                        https://t.me/VifaGlobal?ref=VIFA-5A2B9C
+                    <a href="https://t.me/VIFACoinBot?start=ref_8183350482" class="referral-link">
+                        https://t.me/VIFACoinBot?start=ref_8183350482
                     </a>
                     <button class="share-button" id="shareButton">
                         <i class="fas fa-share-alt"></i> Share Link
@@ -807,11 +807,11 @@
 
         // Share functionality
         function shareVia(platform) {
-            const message = `Join me on VIFA Rewards! Use my link to get bonus points: https://t.me/VifaGlobal?ref=VIFA-5A2B9C`;
+            const message = `Join me on VIFA Rewards! Use my link to get bonus points: https://t.me/VIFACoinBot?start=ref_8183350482`;
             
             switch(platform) {
                 case 'telegram':
-                    window.open(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/VifaGlobal?ref=VIFA-5A2B9C')}&text=${encodeURIComponent(message)}`);
+                    window.open(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/VIFACoinBot?start=ref_8183350482')}&text=${encodeURIComponent(message)}`);
                     break;
                 case 'twitter':
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`);
@@ -824,7 +824,7 @@
                         navigator.share({
                             title: 'VIFA Rewards',
                             text: message,
-                            url: 'https://t.me/VifaGlobal?ref=VIFA-5A2B9C'
+                            url: 'https://t.me/VIFACoinBot?start=ref_8183350482'
                         });
                     } else {
                         // Fallback for browsers without Web Share API

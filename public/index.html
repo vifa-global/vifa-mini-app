@@ -332,37 +332,23 @@
             max-width: 300px;
         }
 
-        .referral-code {
+        .referral-link {
             font-family: monospace;
-            font-size: 18px;
-            letter-spacing: 2px;
+            font-size: 16px;
+            word-break: break-all;
             background: rgba(255, 215, 0, 0.1);
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
             margin: 15px 0;
             border: 1px dashed #FFD700;
-        }
-
-        .copy-button {
-            background: #FFD700;
-            color: #0A003E;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 15px;
-            transition: opacity 0.3s;
-        }
-
-        .copy-button:hover {
-            opacity: 0.9;
+            color: #FFD700;
+            text-decoration: none;
+            display: block;
         }
 
         .share-button {
-            background: #0088cc;
-            color: white;
+            background: #FFD700;
+            color: #0A003E;
             border: none;
             padding: 12px;
             border-radius: 15px;
@@ -374,6 +360,11 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            transition: opacity 0.3s;
+        }
+
+        .share-button:hover {
+            opacity: 0.9;
         }
 
         .reward-info {
@@ -680,13 +671,12 @@
                 <p class="friends-subtitle">Earn rewards by sharing VIFA with friends</p>
                 
                 <div class="referral-card">
-                    <div>Your Referral Code</div>
-                    <div class="referral-code">VIFA-5A2B9C</div>
-                    <button class="copy-button" id="copyButton">
-                        <i class="fas fa-copy"></i> Copy Code
-                    </button>
+                    <div>Your Referral Link</div>
+                    <a href="https://t.me/VifaGlobal?ref=VIFA-5A2B9C" class="referral-link">
+                        https://t.me/VifaGlobal?ref=VIFA-5A2B9C
+                    </a>
                     <button class="share-button" id="shareButton">
-                        <i class="fas fa-share-alt"></i> Share App
+                        <i class="fas fa-share-alt"></i> Share Link
                     </button>
                 </div>
                 
@@ -708,11 +698,11 @@
                     </div>
                     <div class="chain-level">
                         <span class="chain-level-title">Level 3</span>
-                        <span class="chain-level-reward">10 VP</span>
+                        <span class="chain-level-reward">25 VP</span>
                     </div>
                     <div class="chain-level">
                         <span class="chain-level-title">Level 4</span>
-                        <span class="chain-level-reward">5 VP</span>
+                        <span class="chain-level-reward">25 VP</span>
                     </div>
                 </div>
                 
@@ -744,11 +734,11 @@
                     </div>
                     <div class="invite-item">
                         <span>@blockchain_guy (Level 3)</span>
-                        <span>+10 VP</span>
+                        <span>+25 VP</span>
                     </div>
                     <div class="invite-item">
                         <span>@crypto_newbie (Level 4)</span>
-                        <span>+5 VP</span>
+                        <span>+25 VP</span>
                     </div>
                 </div>
             </div>
@@ -815,24 +805,13 @@
             });
         });
 
-        // Copy referral code
-        document.getElementById('copyButton').addEventListener('click', function() {
-            const code = 'VIFA-5A2B9C';
-            navigator.clipboard.writeText(code).then(() => {
-                this.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => {
-                    this.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-                }, 2000);
-            });
-        });
-
         // Share functionality
         function shareVia(platform) {
-            const message = `Join me on VIFA Rewards! Use my code VIFA-5A2B9C to get bonus points. ${window.location.href}`;
+            const message = `Join me on VIFA Rewards! Use my link to get bonus points: https://t.me/VifaGlobal?ref=VIFA-5A2B9C`;
             
             switch(platform) {
                 case 'telegram':
-                    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`);
+                    window.open(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/VifaGlobal?ref=VIFA-5A2B9C')}&text=${encodeURIComponent(message)}`);
                     break;
                 case 'twitter':
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`);
@@ -845,7 +824,7 @@
                         navigator.share({
                             title: 'VIFA Rewards',
                             text: message,
-                            url: window.location.href
+                            url: 'https://t.me/VifaGlobal?ref=VIFA-5A2B9C'
                         });
                     } else {
                         // Fallback for browsers without Web Share API

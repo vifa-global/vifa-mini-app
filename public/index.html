@@ -162,9 +162,13 @@
         .wallet-icon {
             color: white;
             font-size: 20px;
-            cursor: default;
+            cursor: pointer;
             padding: 10px;
-            opacity: 0.7;
+            transition: color 0.3s;
+        }
+
+        .wallet-icon:hover, .wallet-icon.active {
+            color: #FFD700;
         }
 
         .page {
@@ -301,6 +305,83 @@
             font-size: 12px;
             text-align: center;
             margin-top: 5px;
+        }
+
+        /* WALLET PAGE STYLES */
+        .wallet-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .wallet-title {
+            color: #FFD700;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        .wallet-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto 25px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            max-width: 300px;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            font-size: 16px;
+            word-break: break-all;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px dashed #FFD700;
+            color: #FFD700;
+        }
+
+        .wallet-button {
+            background: #FFD700;
+            color: #0A003E;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.3s;
+        }
+
+        .wallet-button:hover {
+            opacity: 0.9;
+        }
+
+        .wallet-button.secondary {
+            background: rgba(0, 136, 204, 0.2);
+            color: white;
+            border: 1px solid rgba(0, 136, 204, 0.5);
+        }
+
+        .wallet-qr {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .wallet-info {
+            color: #7fdbff;
+            font-size: 14px;
+            margin: 20px 0;
         }
 
         /* FRIENDS PAGE STYLES */
@@ -744,11 +825,49 @@
             </div>
         </div>
         
-        <!-- Profile Page -->
-        <div class="page" id="profile-page">
-            <div class="content">
-                <h2>Wallet</h2>
-                <!-- Wallet content will go here -->
+        <!-- Wallet Page (NEW) -->
+        <div class="page" id="wallet-page">
+            <div class="wallet-container">
+                <h2 class="wallet-title">TON Wallet</h2>
+                
+                <div class="wallet-card">
+                    <div id="wallet-status">
+                        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
+                        <h3>Connect Your Wallet</h3>
+                        <p class="wallet-info">Connect your TON wallet to receive rewards and participate in VIFA ecosystem</p>
+                        
+                        <button class="wallet-button" id="connect-wallet">
+                            <i class="fas fa-plug"></i> Connect Wallet
+                        </button>
+                        
+                        <div id="wallet-qr-container" style="display: none;">
+                            <div class="wallet-qr" id="wallet-qr"></div>
+                            <p>Scan with your wallet app</p>
+                        </div>
+                    </div>
+                    
+                    <div id="connected-wallet" style="display: none;">
+                        <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
+                        <h3>Wallet Connected</h3>
+                        
+                        <div class="wallet-address" id="wallet-address-display">
+                            UQDhD5NLSXFY0U_r5phEIIM7h7AAIVP90pPSzjS06UXHVXks
+                        </div>
+                        
+                        <button class="wallet-button" onclick="copyWalletAddress()">
+                            <i class="fas fa-copy"></i> Copy Address
+                        </button>
+                        
+                        <button class="wallet-button secondary" onclick="disconnectWallet()">
+                            <i class="fas fa-unlink"></i> Disconnect
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="wallet-info">
+                    <p>Supported wallets: Tonkeeper, OpenMask, etc.</p>
+                    <p>You'll need this for future TON rewards</p>
+                </div>
             </div>
         </div>
         
@@ -757,7 +876,7 @@
             <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
             <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
             <i class="fas fa-user-friends nav-icon" onclick="showPage('friends-page')"></i>
-            <i class="fas fa-wallet wallet-icon"></i>
+            <i class="fas fa-wallet wallet-icon" onclick="showPage('wallet-page')"></i>
         </div>
     </div>
 
@@ -779,7 +898,7 @@
             document.getElementById(pageId).classList.add('active');
             
             // Update active nav icon
-            document.querySelectorAll('.nav-icon').forEach(icon => {
+            document.querySelectorAll('.nav-icon, .wallet-icon').forEach(icon => {
                 icon.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
@@ -872,6 +991,67 @@
             setTimeout(() => {
                 coin.remove();
             }, 1000);
+        }
+
+        // =============================================
+        // WALLET CONNECTION FUNCTIONALITY (NEW)
+        // =============================================
+
+        // Check if wallet is already connected (from localStorage)
+        if (localStorage.getItem('tonWalletAddress')) {
+            showConnectedWallet(localStorage.getItem('tonWalletAddress'));
+        }
+
+        // Connect wallet button
+        document.getElementById('connect-wallet').addEventListener('click', function() {
+            // For demo purposes - in production use TON Connect SDK
+            const demoAddress = "UQDhD5NLSXFY0U_r5phEIIM7h7AAIVP90pPSzjS06UXHVXks";
+            
+            // Show QR code option (simulated)
+            document.getElementById('wallet-qr-container').style.display = 'block';
+            this.textContent = 'Continue in Wallet App';
+            
+            // Simulate wallet connection after delay
+            setTimeout(() => {
+                connectWallet(demoAddress);
+            }, 2000);
+        });
+
+        function connectWallet(address) {
+            // Save to localStorage
+            localStorage.setItem('tonWalletAddress', address);
+            
+            // Show connected state
+            showConnectedWallet(address);
+            
+            // Send to Telegram bot if in WebApp
+            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+                const walletData = {
+                    type: 'wallet_connect',
+                    address: address
+                };
+                Telegram.WebApp.sendData(JSON.stringify(walletData));
+            }
+        }
+
+        function showConnectedWallet(address) {
+            document.getElementById('wallet-status').style.display = 'none';
+            document.getElementById('connected-wallet').style.display = 'block';
+            document.getElementById('wallet-address-display').textContent = address;
+        }
+
+        function copyWalletAddress() {
+            const address = document.getElementById('wallet-address-display').textContent;
+            navigator.clipboard.writeText(address);
+            alert('Wallet address copied to clipboard!');
+        }
+
+        function disconnectWallet() {
+            localStorage.removeItem('tonWalletAddress');
+            document.getElementById('wallet-status').style.display = 'block';
+            document.getElementById('connected-wallet').style.display = 'none';
+            document.getElementById('wallet-qr-container').style.display = 'none';
+            document.getElementById('connect-wallet').textContent = 'Connect Wallet';
         }
     </script>
 </body>

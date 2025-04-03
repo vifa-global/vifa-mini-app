@@ -39,7 +39,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            height: 40px;
+            height: 46px; /* Increased by 15% from 40px */
             width: auto;
         }
 
@@ -81,28 +81,39 @@
             align-items: center;
             gap: 15px;
             width: 100%;
+            padding: 20px;
         }
 
-        .action-button {
-            background-color: #0088cc;
+        .home-button {
+            background: rgba(0, 136, 204, 0.1);
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            padding: 15px;
+            border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
             font-size: 13px;
-            transition: background-color 0.3s;
-            width: 220px;
-            text-align: center;
+            width: 100%;
+            max-width: 300px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            justify-content: space-between;
+            transition: background 0.3s;
         }
 
-        .action-button:hover {
-            background-color: #0077b5;
+        .home-button:hover {
+            background: rgba(0, 136, 204, 0.2);
+        }
+
+        .button-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-right {
+            color: #FFD700;
+            font-weight: bold;
         }
 
         .bottom-nav {
@@ -127,6 +138,14 @@
 
         .nav-icon:hover, .nav-icon.active {
             color: #FFD700;
+        }
+
+        .wallet-icon {
+            width: 20px;
+            height: 20px;
+            background-image: url('assets/icons/wallet.png');
+            background-size: contain;
+            background-repeat: no-repeat;
         }
 
         .page {
@@ -158,19 +177,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .telegram-bot {
-            position: absolute;
-            bottom: 80px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .telegram-bot a {
-            color: #FFD700;
-            text-decoration: none;
-            font-size: 14px;
         }
 
         /* TASKS PAGE STYLES */
@@ -419,18 +425,31 @@
         <!-- Home Page -->
         <div class="page active" id="home-page">
             <div class="content">
-                <button class="action-button">
-                    <i class="fas fa-hand-pointer"></i> CLICK FOR 1 VP
-                </button>
-                <button class="action-button">
-                    <i class="fas fa-calendar-check"></i> DAILY CHECK-IN (+20 VP)
-                </button>
-                <button class="action-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
-                    <i class="fab fa-telegram"></i> VIFA TELEGRAM
-                </button>
-            </div>
-            <div class="telegram-bot">
-                <a href="https://t.me/VIFACoinBot">@VIFACoinBot</a>
+                <div class="home-button">
+                    <div class="button-left">
+                        <i class="fas fa-hand-pointer"></i>
+                        <span>CLICK FOR 1 VP</span>
+                    </div>
+                    <div class="button-right">+1 VP</div>
+                </div>
+                
+                <div class="home-button">
+                    <div class="button-left">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>DAILY CHECK-IN</span>
+                    </div>
+                    <div class="button-right">+20 VP</div>
+                </div>
+                
+                <div class="home-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
+                    <div class="button-left">
+                        <i class="fab fa-telegram"></i>
+                        <span>VIFA TELEGRAM</span>
+                    </div>
+                    <div class="button-right">
+                        <i class="fas fa-external-link-alt"></i>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -637,8 +656,8 @@
         <!-- Profile Page -->
         <div class="page" id="profile-page">
             <div class="content">
-                <h2>Profile Page</h2>
-                <!-- Profile content will go here -->
+                <h2>Wallet</h2>
+                <!-- Wallet content will go here -->
             </div>
         </div>
         
@@ -647,7 +666,7 @@
             <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
             <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
             <i class="fas fa-user-friends nav-icon" onclick="showPage('friends-page')"></i>
-            <i class="fas fa-user nav-icon" onclick="showPage('profile-page')"></i>
+            <div class="wallet-icon nav-icon" onclick="showPage('profile-page')"></div>
         </div>
     </div>
 

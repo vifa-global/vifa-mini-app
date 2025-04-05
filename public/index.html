@@ -330,18 +330,6 @@
             max-width: 300px;
         }
 
-        .wallet-address {
-            font-family: monospace;
-            font-size: 16px;
-            word-break: break-all;
-            background: rgba(255, 215, 0, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border: 1px dashed #FFD700;
-            color: #FFD700;
-        }
-
         .wallet-button {
             background: #FFD700;
             color: #0A003E;
@@ -541,28 +529,10 @@
             font-weight: bold;
         }
         
-        /* Hidden wallet address styles */
-        .hidden-wallet {
-            position: relative;
-        }
-        
-        .hidden-wallet-text {
-            filter: blur(8px);
-            user-select: none;
-        }
-        
-        .hidden-wallet-toggle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
+        .wallet-connected-info {
+            color: #7fdbff;
+            font-size: 14px;
+            margin: 15px 0;
         }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -849,7 +819,7 @@
             </div>
         </div>
         
-        <!-- Wallet Page (NEW) -->
+        <!-- Wallet Page -->
         <div class="page" id="wallet-page">
             <div class="wallet-container">
                 <h2 class="wallet-title">TON Wallet</h2>
@@ -874,17 +844,11 @@
                         <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
                         <h3>Wallet Connected</h3>
                         
-                        <div class="wallet-address hidden-wallet" id="wallet-address-display">
-                            <div class="hidden-wallet-text">••••••••••••••••••••••••••••••••••••••••••••</div>
-                            <button class="hidden-wallet-toggle" onclick="toggleWalletVisibility()">Show Address</button>
-                        </div>
-                        
-                        <button class="wallet-button" onclick="copyWalletAddress()">
-                            <i class="fas fa-copy"></i> Copy Address
-                        </button>
+                        <p class="wallet-connected-info">Your TON wallet is successfully connected to the VIFA ecosystem.</p>
+                        <p class="wallet-connected-info">All rewards will be automatically sent to your connected wallet.</p>
                         
                         <button class="wallet-button secondary" onclick="disconnectWallet()">
-                            <i class="fas fa-unlink"></i> Disconnect
+                            <i class="fas fa-unlink"></i> Disconnect Wallet
                         </button>
                     </div>
                 </div>
@@ -1019,85 +983,63 @@
         }
 
         // =============================================
-        // WALLET CONNECTION FUNCTIONALITY (NEW)
+        // WALLET CONNECTION FUNCTIONALITY
         // =============================================
 
         // Check if wallet is already connected (from localStorage)
-        if (localStorage.getItem('tonWalletAddress')) {
-            showConnectedWallet(localStorage.getItem('tonWalletAddress'));
+        if (localStorage.getItem('tonWalletConnected') {
+            showConnectedWallet();
         }
 
         // Connect wallet button
         document.getElementById('connect-wallet').addEventListener('click', function() {
-            // For demo purposes - in production use TON Connect SDK
-            const demoAddress = "UQDhD5NLSXFY0U_r5phEIIM7h7AAIVP90pPSzjS06UXHVXks";
-            
             // Show QR code option (simulated)
             document.getElementById('wallet-qr-container').style.display = 'block';
             this.textContent = 'Continue in Wallet App';
             
             // Simulate wallet connection after delay
             setTimeout(() => {
-                connectWallet(demoAddress);
+                connectWallet();
             }, 2000);
         });
 
-        function connectWallet(address) {
-            // Save to localStorage
-            localStorage.setItem('tonWalletAddress', address);
+        function connectWallet() {
+            // Save connection status to localStorage
+            localStorage.setItem('tonWalletConnected', 'true');
             
             // Show connected state
-            showConnectedWallet(address);
+            showConnectedWallet();
             
             // Send to Telegram bot if in WebApp
             if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
                 const walletData = {
                     type: 'wallet_connect',
-                    address: address
+                    status: 'connected'
                 };
                 Telegram.WebApp.sendData(JSON.stringify(walletData));
             }
         }
 
-        function showConnectedWallet(address) {
+        function showConnectedWallet() {
             document.getElementById('wallet-status').style.display = 'none';
             document.getElementById('connected-wallet').style.display = 'block';
-            // Don't display the actual address, just show it's connected
-            document.getElementById('wallet-address-display').dataset.address = address;
-        }
-
-        function toggleWalletVisibility() {
-            const walletDisplay = document.getElementById('wallet-address-display');
-            const toggleButton = walletDisplay.querySelector('.hidden-wallet-toggle');
-            const address = walletDisplay.dataset.address;
-            
-            if (toggleButton.textContent === 'Show Address') {
-                walletDisplay.querySelector('.hidden-wallet-text').textContent = address;
-                walletDisplay.querySelector('.hidden-wallet-text').style.filter = 'none';
-                toggleButton.textContent = 'Hide Address';
-            } else {
-                walletDisplay.querySelector('.hidden-wallet-text').textContent = '••••••••••••••••••••••••••••••••••••••••••••';
-                walletDisplay.querySelector('.hidden-wallet-text').style.filter = 'blur(8px)';
-                toggleButton.textContent = 'Show Address';
-            }
-        }
-
-        function copyWalletAddress() {
-            const address = document.getElementById('wallet-address-display').dataset.address;
-            if (address) {
-                navigator.clipboard.writeText(address);
-                alert('Wallet address copied to clipboard!');
-            } else {
-                alert('No wallet address found');
-            }
         }
 
         function disconnectWallet() {
-            localStorage.removeItem('tonWalletAddress');
+            localStorage.removeItem('tonWalletConnected');
             document.getElementById('wallet-status').style.display = 'block';
             document.getElementById('connected-wallet').style.display = 'none';
             document.getElementById('wallet-qr-container').style.display = 'none';
             document.getElementById('connect-wallet').textContent = 'Connect Wallet';
+            
+            // Notify Telegram bot if in WebApp
+            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+                const walletData = {
+                    type: 'wallet_disconnect',
+                    status: 'disconnected'
+                };
+                Telegram.WebApp.sendData(JSON.stringify(walletData));
+            }
         }
     </script>
 </body>

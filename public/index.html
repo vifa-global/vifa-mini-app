@@ -540,6 +540,30 @@
             color: #FFD700;
             font-weight: bold;
         }
+        
+        /* Hidden wallet address styles */
+        .hidden-wallet {
+            position: relative;
+        }
+        
+        .hidden-wallet-text {
+            filter: blur(8px);
+            user-select: none;
+        }
+        
+        .hidden-wallet-toggle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -850,8 +874,9 @@
                         <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
                         <h3>Wallet Connected</h3>
                         
-                        <div class="wallet-address" id="wallet-address-display">
-                            UQDhD5NLSXFY0U_r5phEIIM7h7AAIVP90pPSzjS06UXHVXks
+                        <div class="wallet-address hidden-wallet" id="wallet-address-display">
+                            <div class="hidden-wallet-text">••••••••••••••••••••••••••••••••••••••••••••</div>
+                            <button class="hidden-wallet-toggle" onclick="toggleWalletVisibility()">Show Address</button>
                         </div>
                         
                         <button class="wallet-button" onclick="copyWalletAddress()">
@@ -1037,22 +1062,18 @@
         function showConnectedWallet(address) {
             document.getElementById('wallet-status').style.display = 'none';
             document.getElementById('connected-wallet').style.display = 'block';
-            document.getElementById('wallet-address-display').textContent = address;
+            // Don't display the actual address, just show it's connected
+            document.getElementById('wallet-address-display').dataset.address = address;
         }
 
-        function copyWalletAddress() {
-            const address = document.getElementById('wallet-address-display').textContent;
-            navigator.clipboard.writeText(address);
-            alert('Wallet address copied to clipboard!');
-        }
-
-        function disconnectWallet() {
-            localStorage.removeItem('tonWalletAddress');
-            document.getElementById('wallet-status').style.display = 'block';
-            document.getElementById('connected-wallet').style.display = 'none';
-            document.getElementById('wallet-qr-container').style.display = 'none';
-            document.getElementById('connect-wallet').textContent = 'Connect Wallet';
-        }
-    </script>
-</body>
-</html>
+        function toggleWalletVisibility() {
+            const walletDisplay = document.getElementById('wallet-address-display');
+            const toggleButton = walletDisplay.querySelector('.hidden-wallet-toggle');
+            const address = walletDisplay.dataset.address;
+            
+            if (toggleButton.textContent === 'Show Address') {
+                walletDisplay.querySelector('.hidden-wallet-text').textContent = address;
+                walletDisplay.querySelector('.hidden-wallet-text').style.filter = 'none';
+                toggleButton.textContent = 'Hide Address';
+            } else {
+                walletDisplay.querySelector('.hidden-w

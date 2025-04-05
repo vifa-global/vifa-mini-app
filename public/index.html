@@ -401,18 +401,17 @@
             max-width: 300px;
         }
 
-        .referral-link {
-            font-family: monospace;
-            font-size: 16px;
-            word-break: break-all;
+        .referral-code {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
             background: rgba(255, 215, 0, 0.1);
             padding: 15px;
             border-radius: 10px;
             margin: 15px 0;
             border: 1px dashed #FFD700;
             color: #FFD700;
-            text-decoration: none;
-            display: block;
+            letter-spacing: 1px;
         }
 
         .share-button {
@@ -533,6 +532,35 @@
             color: #7fdbff;
             font-size: 14px;
             margin: 15px 0;
+        }
+
+        /* New referral design styles */
+        .referral-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .referral-icon {
+            font-size: 24px;
+            color: #FFD700;
+        }
+
+        .referral-code-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .copy-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FFD700;
+            cursor: pointer;
+            font-size: 16px;
         }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -746,12 +774,16 @@
                 <p class="friends-subtitle">Earn rewards by sharing VIFA with friends</p>
                 
                 <div class="referral-card">
-                    <div>Your Referral Link</div>
-                    <a href="https://t.me/VIFACoinBot?start=ref_8183350482" class="referral-link">
-                        https://t.me/VIFACoinBot?start=ref_8183350482
-                    </a>
+                    <div class="referral-header">
+                        <i class="fas fa-user-plus referral-icon"></i>
+                        <span>Your Personal Invite Code</span>
+                    </div>
+                    <div class="referral-code-container">
+                        <div class="referral-code" id="referralCode">VIFA-8183350482</div>
+                        <i class="fas fa-copy copy-icon" onclick="copyReferralCode()"></i>
+                    </div>
                     <button class="share-button" id="shareButton">
-                        <i class="fas fa-share-alt"></i> Share Link
+                        <i class="fas fa-share-alt"></i> Share Invite
                     </button>
                 </div>
                 
@@ -915,11 +947,11 @@
 
         // Share functionality
         function shareVia(platform) {
-            const message = `Join me on VIFA Rewards! Use my link to get bonus points: https://t.me/VIFACoinBot?start=ref_8183350482`;
+            const message = `Join me on VIFA Rewards! Use my invite code VIFA-8183350482 to get bonus points!`;
             
             switch(platform) {
                 case 'telegram':
-                    window.open(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/VIFACoinBot?start=ref_8183350482')}&text=${encodeURIComponent(message)}`);
+                    window.open(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/VIFACoinBot')}&text=${encodeURIComponent(message)}`);
                     break;
                 case 'twitter':
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`);
@@ -932,13 +964,24 @@
                         navigator.share({
                             title: 'VIFA Rewards',
                             text: message,
-                            url: 'https://t.me/VIFACoinBot?start=ref_8183350482'
+                            url: 'https://t.me/VIFACoinBot'
                         });
                     } else {
                         // Fallback for browsers without Web Share API
-                        alert('Share this link: ' + message);
+                        copyReferralCode();
+                        alert('Invite code copied to clipboard! Share it with your friends: VIFA-8183350482');
                     }
             }
+        }
+
+        // Copy referral code function
+        function copyReferralCode() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            navigator.clipboard.writeText(referralCode).then(() => {
+                alert('Invite code copied to clipboard: ' + referralCode);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
         }
 
         document.getElementById('shareButton').addEventListener('click', function() {

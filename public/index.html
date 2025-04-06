@@ -910,6 +910,11 @@
 
 console.log("Telegram.WebApp exists?", !!window.Telegram?.WebApp);
 console.log("User ID:", Telegram?.WebApp?.initDataUnsafe?.user?.id);
+        // ===== DEBUG CODE =====
+alert("Script loaded!");  // Simple visibility check
+console.log("Telegram object exists:", window.Telegram);
+console.log("WebApp available:", Telegram?.WebApp);
+// ===== END DEBUG =====
         
         // Page navigation function
         function showPage(pageId) {

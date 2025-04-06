@@ -908,110 +908,6 @@
             document.getElementById('app').style.display = 'flex';
         });
 
-// Add this near the top of your script section
-Telegram.WebApp.expand(); // Make the app full-height
-
-// Function to fetch VP from the bot
-const vpSystem = {
-  initialized: false,
-  retryCount: 0,
-  
-  init() {
-    if (!window.Telegram?.WebApp || this.initialized) return;
-    
-    this.setupListeners();
-    this.waitForTelegramReady();
-    this.initialized = true;
-  },
-
-  setupListeners() {
-    // Combined listener for both VP and check-in status
-    Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
-      try {
-        const data = JSON.parse(event);
-        if (data?.type === 'vp_balance') {
-          this.updateVPDisplay(data.vp);
-        }
-        if (data?.type === 'checkin_status') {
-          this.updateCheckInStatus(data);
-        }
-      } catch (e) {
-        console.log("WebApp data error:", e);
-      }
-    });
-  },
-
-  waitForTelegramReady() {
-    if (Telegram.WebApp.initDataUnsafe?.user?.id) {
-      this.fetchAllData();
-    } else if (this.retryCount < 5) {
-      this.retryCount++;
-      setTimeout(() => this.waitForTelegramReady(), 300);
-    }
-  },
-
-  fetchAllData() {
-    this.fetchVPBalance();
-    this.fetchCheckInStatus();
-  },
-
-  fetchVPBalance() {
-    try {
-      Telegram.WebApp.sendData(JSON.stringify({
-        type: 'get_vp_balance',
-        userId: Telegram.WebApp.initDataUnsafe.user.id
-      }));
-    } catch (err) {
-      console.log("VP fetch error:", err);
-    }
-  },
-
-  fetchCheckInStatus() {
-    try {
-      Telegram.WebApp.sendData(JSON.stringify({
-        type: 'get_checkin_status',
-        userId: Telegram.WebApp.initDataUnsafe.user.id
-      }));
-    } catch (err) {
-      console.log("Check-in status fetch error:", err);
-    }
-  },
-
-  updateVPDisplay(points) {
-    const display = document.querySelector('.points-display');
-    if (display) display.textContent = `${points} VP`;
-  },
-
- updateCheckInStatus(data) {
-  const checkInBtn = document.querySelector('.checkin-button');
-  const streakDisplay = document.querySelector('.streak-display');
-  
-  if (data.canCheckIn) {
-    checkInBtn?.classList.add('available');
-    checkInBtn?.querySelector('span')?.textContent = 'DAILY CHECK-IN';
-    checkInBtn?.querySelector('.button-right')?.textContent = '+20 VP';
-  } else {
-    checkInBtn?.classList.remove('available');
-    const nextCheckIn = new Date(data.lastCheckIn);
-    nextCheckIn.setHours(nextCheckIn.getHours() + 24);
-    const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60)); // Corrected line
-    checkInBtn?.querySelector('span')?.textContent = `CHECK-IN (${hoursLeft}h)`;
-    checkInBtn?.querySelector('.button-right')?.textContent = '';
-  }
-  
-  if (streakDisplay) {
-    streakDisplay.textContent = `Streak: ${data.streak} days`;
-  }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  Telegram.WebApp.ready();
-  Telegram.WebApp.expand();
-  vpSystem.init();
-});
-
-        
         // Page navigation function
         function showPage(pageId) {
             // Hide all pages
@@ -1138,7 +1034,18 @@ Telegram.WebApp.sendData(JSON.stringify({
     type: 'get_vp_balance' 
 }));
 
-    
+// Listen for bot's response
+Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
+    try {
+        const data = JSON.parse(event);
+        if (data.type === 'vp_balance') {
+            // Update UI
+            document.querySelector('.points-display').textContent = data.vp + ' VP';
+        }
+    } catch (e) {
+        console.error("Error parsing bot response:", e);
+    }
+});            
 
             
         // =============================================
@@ -1203,5 +1110,3 @@ Telegram.WebApp.sendData(JSON.stringify({
     </script>
 </body>
 </html>
-
-

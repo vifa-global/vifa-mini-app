@@ -994,7 +994,7 @@ const vpSystem = {
     checkInBtn?.classList.remove('available');
     const nextCheckIn = new Date(data.lastCheckIn);
     nextCheckIn.setHours(nextCheckIn.getHours() + 24);
-    const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60)); // Fixed this line
+    const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60)); // Corrected line
     checkInBtn?.querySelector('span')?.textContent = `CHECK-IN (${hoursLeft}h)`;
     checkInBtn?.querySelector('.button-right')?.textContent = '';
   }

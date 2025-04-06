@@ -1028,51 +1028,25 @@
          // =============================================
         // Link app
         // =============================================
-     // 1. Send VP request on load
+     // Send VP request when app loads
 Telegram.WebApp.expand();
 Telegram.WebApp.sendData(JSON.stringify({ 
     type: 'get_vp_balance' 
 }));
 
-// 2. Listen for bot's response
+// Listen for bot's response
 Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
-    console.log("Bot replied:", event); // Check this in console!
     try {
         const data = JSON.parse(event);
         if (data.type === 'vp_balance') {
+            // Update UI
             document.querySelector('.points-display').textContent = data.vp + ' VP';
         }
     } catch (e) {
-        console.error("Parse error:", e);
+        console.error("Error parsing bot response:", e);
     }
 });            
-const tg = window.Telegram.WebApp;
-  tg.ready(); // Make sure Telegram WebApp is ready
 
-  const userId = tg.initDataUnsafe?.user?.id;
-
-  async function fetchVP() {
-    if (!userId) {
-      document.getElementById("vp-value").innerText = "Error: No user";
-      return;
-    }
-
-    try {
-      const response = await fetch(`https://vifa-backend.onrender.com/api/user?telegramId=${userId}`);
-      const data = await response.json();
-
-      if (data && data.vp !== undefined) {
-        document.getElementById("vp-value").innerText = data.vp;
-      } else {
-        document.getElementById("vp-value").innerText = "Not Found";
-      }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      document.getElementById("vp-value").innerText = "Error";
-    }
-  }
-
-  fetchVP();
             
         // =============================================
         // WALLET CONNECTION FUNCTIONALITY

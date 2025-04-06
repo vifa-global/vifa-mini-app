@@ -912,41 +912,49 @@
 Telegram.WebApp.expand(); // Make the app full-height
 
 // Function to fetch VP from the bot
-let vpRequestSent = false;
+let vpBalanceLoaded = false;
 
-function fetchVPBalance() {
-  if (!window.Telegram?.WebApp || vpRequestSent) return;
-  
-  const userId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  if (!userId) {
-    console.log("Waiting for user ID...");
-    setTimeout(fetchVPBalance, 500);
-    return;
-  }
-
-  vpRequestSent = true;
-  
-  Telegram.WebApp.sendData(JSON.stringify({
-    type: 'get_vp_balance',
-    userId: userId
-  }));
+function setupVPListener() {
+  if (!window.Telegram?.WebApp) return;
 
   Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
     try {
       const data = JSON.parse(event);
-      if (data?.type === 'vp_balance') {
+      if (data?.type === 'vp_balance' && !vpBalanceLoaded) {
+        vpBalanceLoaded = true;
         const display = document.querySelector('.points-display');
         if (display) display.textContent = `${data.vp} VP`;
       }
     } catch (e) {
-      console.log("Parse error:", e);
+      console.log("VP data parse error:", e);
     }
   });
 }
 
-// Initialize
+function fetchVPBalance() {
+  if (!window.Telegram?.WebApp || vpBalanceLoaded) return;
+
+  const user = Telegram.WebApp.initDataUnsafe?.user;
+  if (!user?.id) {
+    setTimeout(fetchVPBalance, 300);
+    return;
+  }
+
+  try {
+    Telegram.WebApp.sendData(JSON.stringify({
+      type: 'get_vp_balance',
+      userId: user.id
+    }));
+  } catch (err) {
+    console.log("VP send error:", err);
+  }
+}
+
+// Initialize (put this at the BOTTOM of your script)
+setupVPListener();
 Telegram.WebApp.ready();
-fetchVPBalance();
+Telegram.WebApp.expand();
+setTimeout(fetchVPBalance, 500);
         
         // Page navigation function
         function showPage(pageId) {

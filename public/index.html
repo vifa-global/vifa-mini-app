@@ -919,34 +919,43 @@ const vpSystem = {
   init() {
     if (!window.Telegram?.WebApp || this.initialized) return;
     
-    this.setupListener();
+    this.setupListeners();
     this.waitForTelegramReady();
     this.initialized = true;
   },
 
-  setupListener() {
+  setupListeners() {
+    // Combined listener for both VP and check-in status
     Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
       try {
         const data = JSON.parse(event);
         if (data?.type === 'vp_balance') {
-          this.updateDisplay(data.vp);
+          this.updateVPDisplay(data.vp);
+        }
+        if (data?.type === 'checkin_status') {
+          this.updateCheckInStatus(data);
         }
       } catch (e) {
-        console.log("VP data error:", e);
+        console.log("WebApp data error:", e);
       }
     });
   },
 
   waitForTelegramReady() {
     if (Telegram.WebApp.initDataUnsafe?.user?.id) {
-      this.fetchBalance();
+      this.fetchAllData();
     } else if (this.retryCount < 5) {
       this.retryCount++;
       setTimeout(() => this.waitForTelegramReady(), 300);
     }
   },
 
-  fetchBalance() {
+  fetchAllData() {
+    this.fetchVPBalance();
+    this.fetchCheckInStatus();
+  },
+
+  fetchVPBalance() {
     try {
       Telegram.WebApp.sendData(JSON.stringify({
         type: 'get_vp_balance',
@@ -957,9 +966,52 @@ const vpSystem = {
     }
   },
 
-  updateDisplay(points) {
+  fetchCheckInStatus() {
+    try {
+      Telegram.WebApp.sendData(JSON.stringify({
+        type: 'get_checkin_status',
+        userId: Telegram.WebApp.initDataUnsafe.user.id
+      }));
+    } catch (err) {
+      console.log("Check-in status fetch error:", err);
+    }
+  },
+
+  updateVPDisplay(points) {
     const display = document.querySelector('.points-display');
     if (display) display.textContent = `${points} VP`;
+  },
+
+  updateCheckInStatus(data) {
+    const checkInBtn = document.querySelector('.checkin-button');
+    const streakDisplay = document.querySelector('.streak-display');
+    
+    if (data.canCheckIn) {
+      checkInBtn?.classList.add('available');
+      checkInBtn?.querySelector('span')?.textContent = 'DAILY CHECK-IN';
+      checkInBtn?.querySelector('.button-right')?.textContent = '+20 VP';
+    } else {
+      checkInBtn?.classList.remove('available');
+      const nextCheckIn = new Date(data.lastCheckIn);
+      nextCheckIn.setHours(nextCheckIn.getHours() + 24);
+      const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60));
+      checkInBtn?.querySelector('span')?.textContent = `CHECK-IN (${hoursLeft}h)`;
+      checkInBtn?.querySelector('.button-right')?.textContent = '';
+    }
+    
+    if (streakDisplay) {
+      streakDisplay.textContent = `Streak: ${data.streak} days`;
+    }
+  },
+
+  handleCheckIn() {
+    const checkInBtn = document.querySelector('.checkin-button');
+    if (checkInBtn?.classList.contains('available')) {
+      Telegram.WebApp.sendData(JSON.stringify({
+        type: 'perform_checkin',
+        userId: Telegram.WebApp.initDataUnsafe.user.id
+      }));
+    }
   }
 };
 

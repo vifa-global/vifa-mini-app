@@ -1045,7 +1045,22 @@ Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
     } catch (e) {
         console.error("Error parsing bot response:", e);
     }
-});            
+});      
+
+        // Add this to your HTML/JS (where you handle Telegram data)
+async function fetchVPBalance(userId) {
+  try {
+    const response = await fetch(`https://your-render-url.onrender.com/api/user/${userId}/balance`);
+    const data = await response.json();
+    document.querySelector('.points-display').textContent = `${data.vp} VP`;
+  } catch (err) {
+    console.error("Failed to fetch VP:", err);
+  }
+}
+
+// Call it when mini app loads
+Telegram.WebApp.ready();
+fetchVPBalance(Telegram.WebApp.initDataUnsafe.user.id);
 
             
         // =============================================

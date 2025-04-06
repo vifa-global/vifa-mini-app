@@ -956,10 +956,18 @@ async function loadUserData() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            }
+            },
+            mode: 'cors',
+            credentials: 'include'
         });
         
-        if (!response.ok) throw new Error("Network response was not ok");
+        if (!response.ok) {
+            // If 404, create new user
+            if (response.status === 404) {
+                return await createNewUser();
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
         const data = await response.json();
         
@@ -973,6 +981,33 @@ async function loadUserData() {
     } catch (error) {
         console.error("Error loading user data:", error);
         // Initialize with default values if error occurs
+        updateUserInterface(0, 0);
+    }
+}
+
+// Create new user if doesn't exist
+async function createNewUser() {
+    try {
+        const response = await fetch(`https://vifa-backend.onrender.com/api/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userData.id,
+                points: 0,
+                streak: 0
+            }),
+            mode: 'cors',
+            credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error("Failed to create user");
+        
+        updateUserInterface(0, 0);
+    } catch (error) {
+        console.error("Error creating user:", error);
         updateUserInterface(0, 0);
     }
 }
@@ -1016,8 +1051,8 @@ function setupEventListeners() {
 // Handle VP click (sync with backend)
 async function handleVpClick() {
     try {
-        // Try updating points using POST
-        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/add-points`, {
+        // First try the standard endpoint
+        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/points`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1025,29 +1060,34 @@ async function handleVpClick() {
             },
             body: JSON.stringify({
                 points: 1
-            })
+            }),
+            mode: 'cors',
+            credentials: 'include'
         });
         
         if (!response.ok) {
-            // If POST fails, try PUT as fallback
-            const fallbackResponse = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`, {
-                method: 'PUT',
+            // If standard endpoint fails, try alternative
+            const altResponse = await fetch(`https://vifa-backend.onrender.com/api/user/update-points`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    points: userData.points
-                })
+                    userId: userData.id,
+                    points: 1
+                }),
+                mode: 'cors',
+                credentials: 'include'
             });
             
-            if (!fallbackResponse.ok) throw new Error("Both POST and PUT methods failed");
+            if (!altResponse.ok) throw new Error("All update methods failed");
             
-            const fallbackData = await fallbackResponse.json();
-            userData.points = fallbackData.points || userData.points;
+            const altData = await altResponse.json();
+            userData.points = altData.points || userData.points;
         } else {
             const data = await response.json();
-            userData.points = data.points || data.newBalance || userData.points;
+            userData.points = data.points || userData.points;
         }
         
         updateUserInterface(userData.points, userData.streak);
@@ -1055,6 +1095,8 @@ async function handleVpClick() {
     } catch (error) {
         console.error("Failed to sync points:", error);
         // Points will remain as locally incremented value
+        // Try to sync again later
+        setTimeout(handleVpClick, 3000);
     }
 }
 
@@ -1069,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (preloader && preloader.style.display !== 'none') {
             transitionToApp();
         }
-    }, 6000); // 4s video + 2s buffer
+    }, 6000);
 
     // Video event handlers
     if (video) {

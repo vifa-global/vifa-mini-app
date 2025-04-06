@@ -908,17 +908,33 @@
             document.getElementById('app').style.display = 'flex';
         });
 
-// Add this to your frontend code (where the app initializes)
-document.addEventListener('DOMContentLoaded', function() {
-    // Request VP balance and tasks from the bot
-    if (window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-        const userId = Telegram.WebApp.initDataUnsafe.user.id;
-        Telegram.WebApp.sendData(JSON.stringify({
-            type: 'get_user_data', // Bot will listen for this
-            userId: userId
-        }));
-    }
-});
+// Add this near the top of your script section
+Telegram.WebApp.expand(); // Make the app full-height
+
+// Function to fetch VP from the bot
+async function fetchVPBalance() {
+  try {
+    // Send request to bot
+    Telegram.WebApp.sendData(JSON.stringify({
+      type: 'get_vp_balance',
+      userId: Telegram.WebApp.initDataUnsafe.user.id
+    }));
+    
+    // Listen for the bot's response
+    Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
+      const data = JSON.parse(event);
+      if (data.type === 'vp_balance') {
+        // Update UI with the VP balance
+        document.querySelector('.points-display').textContent = `${data.vp} VP`;
+      }
+    });
+  } catch (err) {
+    console.error("Error fetching VP:", err);
+  }
+}
+
+// Call this when the app loads
+document.addEventListener('DOMContentLoaded', fetchVPBalance);
 
         
         // Page navigation function

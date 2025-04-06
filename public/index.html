@@ -908,17 +908,6 @@
             document.getElementById('app').style.display = 'flex';
         });
 
-console.log("Telegram.WebApp exists?", !!window.Telegram?.WebApp);
-console.log("User ID:", Telegram?.WebApp?.initDataUnsafe?.user?.id);
-        // ===== DEBUG CODE =====
-alert("Script loaded!");  // Simple visibility check
-console.log("Telegram object exists:", window.Telegram);
-console.log("WebApp available:", Telegram?.WebApp);
-console.log("InitData:", Telegram.WebApp.initData);
-console.log("InitDataUnsafe:", Telegram.WebApp.initDataUnsafe);
-
-// ===== END DEBUG =====
-        
         // Page navigation function
         function showPage(pageId) {
             // Hide all pages
@@ -995,80 +984,46 @@ console.log("InitDataUnsafe:", Telegram.WebApp.initDataUnsafe);
             });
         }
 
+        document.getElementById('shareButton').addEventListener('click', function() {
+            shareVia('default');
+        });
+
+        // Coin animation for VP click
         document.getElementById('click-for-vp').addEventListener('click', function() {
-    // 1. Update UI immediately (animations + VP counter)
-    const vpDisplay = document.querySelector('.points-display');
-    const currentVP = parseInt(vpDisplay.textContent);
-    vpDisplay.textContent = (currentVP + 1) + ' VP';
-    
-    // 2. Create coins animation (keep your existing animation)
-    const buttonRect = this.getBoundingClientRect();
-    const buttonCenterX = buttonRect.left + buttonRect.width / 2;
-    const buttonCenterY = buttonRect.top + buttonRect.height / 2;
-    for (let i = 0; i < 5; i++) createCoin(buttonCenterX, buttonCenterY);
+            // Update VP points
+            const vpDisplay = document.querySelector('.points-display');
+            const currentVP = parseInt(vpDisplay.textContent);
+            vpDisplay.textContent = (currentVP + 1) + ' VP';
+            
+            // Create coins
+            const buttonRect = this.getBoundingClientRect();
+            const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+            const buttonCenterY = buttonRect.top + buttonRect.height / 2;
+            
+            // Create 5 coins
+            for (let i = 0; i < 5; i++) {
+                createCoin(buttonCenterX, buttonCenterY);
+            }
+        });
 
-    // 3. PROPER BACKEND COMMUNICATION
-    if (window.Telegram?.WebApp?.sendData) {
-        try {
-            Telegram.WebApp.sendData(JSON.stringify({
-                command: "earn_vp",
-                userId: Telegram.WebApp.initDataUnsafe.user.id,
-                timestamp: Date.now()
-            }));
-            console.log("VP claim sent to backend");
-        } catch (error) {
-            console.error("Failed to send:", error);
-            // Optional: Retry logic or fallback
+        function createCoin(startX, startY) {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            
+            // Random starting position near the button
+            const offsetX = (Math.random() - 0.5) * 40;
+            const offsetY = (Math.random() - 0.5) * 40;
+            
+            coin.style.left = (startX + offsetX) + 'px';
+            coin.style.top = (startY + offsetY) + 'px';
+            
+            document.body.appendChild(coin);
+            
+            // Remove coin after animation completes
+            setTimeout(() => {
+                coin.remove();
+            }, 1000);
         }
-    } else {
-        console.warn("Telegram WebApp unavailable - running in browser");
-        // Fallback for browser testing
-        fetch('YOUR_BACKEND_ENDPOINT', {
-            method: 'POST',
-            body: JSON.stringify({ command: "earn_vp", userId: 8183350482 })
-        });
-    }
-});
-        Telegram.WebApp.onEvent('viewportChanged', function(e){
-            console.log("Backend response:", e);  // Debug line 2
-        });
-    }
-    // ===== END NEW CODE =====
-    
-    // KEEP ALL YOUR ORIGINAL ANIMATION CODE BELOW
-    // Update VP points
-    const vpDisplay = document.querySelector('.points-display');
-    const currentVP = parseInt(vpDisplay.textContent);
-    vpDisplay.textContent = (currentVP + 1) + ' VP';
-    
-    // Create coins
-    const buttonRect = this.getBoundingClientRect();
-    const buttonCenterX = buttonRect.left + buttonRect.width / 2;
-    const buttonCenterY = buttonRect.top + buttonRect.height / 2;
-    
-    // Create 5 coins
-    for (let i = 0; i < 5; i++) {
-        createCoin(buttonCenterX, buttonCenterY);
-    }
-});
-
-// KEEP YOUR ORIGINAL createCoin FUNCTION EXACTLY AS IS
-function createCoin(startX, startY) {
-    const coin = document.createElement('div');
-    coin.className = 'coin';
-    
-    const offsetX = (Math.random() - 0.5) * 40;
-    const offsetY = (Math.random() - 0.5) * 40;
-    
-    coin.style.left = (startX + offsetX) + 'px';
-    coin.style.top = (startY + offsetY) + 'px';
-    
-    document.body.appendChild(coin);
-    
-    setTimeout(() => {
-        coin.remove();
-    }, 1000);
-}
 
         // =============================================
         // WALLET CONNECTION FUNCTIONALITY

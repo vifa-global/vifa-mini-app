@@ -1028,38 +1028,53 @@
         // =============================================
         // WALLET CONNECTION FUNCTIONALITY
         // =============================================
+// Remove the auto wallet check from preloader/main flow
+// Keep only the button handler on wallet page:
 
-            // Wallet connection handler (optional)
-    if (localStorage.getItem('tonWalletConnected')) {
-      showConnectedWallet();
-    }
-
-    document.getElementById('connect-wallet').addEventListener('click', async function() {
-      // Show QR option
-      document.getElementById('wallet-qr-container').style.display = 'block';
-      this.innerHTML = '<i class="fas fa-plug"></i> Continue in Wallet App (Optional)';
+// In wallet-page.js or equivalent section:
+function initWalletPage() {
+  // Only check connection status when wallet page is opened
+  document.getElementById('connect-wallet').addEventListener('click', async function() {
+    // Show QR option
+    document.getElementById('wallet-qr-container').style.display = 'block';
+    this.innerHTML = '<i class="fas fa-plug"></i> Connect Wallet (Optional)';
+    
+    try {
+      // Real TON Connect implementation would go here
+      const tonConnect = new TonConnect();
+      const wallet = await tonConnect.connect();
       
-      try {
-        // Simulate connection (replace with real TON Connect in production)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Save connection
+      if (wallet) {
         localStorage.setItem('tonWalletConnected', 'true');
         showConnectedWallet();
         
-        // Notify Telegram bot
+        // Send to Telegram bot
         if (window.Telegram?.WebApp?.sendData) {
           Telegram.WebApp.sendData(JSON.stringify({
             type: 'wallet_connected',
-            status: 'success',
-            isOptional: true
+            address: wallet.address,
+            status: 'success' 
           }));
-      
-      } catch (err) {
-        console.error('Connection error:', err);
+        }
       }
-    });
-            
+    } catch (err) {
+      console.error('Connection error:', err);
+      this.innerHTML = '<i class="fas fa-plug"></i> Retry Connection';
+    }
+  });
+
+  // Only check connection when wallet page loads
+  if (window.location.hash === '#wallet') {
+    if (localStorage.getItem('tonWalletConnected')) {
+      showConnectedWallet();
+    }
+  }
+}
+
+// Call this when wallet page is initialized
+initWalletPage();
+      
+                
             
                 Telegram.WebApp.sendData(JSON.stringify(walletData));
             }

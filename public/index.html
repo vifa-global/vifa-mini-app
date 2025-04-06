@@ -950,10 +950,15 @@ async function loadUserData() {
       // Store for later use
       userData.points = data.points;
       userData.streak = data.streak;
-    } catch (error) {
-      console.error("Failed to load user data:", error);
-    }
-  }
+    try {
+  // Your code that might fail
+  const response = await fetch('your-api-url');
+  const data = await response.json();
+  // Process data
+} catch (error) {
+  // Handle errors
+  console.error('Error:', error);
+}
 
   // Example: Handle VP click
   document.getElementById('click-for-vp').addEventListener('click', async () => {

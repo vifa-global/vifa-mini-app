@@ -1029,29 +1029,36 @@
         // WALLET CONNECTION FUNCTIONALITY
         // =============================================
 
-        // Check if wallet is already connected (from localStorage)
-        if (localStorage.getItem('tonWalletConnected')) {
-            showConnectedWallet();
+            // Wallet connection handler (optional)
+    if (localStorage.getItem('tonWalletConnected')) {
+      showConnectedWallet();
+    }
+
+    document.getElementById('connect-wallet').addEventListener('click', async function() {
+      // Show QR option
+      document.getElementById('wallet-qr-container').style.display = 'block';
+      this.innerHTML = '<i class="fas fa-plug"></i> Continue in Wallet App (Optional)';
+      
+      try {
+        // Simulate connection (replace with real TON Connect in production)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Save connection
+        localStorage.setItem('tonWalletConnected', 'true');
+        showConnectedWallet();
+        
+        // Notify Telegram bot
+        if (window.Telegram?.WebApp?.sendData) {
+          Telegram.WebApp.sendData(JSON.stringify({
+            type: 'wallet_connected',
+            status: 'success',
+            isOptional: true
+          }));
         }
-
-        // Connect wallet button
-        document.getElementById('connect-wallet').addEventListener('click', function() {
-            // Show QR code option (simulated)
-            document.getElementById('wallet-qr-container').style.display = 'block';
-            this.textContent = 'Continue in Wallet App';
-            
-            // Simulate wallet connection after delay
-            setTimeout(() => {
-                connectWallet();
-            }, 2000);
-        });
-
-        function connectWallet() {
-            // Save connection status to localStorage
-            localStorage.setItem('tonWalletConnected', 'true');
-            
-            // Show connected state
-            showConnectedWallet();
+      } catch (err) {
+        console.error('Connection error:', err);
+      }
+    });
             
             // Send to Telegram bot if in WebApp
             if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {

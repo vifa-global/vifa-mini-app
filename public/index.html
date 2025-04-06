@@ -907,60 +907,45 @@
   tg.expand(); // Make app fullscreen
   
   // This will hold user data
-  let userData = {
-    id: null,
-    points: 0,
-    streak: 0
-  };
+  // Initialize user data object
+const userData = {
+  id: null,
+  points: 0,
+  streak: 0
+};
+
+// Initialize Telegram WebApp
+const tg = window.Telegram.WebApp;
+tg.expand();
 
 async function loadUserData() {
-  try {  // ✅ Opening brace MUST be on same line as `try`
-  const response = await fetch('https://vifa-backend.onrender.com/api/user/' + userData.id);
-  const data = await response.json();
-  
-  if (!data) throw new Error("No data received");
-  
-  document.getElementById('vp-balance').textContent = data.points + ' VP';
-  
-} catch (error) {  // ✅ `catch` aligned with `try`
-  console.error("Fetch failed:", error);
-  document.getElementById('vp-balance').textContent = "Error";
-}
-
-        
-  // When app loads
-  document.addEventListener('DOMContentLoaded', () => {
-    // Get user from Telegram
-    if (tg.initDataUnsafe?.user) {
-      userData.id = tg.initDataUnsafe.user.id;
-      loadUserData();
-    } else {
-      console.error("No user data from Telegram");
-      // Fallback for testing
-      userData.id = 12345; // Remove this in production
-      loadUserData();
+  try {
+    const response = await fetch('https://vifa-backend.onrender.com/api/user/' + userData.id);
+    
+    if (!response.ok) throw new Error("Network response was not ok");
+    
+    const data = await response.json();
+    
+    if (!data || typeof data.points === 'undefined') {
+      throw new Error("Invalid data format");
     }
-  });
-
-      
-      // Update frontend display
-      document.getElementById('vp-balance').textContent = data.points + ' VP';
-      document.getElementById('streak-display').textContent = 'Streak: ' + data.streak + ' days';
-      
-      // Store for later use
-      userData.points = data.points;
-      userData.streak = data.streak;
-    try {
-  // Your code that might fail
-  const response = await fetch('your-api-url');
-  const data = await response.json();
-  // Process data
-} catch (error) {
-  // Handle errors
-  console.error('Error:', error);
+    
+    // Update UI
+    document.getElementById('vp-balance').textContent = data.points + ' VP';
+    document.getElementById('streak-display').textContent = 'Streak: ' + data.streak + ' days';
+    
+    // Store for later use
+    userData.points = data.points;
+    userData.streak = data.streak;
+    
+  } catch (error) {
+    console.error("Error loading user data:", error);
+    document.getElementById('vp-balance').textContent = "Error";
+    document.getElementById('streak-display').textContent = "Streak: N/A";
+  }
 }
 
- // Example: Handle VP click
+// Handle VP click
 document.getElementById('click-for-vp').addEventListener('click', async () => {
   try {
     const response = await fetch('https://vifa-backend.onrender.com/api/user/add-points', {
@@ -974,12 +959,29 @@ document.getElementById('click-for-vp').addEventListener('click', async () => {
       })
     });
     
+    if (!response.ok) throw new Error("Failed to add points");
+    
     const result = await response.json();
     userData.points = result.newBalance;
     document.getElementById('vp-balance').textContent = userData.points + ' VP';
     
   } catch (error) {
     console.error("Failed to add points:", error);
+    alert("Failed to add points. Please try again.");
+  }
+});
+
+// When app loads
+document.addEventListener('DOMContentLoaded', () => {
+  // Get user from Telegram
+  if (tg.initDataUnsafe?.user) {
+    userData.id = tg.initDataUnsafe.user.id;
+    loadUserData();
+  } else {
+    console.error("No user data from Telegram");
+    // Fallback for testing (remove in production)
+    userData.id = 12345;
+    loadUserData();
   }
 }); // <-- This was missing
 </script>

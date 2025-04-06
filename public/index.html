@@ -1107,41 +1107,8 @@ Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
                 Telegram.WebApp.sendData(JSON.stringify(walletData));
             }
         }
-
-        // =============================================
-// VP Balance Sync
-// =============================================
-let currentVP = 0;
-
-function updateVPDisplay(vp) {
-    currentVP = vp;
-    document.querySelector('.points-display').textContent = vp + ' VP';
-}
-
-function fetchVPBalance() {
-    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
-        Telegram.WebApp.sendData(JSON.stringify({ 
-            type: 'get_vp_balance',
-            userId: Telegram.WebApp.initDataUnsafe.user?.id 
-        }));
-    } else {
-        console.log("Not in Telegram WebApp - using mock data");
-        updateVPDisplay(100); // Default value
-    }
-}
-
-if (window.Telegram && Telegram.WebApp) {
-    Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
-        try {
-            const data = JSON.parse(event);
-            if (data.type === 'vp_balance') {
-                updateVPDisplay(data.balance);
-            }
-        } catch (e) {
-            console.error("Error parsing bot response:", e);
-        }
-    });
-}
     </script>
 </body>
 </html>
+
+

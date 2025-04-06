@@ -988,42 +988,52 @@
             shareVia('default');
         });
 
-        // Coin animation for VP click
-        document.getElementById('click-for-vp').addEventListener('click', function() {
-            // Update VP points
-            const vpDisplay = document.querySelector('.points-display');
-            const currentVP = parseInt(vpDisplay.textContent);
-            vpDisplay.textContent = (currentVP + 1) + ' VP';
-            
-            // Create coins
-            const buttonRect = this.getBoundingClientRect();
-            const buttonCenterX = buttonRect.left + buttonRect.width / 2;
-            const buttonCenterY = buttonRect.top + buttonRect.height / 2;
-            
-            // Create 5 coins
-            for (let i = 0; i < 5; i++) {
-                createCoin(buttonCenterX, buttonCenterY);
-            }
-        });
+       // Coin animation for VP click - MODIFIED VERSION
+document.getElementById('click-for-vp').addEventListener('click', function() {
+    // ===== NEW CODE =====
+    if (window.Telegram && Telegram.WebApp) {
+        // Send command to bot backend
+        Telegram.WebApp.sendData(JSON.stringify({
+            command: "earn_vp",
+            userId: Telegram.WebApp.initDataUnsafe.user.id
+        }));
+    }
+    // ===== END NEW CODE =====
+    
+    // KEEP ALL YOUR ORIGINAL ANIMATION CODE BELOW
+    // Update VP points
+    const vpDisplay = document.querySelector('.points-display');
+    const currentVP = parseInt(vpDisplay.textContent);
+    vpDisplay.textContent = (currentVP + 1) + ' VP';
+    
+    // Create coins
+    const buttonRect = this.getBoundingClientRect();
+    const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+    const buttonCenterY = buttonRect.top + buttonRect.height / 2;
+    
+    // Create 5 coins
+    for (let i = 0; i < 5; i++) {
+        createCoin(buttonCenterX, buttonCenterY);
+    }
+});
 
-        function createCoin(startX, startY) {
-            const coin = document.createElement('div');
-            coin.className = 'coin';
-            
-            // Random starting position near the button
-            const offsetX = (Math.random() - 0.5) * 40;
-            const offsetY = (Math.random() - 0.5) * 40;
-            
-            coin.style.left = (startX + offsetX) + 'px';
-            coin.style.top = (startY + offsetY) + 'px';
-            
-            document.body.appendChild(coin);
-            
-            // Remove coin after animation completes
-            setTimeout(() => {
-                coin.remove();
-            }, 1000);
-        }
+// KEEP YOUR ORIGINAL createCoin FUNCTION EXACTLY AS IS
+function createCoin(startX, startY) {
+    const coin = document.createElement('div');
+    coin.className = 'coin';
+    
+    const offsetX = (Math.random() - 0.5) * 40;
+    const offsetY = (Math.random() - 0.5) * 40;
+    
+    coin.style.left = (startX + offsetX) + 'px';
+    coin.style.top = (startY + offsetY) + 'px';
+    
+    document.body.appendChild(coin);
+    
+    setTimeout(() => {
+        coin.remove();
+    }, 1000);
+}
 
         // =============================================
         // WALLET CONNECTION FUNCTIONALITY

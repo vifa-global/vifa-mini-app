@@ -915,13 +915,19 @@
 
 async function loadUserData() {
   try {
-    const response = await fetch('https://vifa-backend.onrender.com/api/user/8183350482', {
-      mode: 'cors' // Force CORS mode
-    });
-    // ... rest of your code ...
-  }
+  const response = await fetch('https://vifa-backend.onrender.com/api/user/' + userData.id);
+  if (!response.ok) throw new Error("Network error");
+  
+  const data = await response.json();
+  document.getElementById('vp-balance').textContent = data.points + ' VP';
+  document.getElementById('streak-display').textContent = 'Streak: ' + data.streak + ' days';
+  
+} catch (error) {
+  console.error("Failed to load user data:", error);
+  document.getElementById('vp-balance').textContent = "Error";
 }
 
+        
   // When app loads
   document.addEventListener('DOMContentLoaded', () => {
     // Get user from Telegram
@@ -936,11 +942,6 @@ async function loadUserData() {
     }
   });
 
-  // Load user data from backend
-  async function loadUserData() {
-    try {
-      const response = await fetch('https://vifa-backend.onrender.com/api/user/' + userData.id);
-      const data = await response.json();
       
       // Update frontend display
       document.getElementById('vp-balance').textContent = data.points + ' VP';

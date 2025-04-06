@@ -1028,22 +1028,22 @@
          // =============================================
         // Link app
         // =============================================
-     // Send VP request when app loads
+     // 1. Send VP request on load
 Telegram.WebApp.expand();
 Telegram.WebApp.sendData(JSON.stringify({ 
     type: 'get_vp_balance' 
 }));
 
-// Listen for bot's response
+// 2. Listen for bot's response
 Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
+    console.log("Bot replied:", event); // Check this in console!
     try {
         const data = JSON.parse(event);
         if (data.type === 'vp_balance') {
-            // Update UI
             document.querySelector('.points-display').textContent = data.vp + ' VP';
         }
     } catch (e) {
-        console.error("Error parsing bot response:", e);
+        console.error("Parse error:", e);
     }
 });            
 

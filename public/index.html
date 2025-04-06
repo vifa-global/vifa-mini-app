@@ -915,18 +915,32 @@ Telegram.WebApp.expand(); // Make the app full-height
 async function fetchVPBalance() {
   try {
     if (window.Telegram && Telegram.WebApp) {
-      // Send request to bot
+      // Get user ID safely
+      const userId = Telegram.WebApp.initDataUnsafe?.user?.id;
+      if (!userId) {
+        console.error("User ID not available");
+        return;
+      }
+
+      // Send properly formatted request
       Telegram.WebApp.sendData(JSON.stringify({
         type: 'get_vp_balance',
-        userId: Telegram.WebApp.initDataUnsafe.user.id
+        userId: userId
       }));
-      
+
       // Listen for response
       Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
-        const data = JSON.parse(event);
-        if (data.type === 'vp_balance') {
-          // Update UI
-          document.querySelector('.points-display').textContent = `${data.vp} VP`;
+        try {
+          const data = JSON.parse(event);
+          if (data.type === 'vp_balance') {
+            // Update UI
+            const pointsDisplay = document.querySelector('.points-display');
+            if (pointsDisplay) {
+              pointsDisplay.textContent = `${data.vp} VP`;
+            }
+          }
+        } catch (e) {
+          console.error("Response parse error:", e);
         }
       });
     }
@@ -936,11 +950,8 @@ async function fetchVPBalance() {
 }
 
 // Call on app load
-document.addEventListener('DOMContentLoaded', fetchVPBalance); // Add this line
-
-// Call this when the app loads
-document.addEventListener('DOMContentLoaded', fetchVPBalance);
-
+Telegram.WebApp.ready();
+fetchVPBalance();
         
         // Page navigation function
         function showPage(pageId) {

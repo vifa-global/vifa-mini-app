@@ -991,12 +991,15 @@
        // Coin animation for VP click - MODIFIED VERSION
 document.getElementById('click-for-vp').addEventListener('click', function() {
     // ===== NEW CODE =====
-    if (window.Telegram && Telegram.WebApp) {
-        // Send command to bot backend
+        if (window.Telegram && Telegram.WebApp) {
+        console.log("Sending to backend...");  // Debug line 1
         Telegram.WebApp.sendData(JSON.stringify({
             command: "earn_vp",
             userId: Telegram.WebApp.initDataUnsafe.user.id
         }));
+        Telegram.WebApp.onEvent('viewportChanged', function(e){
+            console.log("Backend response:", e);  // Debug line 2
+        });
     }
     // ===== END NEW CODE =====
     

@@ -1042,9 +1042,23 @@ Telegram.WebApp.onEvent('viewportChanged', (event) => {
 });
 
 function fetchUserData() {
-    // This assumes the bot replies with a message containing VP
-    // (You'll replace this later with WebApp.response)
-    console.log("Waiting for bot response...");
+    // Send request to bot
+    Telegram.WebApp.sendData(JSON.stringify({ 
+        type: 'get_vp_balance' 
+    }));
+
+    // Listen for bot's reply (simplified)
+    Telegram.WebApp.onEvent('message', (msg) => {
+        try {
+            const data = JSON.parse(msg);
+            if (data.type === 'vp_balance') {
+                // Update VP display
+                document.querySelector('.points-display').textContent = data.vp + ' VP';
+            }
+        } catch (e) {
+            console.error("Failed to parse bot reply:", e);
+        }
+    });
 }  
             
 

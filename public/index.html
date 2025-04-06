@@ -1028,54 +1028,37 @@
         // =============================================
         // WALLET CONNECTION FUNCTIONALITY
         // =============================================
-// Remove the auto wallet check from preloader/main flow
-// Keep only the button handler on wallet page:
 
-// In wallet-page.js or equivalent section:
-function initWalletPage() {
-  // Only check connection status when wallet page is opened
-  document.getElementById('connect-wallet').addEventListener('click', async function() {
-    // Show QR option
-    document.getElementById('wallet-qr-container').style.display = 'block';
-    this.innerHTML = '<i class="fas fa-plug"></i> Connect Wallet (Optional)';
-    
-    try {
-      // Real TON Connect implementation would go here
-      const tonConnect = new TonConnect();
-      const wallet = await tonConnect.connect();
-      
-      if (wallet) {
-        localStorage.setItem('tonWalletConnected', 'true');
-        showConnectedWallet();
-        
-        // Send to Telegram bot
-        if (window.Telegram?.WebApp?.sendData) {
-          Telegram.WebApp.sendData(JSON.stringify({
-            type: 'wallet_connected',
-            address: wallet.address,
-            status: 'success' 
-          }));
+        // Check if wallet is already connected (from localStorage)
+        if (localStorage.getItem('tonWalletConnected')) {
+            showConnectedWallet();
         }
-      }
-    } catch (err) {
-      console.error('Connection error:', err);
-      this.innerHTML = '<i class="fas fa-plug"></i> Retry Connection';
-    }
-  });
 
-  // Only check connection when wallet page loads
-  if (window.location.hash === '#wallet') {
-    if (localStorage.getItem('tonWalletConnected')) {
-      showConnectedWallet();
-    }
-  }
-}
-
-// Call this when wallet page is initialized
-initWalletPage();
-      
-                
+        // Connect wallet button
+        document.getElementById('connect-wallet').addEventListener('click', function() {
+            // Show QR code option (simulated)
+            document.getElementById('wallet-qr-container').style.display = 'block';
+            this.textContent = 'Continue in Wallet App';
             
+            // Simulate wallet connection after delay
+            setTimeout(() => {
+                connectWallet();
+            }, 2000);
+        });
+
+        function connectWallet() {
+            // Save connection status to localStorage
+            localStorage.setItem('tonWalletConnected', 'true');
+            
+            // Show connected state
+            showConnectedWallet();
+            
+            // Send to Telegram bot if in WebApp
+            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+                const walletData = {
+                    type: 'wallet_connect',
+                    status: 'connected'
+                };
                 Telegram.WebApp.sendData(JSON.stringify(walletData));
             }
         }

@@ -1060,12 +1060,7 @@
       }
     });
             
-            // Send to Telegram bot if in WebApp
-            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
-                const walletData = {
-                    type: 'wallet_connect',
-                    status: 'connected'
-                };
+            
                 Telegram.WebApp.sendData(JSON.stringify(walletData));
             }
         }

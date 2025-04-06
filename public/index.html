@@ -902,159 +902,136 @@
     </div>
 
     <script>
- // Initialize Telegram WebApp and user data ONCE
-  const tg = window.Telegram.WebApp;
-  tg.expand(); // Make app fullscreen
-  
-  // This will hold user data
-  const userData = {
+// Global variables
+const userData = {
     id: null,
     points: 0,
     streak: 0
-  };
-
-  async function loadUserData() {
-    try {
-      const response = await fetch('https://vifa-backend.onrender.com/api/user/' + userData.id);
-      
-      if (!response.ok) throw new Error("Network response was not ok");
-      
-      const data = await response.json();
-      
-      if (!data || typeof data.points === 'undefined') {
-        throw new Error("Invalid data format");
-      }
-
-      // Update UI
-      document.getElementById('vp-balance').textContent = data.points + ' VP';
-      document.getElementById('streak-display').textContent = 'Streak: ' + data.streak + ' days';
-      
-      // Store for later use
-      userData.points = data.points;
-      userData.streak = data.streak;
-      
-    } catch (error) {
-      console.error("Error loading user data:", error);
-      document.getElementById('vp-balance').textContent = "Error";
-      document.getElementById('streak-display').textContent = "Streak: N/A";
-    }
-  }
-
-  // Initialize user data object
-const userData = {
-  id: null,
-  points: 0,
-  streak: 0
 };
+
+// Main initialization function
+function initApp() {
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    
+    // Get user from Telegram
+    if (tg.initDataUnsafe?.user) {
+        userData.id = tg.initDataUnsafe.user.id;
+    } else {
+        console.error("No user data from Telegram");
+        userData.id = 12345; // Test ID - remove in production
+    }
+    
+    loadUserData();
+    setupEventListeners();
+}
+
+// Load user data from backend
+async function loadUserData() {
+    try {
+        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`);
+        
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        const data = await response.json();
+        
+        if (!data || typeof data.points === 'undefined') {
+            throw new Error("Invalid data format");
+        }
+
+        // Update UI
+        updateUserInterface(data.points, data.streak);
+        
+    } catch (error) {
+        console.error("Error loading user data:", error);
+        updateUserInterface("Error", "N/A");
+    }
+}
+
+// Update UI elements
+function updateUserInterface(points, streak) {
+    const vpElement = document.getElementById('vp-balance');
+    const streakElement = document.getElementById('streak-display');
+    
+    if (vpElement) vpElement.textContent = `${points} VP`;
+    if (streakElement) streakElement.textContent = `Streak: ${streak} days`;
+    
+    // Store for later use
+    userData.points = points;
+    userData.streak = streak;
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    const vpButton = document.getElementById('click-for-vp');
+    if (vpButton) {
+        vpButton.addEventListener('click', handleVpClick);
+    }
+}
+
+// Handle VP click
+async function handleVpClick() {
+    try {
+        const response = await fetch('https://vifa-backend.onrender.com/api/user/add-points', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: userData.id,
+                points: 1
+            })
+        });
+        
+        if (!response.ok) throw new Error("Failed to add points");
+        
+        const result = await response.json();
+        userData.points = result.newBalance;
+        updateUserInterface(userData.points, userData.streak);
+        
+    } catch (error) {
+        console.error("Failed to add points:", error);
+        alert("Failed to add points. Please try again.");
+    }
+}
 
 // Preloader handler
 document.addEventListener('DOMContentLoaded', () => {
-  const preloader = document.getElementById('preloader');
-  const app = document.getElementById('app');
-  const video = document.querySelector('#preloader video');
-
-  // Fallback timer (video length + 2 seconds buffer)
-  const fallbackTimer = setTimeout(() => {
-    if (preloader.style.display !== 'none') {
-      hidePreloader();
-    }
-  }, 6000); // 4s video + 2s buffer
-
-  // Video end handler
-  const videoEndHandler = () => {
-    clearTimeout(fallbackTimer);
-    hidePreloader();
-  };
-
-  // Hide preloader and show app
-  function hidePreloader() {
-    preloader.style.display = 'none';
-    app.style.display = 'block';
-    initializeApp();
-  }
-
-  // Set up video event
-  video.addEventListener('ended', videoEndHandler);
-
-  // Start video playback
-  video.play().catch(e => {
-    console.error("Video play failed:", e);
-    hidePreloader();
-  });
-
-  // Initialize main app
-  function initializeApp() {
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    // Get user from Telegram
-    if (tg.initDataUnsafe?.user) {
-      userData.id = tg.initDataUnsafe.user.id;
-      loadUserData();
-    } else {
-      console.error("No user data from Telegram");
-      // Fallback for testing (remove in production)
-      userData.id = 12345;
-      loadUserData();
-    }
-  }
-});
-
-// Load user data function
-async function loadUserData() {
-  try {
-    const response = await fetch('https://vifa-backend.onrender.com/api/user/' + userData.id);
+    const preloader = document.getElementById('preloader');
+    const app = document.getElementById('app');
+    const video = document.querySelector('#preloader video');
     
-    if (!response.ok) throw new Error("Network response was not ok");
-    
-    const data = await response.json();
-    
-    if (!data || typeof data.points === 'undefined') {
-      throw new Error("Invalid data format");
-    }
+    // Fallback timer (video length + 2s buffer)
+    const fallbackTimer = setTimeout(() => {
+        if (preloader && preloader.style.display !== 'none') {
+            transitionToApp();
+        }
+    }, 6000); // 4s video + 2s buffer
 
-    // Update UI
-    document.getElementById('vp-balance').textContent = data.points + ' VP';
-    document.getElementById('streak-display').textContent = 'Streak: ' + data.streak + ' days';
-    
-    // Store for later use
-    userData.points = data.points;
-    userData.streak = data.streak;
-    
-  } catch (error) {
-    console.error("Error loading user data:", error);
-    document.getElementById('vp-balance').textContent = "Error";
-    document.getElementById('streak-display').textContent = "Streak: N/A";
-  }
-}
-  });
-
-// Handle VP click
-document.getElementById('click-for-vp').addEventListener('click', async () => {
-  try {
-    const response = await fetch('https://vifa-backend.onrender.com/api/user/add-points', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        userId: userData.id,
-        points: 1
-      })
-    });
-    
-    if (!response.ok) throw new Error("Failed to add points");
-    
-    const result = await response.json();
-    userData.points = result.newBalance;
-    document.getElementById('vp-balance').textContent = userData.points + ' VP';
-    
-  } catch (error) {
-    console.error("Failed to add points:", error);
-    alert("Failed to add points. Please try again.");
-  }
-});
+    // Video event handlers
+    if (video) {
+        video.addEventListener('ended', () => {
+            clearTimeout(fallbackTimer);
+            transitionToApp();
+        });
         
+        // Start video playback
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                console.error("Video play failed:", e);
+                transitionToApp();
+            });
+        }
+    } else {
+        transitionToApp();
+    }
+
+    function transitionToApp() {
+        if (preloader) preloader.style.display = 'none';
+        if (app) app.style.display = 'block';
+        initApp();
+    }
+});
 </script>
 </body>
 </html>

@@ -990,13 +990,6 @@
 
        // Coin animation for VP click - MODIFIED VERSION
 document.getElementById('click-for-vp').addEventListener('click', function() {
-// === ADD THESE 6 NEW LINES ===
-    if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.sendData(JSON.stringify({
-            command: "earn_vp",
-            userId: Telegram.WebApp.initDataUnsafe.user.id
-        }));
-    }
     // ===== NEW CODE =====
     if (window.Telegram && Telegram.WebApp) {
         // Send command to bot backend

@@ -909,6 +909,28 @@ const userData = {
     streak: 0
 };
 
+// Create gold coin animation
+function createCoinAnimation(x, y) {
+    for (let i = 0; i < 5; i++) {
+        const coin = document.createElement('div');
+        coin.className = 'coin';
+        
+        // Random position around click point
+        const offsetX = (Math.random() - 0.5) * 50;
+        const offsetY = (Math.random() - 0.5) * 50;
+        
+        coin.style.left = (x + offsetX) + 'px';
+        coin.style.top = (y + offsetY) + 'px';
+        
+        document.body.appendChild(coin);
+        
+        // Remove coin after animation
+        setTimeout(() => {
+            coin.remove();
+        }, 1000);
+    }
+}
+
 // Main initialization function
 function initApp() {
     const tg = window.Telegram.WebApp;
@@ -965,7 +987,18 @@ function updateUserInterface(points, streak) {
 function setupEventListeners() {
     const vpButton = document.getElementById('click-for-vp');
     if (vpButton) {
-        vpButton.addEventListener('click', handleVpClick);
+        vpButton.addEventListener('click', function(event) {
+            // Get click position
+            const rect = this.getBoundingClientRect();
+            const x = rect.left + rect.width/2;
+            const y = rect.top + rect.height/2;
+            
+            // Create coin animation
+            createCoinAnimation(x, y);
+            
+            // Handle VP click
+            handleVpClick();
+        });
     }
 }
 
@@ -989,7 +1022,6 @@ async function handleVpClick() {
         
     } catch (error) {
         console.error("Failed to add points:", error);
-        alert("Failed to add points. Please try again.");
     }
 }
 

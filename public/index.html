@@ -1025,6 +1025,30 @@
             }, 1000);
         }
 
+         // =============================================
+        // Link app
+        // =============================================
+          // Inside your existing <script> tag
+Telegram.WebApp.expand();
+Telegram.WebApp.sendData(JSON.stringify({ 
+    type: 'get_vp_balance' 
+}));
+
+// Listen for the bot's reply
+Telegram.WebApp.onEvent('viewportChanged', (event) => {
+    if (event.isStateStable) {
+        fetchUserData();
+    }
+});
+
+function fetchUserData() {
+    // This assumes the bot replies with a message containing VP
+    // (You'll replace this later with WebApp.response)
+    console.log("Waiting for bot response...");
+}  
+            
+
+            
         // =============================================
         // WALLET CONNECTION FUNCTIONALITY
         // =============================================

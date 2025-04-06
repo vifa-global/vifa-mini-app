@@ -1063,18 +1063,7 @@ Telegram.WebApp.sendData(JSON.stringify({
     type: 'get_vp_balance' 
 }));
 
-// Listen for bot's response
-Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
-    try {
-        const data = JSON.parse(event);
-        if (data.type === 'vp_balance') {
-            // Update UI
-            document.querySelector('.points-display').textContent = data.vp + ' VP';
-        }
-    } catch (e) {
-        console.error("Error parsing bot response:", e);
-    }
-});            
+    
 
             
         // =============================================

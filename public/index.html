@@ -982,38 +982,27 @@ const vpSystem = {
     if (display) display.textContent = `${points} VP`;
   },
 
-  updateCheckInStatus(data) {
-    const checkInBtn = document.querySelector('.checkin-button');
-    const streakDisplay = document.querySelector('.streak-display');
-    
-    if (data.canCheckIn) {
-      checkInBtn?.classList.add('available');
-      checkInBtn?.querySelector('span')?.textContent = 'DAILY CHECK-IN';
-      checkInBtn?.querySelector('.button-right')?.textContent = '+20 VP';
-    } else {
-      checkInBtn?.classList.remove('available');
-      const nextCheckIn = new Date(data.lastCheckIn);
-      nextCheckIn.setHours(nextCheckIn.getHours() + 24);
-      const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60));
-      checkInBtn?.querySelector('span')?.textContent = `CHECK-IN (${hoursLeft}h)`;
-      checkInBtn?.querySelector('.button-right')?.textContent = '';
-    }
-    
-    if (streakDisplay) {
-      streakDisplay.textContent = `Streak: ${data.streak} days`;
-    }
-  },
-
-  handleCheckIn() {
-    const checkInBtn = document.querySelector('.checkin-button');
-    if (checkInBtn?.classList.contains('available')) {
-      Telegram.WebApp.sendData(JSON.stringify({
-        type: 'perform_checkin',
-        userId: Telegram.WebApp.initDataUnsafe.user.id
-      }));
-    }
+ updateCheckInStatus(data) {
+  const checkInBtn = document.querySelector('.checkin-button');
+  const streakDisplay = document.querySelector('.streak-display');
+  
+  if (data.canCheckIn) {
+    checkInBtn?.classList.add('available');
+    checkInBtn?.querySelector('span')?.textContent = 'DAILY CHECK-IN';
+    checkInBtn?.querySelector('.button-right')?.textContent = '+20 VP';
+  } else {
+    checkInBtn?.classList.remove('available');
+    const nextCheckIn = new Date(data.lastCheckIn);
+    nextCheckIn.setHours(nextCheckIn.getHours() + 24);
+    const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60)); // Fixed this line
+    checkInBtn?.querySelector('span')?.textContent = `CHECK-IN (${hoursLeft}h)`;
+    checkInBtn?.querySelector('.button-right')?.textContent = '';
   }
-};
+  
+  if (streakDisplay) {
+    streakDisplay.textContent = `Streak: ${data.streak} days`;
+  }
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {

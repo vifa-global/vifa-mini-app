@@ -1028,39 +1028,24 @@
          // =============================================
         // Link app
         // =============================================
-          // Inside your existing <script> tag
+     // Send VP request when app loads
 Telegram.WebApp.expand();
 Telegram.WebApp.sendData(JSON.stringify({ 
     type: 'get_vp_balance' 
 }));
 
-// Listen for the bot's reply
-Telegram.WebApp.onEvent('viewportChanged', (event) => {
-    if (event.isStateStable) {
-        fetchUserData();
-    }
-});
-
-function fetchUserData() {
-    // Send request to bot
-    Telegram.WebApp.sendData(JSON.stringify({ 
-        type: 'get_vp_balance' 
-    }));
-
-    // Listen for bot's reply (simplified)
-    Telegram.WebApp.onEvent('message', (msg) => {
-        try {
-            const data = JSON.parse(msg);
-            if (data.type === 'vp_balance') {
-                // Update VP display
-                document.querySelector('.points-display').textContent = data.vp + ' VP';
-            }
-        } catch (e) {
-            console.error("Failed to parse bot reply:", e);
+// Listen for bot's response
+Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
+    try {
+        const data = JSON.parse(event);
+        if (data.type === 'vp_balance') {
+            // Update UI
+            document.querySelector('.points-display').textContent = data.vp + ' VP';
         }
-    });
-}  
-            
+    } catch (e) {
+        console.error("Error parsing bot response:", e);
+    }
+});            
 
             
         // =============================================

@@ -912,44 +912,39 @@
 Telegram.WebApp.expand(); // Make the app full-height
 
 // Function to fetch VP from the bot
-async function fetchVPBalance() {
-  try {
-    if (window.Telegram && Telegram.WebApp) {
-      // Get user ID safely
-      const userId = Telegram.WebApp.initDataUnsafe?.user?.id;
-      if (!userId) {
-        console.error("User ID not available");
-        return;
-      }
+let vpRequestSent = false;
 
-      // Send properly formatted request
-      Telegram.WebApp.sendData(JSON.stringify({
-        type: 'get_vp_balance',
-        userId: userId
-      }));
-
-      // Listen for response
-      Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
-        try {
-          const data = JSON.parse(event);
-          if (data.type === 'vp_balance') {
-            // Update UI
-            const pointsDisplay = document.querySelector('.points-display');
-            if (pointsDisplay) {
-              pointsDisplay.textContent = `${data.vp} VP`;
-            }
-          }
-        } catch (e) {
-          console.error("Response parse error:", e);
-        }
-      });
-    }
-  } catch (err) {
-    console.error("VP fetch error:", err);
+function fetchVPBalance() {
+  if (!window.Telegram?.WebApp || vpRequestSent) return;
+  
+  const userId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  if (!userId) {
+    console.log("Waiting for user ID...");
+    setTimeout(fetchVPBalance, 500);
+    return;
   }
+
+  vpRequestSent = true;
+  
+  Telegram.WebApp.sendData(JSON.stringify({
+    type: 'get_vp_balance',
+    userId: userId
+  }));
+
+  Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
+    try {
+      const data = JSON.parse(event);
+      if (data?.type === 'vp_balance') {
+        const display = document.querySelector('.points-display');
+        if (display) display.textContent = `${data.vp} VP`;
+      }
+    } catch (e) {
+      console.log("Parse error:", e);
+    }
+  });
 }
 
-// Call on app load
+// Initialize
 Telegram.WebApp.ready();
 fetchVPBalance();
         

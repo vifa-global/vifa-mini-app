@@ -955,10 +955,8 @@ async function loadUserData() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Origin': 'https://vifa-mini-app-frontend.onrender.com' // Explicitly set origin
-            },
-            credentials: 'include' // If using cookies/sessions
+                'Accept': 'application/json'
+            }
         });
         
         if (!response.ok) throw new Error("Network response was not ok");
@@ -969,8 +967,10 @@ async function loadUserData() {
             throw new Error("Invalid data format");
         }
 
-        // Update UI
-        updateUserInterface(data.points, data.streak);
+        // Update UI and local data
+        userData.points = data.points;
+        userData.streak = data.streak || 0;
+        updateUserInterface(userData.points, userData.streak);
         
     } catch (error) {
         console.error("Error loading user data:", error);
@@ -986,17 +986,13 @@ function updateUserInterface(points, streak) {
     
     if (vpElement) vpElement.textContent = `${points} VP`;
     if (streakElement) streakElement.textContent = `Streak: ${streak} days`;
-    
-    // Store for later use
-    userData.points = points;
-    userData.streak = streak;
 }
 
 // Setup event listeners
 function setupEventListeners() {
     const vpButton = document.getElementById('click-for-vp');
     if (vpButton) {
-        vpButton.addEventListener('click', function(event) {
+        vpButton.addEventListener('click', async function(event) {
             // Get click position
             const rect = this.getBoundingClientRect();
             const x = rect.left + rect.width/2;
@@ -1005,12 +1001,8 @@ function setupEventListeners() {
             // Create coin animation
             createCoinAnimation(x, y);
             
-            // Immediately update UI for better responsiveness
-            userData.points += 1;
-            updateUserInterface(userData.points, userData.streak);
-            
-            // Then try to sync with backend
-            handleVpClick();
+            // Update points and sync with backend
+            await handleVpClick();
         });
     }
 }
@@ -1018,18 +1010,16 @@ function setupEventListeners() {
 // Handle VP click (sync with backend)
 async function handleVpClick() {
     try {
-        // Try updating points using POST
+        // First try to increment points on the server
         const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/add-points`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Origin': 'https://vifa-mini-app-frontend.onrender.com' // Required for CORS
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 points: 1
-            }),
-            credentials: 'include' // If using cookies/sessions
+            })
         });
         
         if (!response.ok) {
@@ -1037,35 +1027,47 @@ async function handleVpClick() {
         }
         
         const data = await response.json();
-        userData.points = data.points || data.newBalance || userData.points;
+        
+        // Update local data with server response
+        if (data.points !== undefined) {
+            userData.points = data.points;
+        } else if (data.newBalance !== undefined) {
+            userData.points = data.newBalance;
+        } else {
+            // If response doesn't contain points, fetch fresh data
+            await loadUserData();
+            return;
+        }
+        
         updateUserInterface(userData.points, userData.streak);
         
     } catch (error) {
         console.error("Failed to sync points:", error);
-        // Retry with PUT as fallback
+        
+        // Fallback: Try to update the entire user record
         try {
             const fallbackResponse = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Origin': 'https://vifa-mini-app-frontend.onrender.com'
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    points: userData.points
-                }),
-                credentials: 'include'
+                    points: userData.points + 1,
+                    streak: userData.streak
+                })
             });
             
-            if (!fallbackResponse.ok) throw new Error("PUT method also failed");
+            if (!fallbackResponse.ok) throw new Error("Fallback PUT failed");
             
             const fallbackData = await fallbackResponse.json();
-            userData.points = fallbackData.points || userData.points;
+            userData.points = fallbackData.points;
             updateUserInterface(userData.points, userData.streak);
             
         } catch (fallbackError) {
-            console.error("Fallback sync also failed:", fallbackError);
-            // Points remain as locally incremented value
+            console.error("All sync attempts failed:", fallbackError);
+            // Show error to user but keep local increment
+            alert("Couldn't sync with server. Points may not be saved.");
         }
     }
 }

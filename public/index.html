@@ -960,28 +960,28 @@ async function loadUserData() {
   console.error('Error:', error);
 }
 
-  // Example: Handle VP click
-  document.getElementById('click-for-vp').addEventListener('click', async () => {
-    try {
-      const response = await fetch('https://vifa-backend.onrender.com/api/user/add-points', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: userData.id,
-          points: 1
-        })
-      });
-      
-      const result = await response.json();
-      userData.points = result.newBalance;
-      document.getElementById('vp-balance').textContent = userData.points + ' VP';
-      
-    } catch (error) {
-      console.error("Failed to add points:", error);
-    }
-  });
-    </script>
+ // Example: Handle VP click
+document.getElementById('click-for-vp').addEventListener('click', async () => {
+  try {
+    const response = await fetch('https://vifa-backend.onrender.com/api/user/add-points', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: userData.id,
+        points: 1
+      })
+    });
+    
+    const result = await response.json();
+    userData.points = result.newBalance;
+    document.getElementById('vp-balance').textContent = userData.points + ' VP';
+    
+  } catch (error) {
+    console.error("Failed to add points:", error);
+  }
+}); // <-- This was missing
+</script>
 </body>
 </html>

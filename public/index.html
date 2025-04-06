@@ -908,6 +908,9 @@
             document.getElementById('app').style.display = 'flex';
         });
 
+console.log("Telegram.WebApp exists?", !!window.Telegram?.WebApp);
+console.log("User ID:", Telegram?.WebApp?.initDataUnsafe?.user?.id);
+        
         // Page navigation function
         function showPage(pageId) {
             // Hide all pages

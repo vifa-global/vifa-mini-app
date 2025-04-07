@@ -98,3 +98,17 @@ main {
 .home-button:disabled .button-right {
   color: #2ecc40 !important;
 }
+
+.task-completed {
+    color: #2ecc40;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 10px;
+    display: none;
+    font-weight: bold;
+}
+
+.task-button[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

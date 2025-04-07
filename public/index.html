@@ -562,6 +562,28 @@
             cursor: pointer;
             font-size: 16px;
         }
+
+        /* Task verification input styles */
+        .verification-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #0088cc;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .verification-submit {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 5px;
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -632,7 +654,7 @@
                         <span>Twitter Tasks</span>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="twitter-follow-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-user-plus"></i>
@@ -641,10 +663,15 @@
                             <div class="task-vp">15 VP</div>
                         </div>
                         <div class="task-command">/follow_twitter</div>
-                        <button class="task-button">Complete Task</button>
+                        <div id="twitter-follow-verify" style="display: none;">
+                            <input type="text" class="verification-input" id="twitter-handle" placeholder="Enter your Twitter handle">
+                            <button class="verification-submit" onclick="verifyTwitterFollow()">Submit</button>
+                        </div>
+                        <button class="task-button" onclick="startTwitterFollowTask()">Complete Task</button>
+                        <div class="task-completed" id="twitter-follow-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="twitter-like-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-heart"></i>
@@ -653,10 +680,11 @@
                             <div class="task-vp">5 VP</div>
                         </div>
                         <div class="task-command">/like_tweet</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('twitterLike', 5)">Complete Task</button>
+                        <div class="task-completed" id="twitter-like-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="twitter-mention-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-at"></i>
@@ -665,7 +693,8 @@
                             <div class="task-vp">10 VP</div>
                         </div>
                         <div class="task-command">/mention_task</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('twitterMention', 10)">Complete Task</button>
+                        <div class="task-completed" id="twitter-mention-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                 </div>
                 
@@ -676,7 +705,7 @@
                         <span>Telegram Tasks</span>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="telegram-join-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-users"></i>
@@ -685,10 +714,11 @@
                             <div class="task-vp">15 VP</div>
                         </div>
                         <div class="task-command">/join_telegram</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('telegramJoin', 15)">Complete Task</button>
+                        <div class="task-completed" id="telegram-join-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="telegram-engage-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-share-alt"></i>
@@ -697,7 +727,8 @@
                             <div class="task-vp">10 VP</div>
                         </div>
                         <div class="task-command">/engage_telegram</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('telegramEngage', 10)">Complete Task</button>
+                        <div class="task-completed" id="telegram-engage-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                 </div>
                 
@@ -708,7 +739,7 @@
                         <span>YouTube Tasks</span>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="youtube-subscribe-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-bell"></i>
@@ -717,10 +748,11 @@
                             <div class="task-vp">15 VP</div>
                         </div>
                         <div class="task-command">/subscribe_yt</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('youtubeSubscribe', 15)">Complete Task</button>
+                        <div class="task-completed" id="youtube-subscribe-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="youtube-like-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-thumbs-up"></i>
@@ -729,10 +761,11 @@
                             <div class="task-vp">5 VP</div>
                         </div>
                         <div class="task-command">/like_video</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('youtubeLike', 5)">Complete Task</button>
+                        <div class="task-completed" id="youtube-like-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="youtube-comment-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-comment"></i>
@@ -741,7 +774,12 @@
                             <div class="task-vp">10 VP</div>
                         </div>
                         <div class="task-command">/comment_video</div>
-                        <button class="task-button">Complete Task</button>
+                        <div id="youtube-comment-verify" style="display: none;">
+                            <input type="text" class="verification-input" id="youtube-comment" placeholder="Enter your comment">
+                            <button class="verification-submit" onclick="verifyYoutubeComment()">Submit</button>
+                        </div>
+                        <button class="task-button" onclick="startYoutubeCommentTask()">Complete Task</button>
+                        <div class="task-completed" id="youtube-comment-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                 </div>
                 
@@ -752,7 +790,7 @@
                         <span>Website Tasks</span>
                     </div>
                     
-                    <div class="task-card">
+                    <div class="task-card" id="website-visit-task">
                         <div class="task-header">
                             <div class="task-name">
                                 <i class="fas fa-external-link-alt"></i>
@@ -761,7 +799,8 @@
                             <div class="task-vp">15 VP</div>
                         </div>
                         <div class="task-command">/visit_website</div>
-                        <button class="task-button">Complete Task</button>
+                        <button class="task-button" onclick="completeTask('websiteVisit', 15)">Complete Task</button>
+                        <div class="task-completed" id="website-visit-completed" style="display: none;">✅ Task Completed</div>
                     </div>
                 </div>
             </div>
@@ -907,7 +946,18 @@ const userData = {
     id: null,
     points: 0,
     streak: 0,
-    canCheckIn: true
+    canCheckIn: true,
+    completedTasks: {
+        twitterFollow: false,
+        telegramJoin: false,
+        youtubeSubscribe: false,
+        websiteVisit: false,
+        twitterLike: false,
+        twitterMention: false,
+        youtubeLike: false,
+        youtubeComment: false,
+        telegramEngage: false
+    }
 };
 
 // Show specific page and hide others
@@ -1081,12 +1131,43 @@ async function loadUserData() {
             throw new Error("Invalid data format - missing points field");
         }
 
+        // Update user data
+        userData.points = data.points;
+        userData.streak = data.streak || 0;
+        
+        // Update completed tasks if available
+        if (data.completedTasks) {
+            userData.completedTasks = data.completedTasks;
+            updateTaskCompletionUI();
+        }
+
         updateUserInterface(data.points, data.streak);
         checkCheckinStatus();
         
     } catch (error) {
         console.error("Error loading user data:", error);
         updateUserInterface(0, 0);
+    }
+}
+
+// Update UI to show completed tasks
+function updateTaskCompletionUI() {
+    for (const task in userData.completedTasks) {
+        if (userData.completedTasks[task]) {
+            const completedElement = document.getElementById(`${task}-completed`);
+            if (completedElement) {
+                completedElement.style.display = 'block';
+                
+                // Hide the complete button
+                const taskCard = completedElement.closest('.task-card');
+                if (taskCard) {
+                    const button = taskCard.querySelector('.task-button');
+                    if (button) {
+                        button.style.display = 'none';
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1169,6 +1250,102 @@ function setupEventListeners() {
     }
 }
 
+// Task completion functions
+function completeTask(taskName, points) {
+    if (userData.completedTasks[taskName]) {
+        alert('You have already completed this task!');
+        return;
+    }
+
+    // In a real app, you would call your backend here
+    // For now, we'll simulate the completion
+    userData.completedTasks[taskName] = true;
+    userData.points += points;
+    
+    // Update UI
+    updateUserInterface(userData.points, userData.streak);
+    document.getElementById(`${taskName}-completed`).style.display = 'block';
+    
+    // Hide the complete button
+    const taskCard = document.getElementById(`${taskName}-task`);
+    if (taskCard) {
+        const button = taskCard.querySelector('.task-button');
+        if (button) {
+            button.style.display = 'none';
+        }
+    }
+    
+    alert(`✅ Task completed! +${points} VP`);
+}
+
+function startTwitterFollowTask() {
+    document.getElementById('twitter-follow-verify').style.display = 'block';
+    document.querySelector('#twitter-follow-task .task-button').style.display = 'none';
+}
+
+function verifyTwitterFollow() {
+    const handle = document.getElementById('twitter-handle').value.trim();
+    if (!handle) {
+        alert('Please enter your Twitter handle');
+        return;
+    }
+    
+    // In a real app, you would call your backend here with /verify_twitter_follow
+    completeTask('twitterFollow', 15);
+    document.getElementById('twitter-follow-verify').style.display = 'none';
+}
+
+function startYoutubeCommentTask() {
+    document.getElementById('youtube-comment-verify').style.display = 'block';
+    document.querySelector('#youtube-comment-task .task-button').style.display = 'none';
+}
+
+function verifyYoutubeComment() {
+    const comment = document.getElementById('youtube-comment').value.trim();
+    if (!comment) {
+        alert('Please enter your comment');
+        return;
+    }
+    
+    // In a real app, you would call your backend here with /verify_youtube_comment
+    completeTask('youtubeComment', 10);
+    document.getElementById('youtube-comment-verify').style.display = 'none';
+}
+
+// Copy referral code
+function copyReferralCode() {
+    const code = document.getElementById('referralCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        alert('Referral code copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
+
+// Share via social media
+function shareVia(platform) {
+    const code = document.getElementById('referralCode').textContent;
+    const message = `Join VIFA Global and earn rewards with me! Use my referral code: ${code}`;
+    const url = `https://t.me/VIFACoinBot?start=ref_${userData.id}`;
+    
+    let shareUrl = '';
+    switch(platform) {
+        case 'telegram':
+            shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message + ' ' + url)}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(message + ' ' + url)}`;
+            break;
+        default:
+            return;
+    }
+    
+    window.open(shareUrl, '_blank');
+}
+
 // Preloader handler
 document.addEventListener('DOMContentLoaded', () => {
     const preloader = document.getElementById('preloader');
@@ -1208,5 +1385,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
-

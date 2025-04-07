@@ -942,9 +942,10 @@ function showPage(pageId) {
     const activePage = document.getElementById(pageId);
     if (activePage) {
         activePage.classList.add('active');
-        // If showing tasks page, refresh task status
+        
+        // Special handling for tasks page
         if (pageId === 'tasks-page') {
-            updateTaskStatusUI();
+            updateTasksUI();
         }
     }
     
@@ -956,10 +957,85 @@ function showPage(pageId) {
     
     // Find and activate the clicked icon
     const clickedIcon = Array.from(navIcons).find(icon => 
-        icon.getAttribute('onclick') && icon.getAttribute('onclick').includes(pageId)
+        icon.getAttribute('onclick').includes(pageId)
     );
     if (clickedIcon) {
         clickedIcon.classList.add('active');
+    }
+}
+
+// Update tasks UI based on completion status
+function updateTasksUI() {
+    const tasks = [
+        { id: 'twitter-follow', key: 'twitterFollow', points: 15 },
+        { id: 'telegram-join', key: 'telegramJoin', points: 15 },
+        { id: 'youtube-subscribe', key: 'youtubeSubscribe', points: 15 },
+        { id: 'website-visit', key: 'websiteVisit', points: 15 },
+        { id: 'twitter-like', key: 'twitterLike', points: 5 },
+        { id: 'twitter-mention', key: 'twitterMention', points: 10 },
+        { id: 'youtube-like', key: 'youtubeLike', points: 5 },
+        { id: 'youtube-comment', key: 'youtubeComment', points: 10 },
+        { id: 'telegram-engage', key: 'telegramEngage', points: 10 }
+    ];
+
+    tasks.forEach(task => {
+        const button = document.getElementById(task.id);
+        const checkmark = document.querySelector(`#${task.id} + .task-checkmark`);
+        const completedText = document.querySelector(`#${task.id} + .task-completed`);
+        
+        if (userData.completedTasks[task.key]) {
+            if (button) {
+                button.disabled = true;
+                button.style.opacity = '0.7';
+            }
+            if (checkmark) checkmark.style.display = 'block';
+            if (completedText) completedText.style.display = 'block';
+        } else {
+            if (button) {
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.onclick = () => completeTask(task.key, task.points);
+            }
+            if (checkmark) checkmark.style.display = 'none';
+            if (completedText) completedText.style.display = 'none';
+        }
+    });
+}
+
+// Complete a task and update backend
+async function completeTask(taskKey, points) {
+    try {
+        const response = await fetch('https://vifa-backend.onrender.com/api/complete-task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userData.id,
+                task: taskKey
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to complete task');
+        }
+
+        // Update local data
+        userData.completedTasks[taskKey] = true;
+        userData.points += points;
+        
+        // Update UI
+        updateUserInterface(userData.points, userData.streak);
+        updateTasksUI();
+        
+        // Show success message
+        alert(`✅ Task completed! +${points} VP`);
+
+    } catch (error) {
+        console.error('Task completion error:', error);
+        alert(`❌ ${error.message}`);
     }
 }
 
@@ -1047,7 +1123,12 @@ function updateCheckinButton(enabled, text) {
     
     const buttonRight = button.querySelector('.button-right');
     if (buttonRight) {
-        buttonRight.textContent = text;
+        const displayText = enabled ? '+20 VP' : 
+                            text === '24H' ? '24H' : 
+                            text === 'Done' ? '✅ Done' : 
+                            text.endsWith('h') ? text.replace('h', 'H') :
+                            text.endsWith('H') ? text : text + 'H';
+        buttonRight.textContent = displayText;
     }
 }
 
@@ -1100,119 +1181,16 @@ async function loadUserData() {
         userData.points = data.points;
         userData.streak = data.streak || 0;
         if (data.completedTasks) {
-            userData.completedTasks = data.completedTasks;
+            Object.assign(userData.completedTasks, data.completedTasks);
         }
 
         updateUserInterface(userData.points, userData.streak);
         checkCheckinStatus();
-        updateTaskStatusUI();
         
     } catch (error) {
         console.error("Error loading user data:", error);
         updateUserInterface(0, 0);
     }
-}
-
-// Update task status UI based on user data
-function updateTaskStatusUI() {
-    const tasks = [
-        { id: 'twitter-follow', completed: userData.completedTasks.twitterFollow },
-        { id: 'telegram-join', completed: userData.completedTasks.telegramJoin },
-        { id: 'youtube-subscribe', completed: userData.completedTasks.youtubeSubscribe },
-        { id: 'website-visit', completed: userData.completedTasks.websiteVisit },
-        { id: 'twitter-like', completed: userData.completedTasks.twitterLike },
-        { id: 'twitter-mention', completed: userData.completedTasks.twitterMention },
-        { id: 'youtube-like', completed: userData.completedTasks.youtubeLike },
-        { id: 'youtube-comment', completed: userData.completedTasks.youtubeComment },
-        { id: 'telegram-engage', completed: userData.completedTasks.telegramEngage }
-    ];
-
-    tasks.forEach(task => {
-        const element = document.getElementById(task.id);
-        if (element) {
-            const checkmark = element.querySelector('.task-checkmark');
-            const button = element.querySelector('.task-button');
-            
-            if (task.completed) {
-                if (checkmark) checkmark.style.display = 'block';
-                if (button) {
-                    button.textContent = 'Completed';
-                    button.disabled = true;
-                    button.style.opacity = '0.7';
-                }
-            } else {
-                if (checkmark) checkmark.style.display = 'none';
-                if (button) {
-                    button.textContent = 'Start Task';
-                    button.disabled = false;
-                    button.style.opacity = '1';
-                }
-            }
-        }
-    });
-}
-
-// Handle task completion
-async function completeTask(taskName) {
-    try {
-        const response = await fetch('https://vifa-backend.onrender.com/api/complete-task', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userId: userData.id,
-                task: taskName
-            })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || 'Failed to complete task');
-        }
-
-        // Update local data
-        userData.completedTasks[taskName] = true;
-        userData.points = result.points || userData.points;
-        
-        // Update UI
-        updateUserInterface(userData.points, userData.streak);
-        updateTaskStatusUI();
-        
-        // Show success message
-        alert(`✅ Task completed! +${result.pointsEarned || 0} VP`);
-
-    } catch (error) {
-        console.error('Task completion error:', error);
-        alert(`❌ ${error.message}`);
-    }
-}
-
-// Setup task button event listeners
-function setupTaskButtons() {
-    const tasks = [
-        { id: 'twitter-follow', name: 'twitterFollow' },
-        { id: 'telegram-join', name: 'telegramJoin' },
-        { id: 'youtube-subscribe', name: 'youtubeSubscribe' },
-        { id: 'website-visit', name: 'websiteVisit' },
-        { id: 'twitter-like', name: 'twitterLike' },
-        { id: 'twitter-mention', name: 'twitterMention' },
-        { id: 'youtube-like', name: 'youtubeLike' },
-        { id: 'youtube-comment', name: 'youtubeComment' },
-        { id: 'telegram-engage', name: 'telegramEngage' }
-    ];
-
-    tasks.forEach(task => {
-        const button = document.querySelector(`#${task.id} .task-button`);
-        if (button) {
-            button.addEventListener('click', () => {
-                if (!userData.completedTasks[task.name]) {
-                    completeTask(task.name);
-                }
-            });
-        }
-    });
 }
 
 // Check if daily check-in is available
@@ -1255,7 +1233,6 @@ function updateUserInterface(points, streak) {
 
 // Setup event listeners
 function setupEventListeners() {
-    // VP Click Button
     const vpButton = document.getElementById('click-for-vp');
     if (vpButton) {
         vpButton.addEventListener('click', async function(event) {
@@ -1293,9 +1270,6 @@ function setupEventListeners() {
             }
         });
     }
-
-    // Setup task buttons
-    setupTaskButtons();
 }
 
 // Preloader handler
@@ -1334,9 +1308,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initApp();
     }
 });
-
-// Ensure home page is active on startup
-showPage('home-page');
 </script>
 </body>
 </html>

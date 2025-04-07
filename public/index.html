@@ -1034,35 +1034,19 @@ function setupEventListeners() {
             
             createCoinAnimation(x, y);
             
-            try {
-                // Call the /earn_vp endpoint directly
-                const response = await fetch(`https://vifa-backend.onrender.com/earn_vp`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: userData.id,
-                        action: 'button_click'
-                    })
-                });
+            // NEW: Use Telegram WebApp to send command (no fetch needed)
+            const tg = window.Telegram.WebApp;
+            if (tg) {
+                tg.sendData(JSON.stringify({
+                    command: 'earn_vp',  // Bot will receive this
+                    user_id: userData.id // Your user ID
+                }));
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to earn VP: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    userData.points += 1;
-                    updateUserInterface(userData.points, userData.streak);
-                } else {
-                    alert("Failed to earn VP: " + (result.message || "Unknown error"));
-                }
-            } catch (error) {
-                console.error("Error earning VP:", error);
-                alert("Failed to connect to server. Please try again.");
+                // Optional: Manually update UI (if bot doesn't refresh fast)
+                userData.points += 1;
+                updateUserInterface(userData.points, userData.streak);
+            } else {
+                console.warn("Not in Telegram WebApp, cannot send command");
             }
         });
     }

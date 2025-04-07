@@ -906,7 +906,8 @@
 const userData = {
     id: null,
     points: 0,
-    streak: 0
+    streak: 0,
+    lastClick: 0
 };
 
 // Create gold coin animation
@@ -939,6 +940,8 @@ function initApp() {
     // Get user from Telegram
     if (tg.initDataUnsafe?.user) {
         userData.id = tg.initDataUnsafe.user.id;
+        // Add Telegram init data to headers for authentication
+        userData.initData = tg.initData;
     } else {
         console.error("No user data from Telegram");
         userData.id = 12345; // Test ID - remove in production
@@ -955,16 +958,20 @@ async function loadUserData() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Telegram-Init-Data': userData.initData || ''
             }
         });
         
-        if (!response.ok) throw new Error("Network response was not ok");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Network response was not ok");
+        }
         
         const data = await response.json();
         
         if (!data || typeof data.points === 'undefined') {
-            throw new Error("Invalid data format");
+            throw new Error("Invalid data format from server");
         }
 
         // Update UI and local data
@@ -993,6 +1000,11 @@ function setupEventListeners() {
     const vpButton = document.getElementById('click-for-vp');
     if (vpButton) {
         vpButton.addEventListener('click', async function(event) {
+            // Throttle clicks to prevent spam
+            const now = Date.now();
+            if (now - userData.lastClick < 1000) return;
+            userData.lastClick = now;
+            
             // Get click position
             const rect = this.getBoundingClientRect();
             const x = rect.left + rect.width/2;
@@ -1015,7 +1027,8 @@ async function handleVpClick() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Telegram-Init-Data': userData.initData || ''
             },
             body: JSON.stringify({
                 points: 1
@@ -1023,7 +1036,8 @@ async function handleVpClick() {
         });
         
         if (!response.ok) {
-            throw new Error("POST method failed");
+            const errorData = await response.json();
+            throw new Error(errorData.message || "POST method failed");
         }
         
         const data = await response.json();
@@ -1050,7 +1064,8 @@ async function handleVpClick() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Telegram-Init-Data': userData.initData || ''
                 },
                 body: JSON.stringify({
                     points: userData.points + 1,
@@ -1058,7 +1073,10 @@ async function handleVpClick() {
                 })
             });
             
-            if (!fallbackResponse.ok) throw new Error("Fallback PUT failed");
+            if (!fallbackResponse.ok) {
+                const errorData = await fallbackResponse.json();
+                throw new Error(errorData.message || "Fallback PUT failed");
+            }
             
             const fallbackData = await fallbackResponse.json();
             userData.points = fallbackData.points;
@@ -1067,9 +1085,22 @@ async function handleVpClick() {
         } catch (fallbackError) {
             console.error("All sync attempts failed:", fallbackError);
             // Show error to user but keep local increment
-            alert("Couldn't sync with server. Points may not be saved.");
+            const errorMessage = fallbackError.message || "Couldn't sync with server. Points may not be saved.";
+            showTemporaryMessage(errorMessage);
         }
     }
+}
+
+// Show temporary message
+function showTemporaryMessage(message) {
+    const messageElement = document.createElement('div');
+    messageElement.className = 'error-message';
+    messageElement.textContent = message;
+    document.body.appendChild(messageElement);
+    
+    setTimeout(() => {
+        messageElement.remove();
+    }, 3000);
 }
 
 // Preloader handler

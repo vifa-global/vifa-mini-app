@@ -88,3 +88,13 @@ main {
 .nav-btn.active img {
   filter: drop-shadow(0 0 10px #FF007F); /* Pink glow for active nav */
 }
+
+.home-button:disabled {
+  cursor: not-allowed;
+  background: rgba(0, 136, 204, 0.05) !important;
+  border-color: rgba(0, 136, 204, 0.1) !important;
+}
+
+.home-button:disabled .button-right {
+  color: #2ecc40 !important;
+}

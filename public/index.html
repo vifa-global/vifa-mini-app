@@ -901,7 +901,6 @@
         </div>
     </div>
 
-
 <script>
 // Global variables
 const userData = {
@@ -935,14 +934,19 @@ function createCoinAnimation(x, y) {
 // Main initialization function
 function initApp() {
     const tg = window.Telegram.WebApp;
-    tg.expand();
-    
-    // Get user from Telegram
-    if (tg.initDataUnsafe?.user) {
-        userData.id = tg.initDataUnsafe.user.id;
+    if (tg) {
+        tg.expand();
+        
+        // Get user from Telegram
+        if (tg.initDataUnsafe?.user) {
+            userData.id = tg.initDataUnsafe.user.id;
+        } else {
+            console.error("No user data from Telegram");
+            userData.id = 12345; // Test ID - remove in production
+        }
     } else {
-        console.error("No user data from Telegram");
-        userData.id = 12345; // Test ID - remove in production
+        console.log("Not running in Telegram WebApp");
+        userData.id = 12345; // Test ID for non-Telegram environment
     }
     
     loadUserData();
@@ -956,11 +960,13 @@ async function loadUserData() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
+                'Accept': 'application/json',
+                'Origin': 'https://vifa-mini-app-frontend.onrender.com'
+            },
+            credentials: 'include' // Include if you're using cookies/sessions
         });
         
-        if (!response.ok) throw new Error("Network response was not ok");
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
         
         const data = await response.json();
         
@@ -1022,11 +1028,13 @@ async function handleVpClick() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Origin': 'https://vifa-mini-app-frontend.onrender.com'
             },
             body: JSON.stringify({
                 points: 1
-            })
+            }),
+            credentials: 'include' // Include if you're using cookies/sessions
         });
         
         if (!response.ok) {
@@ -1035,11 +1043,13 @@ async function handleVpClick() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Origin': 'https://vifa-mini-app-frontend.onrender.com'
                 },
                 body: JSON.stringify({
                     points: userData.points
-                })
+                }),
+                credentials: 'include' // Include if you're using cookies/sessions
             });
             
             if (!fallbackResponse.ok) throw new Error("Both POST and PUT methods failed");

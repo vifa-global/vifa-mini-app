@@ -986,7 +986,7 @@ async function handleDailyCheckin() {
                 // Handle cooldown error specifically
                 if (result.error && result.error.includes('hours')) {
                     const hoursLeft = result.error.match(/\d+/)?.[0] || '24';
-                    updateCheckinButton(false, hoursLeft);
+                    updateCheckinButton(false, hoursLeft + 'H'); // Changed to uppercase H
                     return;
                 }
                 throw new Error(result.error || 'Failed to check in');
@@ -999,7 +999,7 @@ async function handleDailyCheckin() {
             alert(`✅ ${result.message}\n🔥 Streak: ${result.streak} days`);
 
             // Update button state
-            updateCheckinButton(false, '24'); // Default cooldown
+            updateCheckinButton(false, '24H'); // Changed to uppercase H
             
         } catch (error) {
             console.error('Check-in error:', error);
@@ -1023,10 +1023,13 @@ function updateCheckinButton(enabled, text) {
     
     const buttonRight = button.querySelector('.button-right');
     if (buttonRight) {
-        buttonRight.textContent = enabled ? '+20 VP' : 
-                                 text === '24' ? '24h' : 
-                                 text === 'Done' ? '✅ Done' : 
-                                 text;
+        // Ensure all cooldown times end with H (uppercase)
+        const displayText = enabled ? '+20 VP' : 
+                            text === '24H' ? '24H' : 
+                            text === 'Done' ? '✅ Done' : 
+                            text.endsWith('h') ? text.replace('h', 'H') : // Convert h to H if present
+                            text.endsWith('H') ? text : text + 'H'; // Add H if missing
+        buttonRight.textContent = displayText;
     }
 }
 
@@ -1104,7 +1107,7 @@ async function checkCheckinStatus() {
                 updateCheckinButton(true, '+20 VP');
             } else {
                 const hoursLeft = Math.ceil((new Date(data.nextCheckIn) - new Date()) / (1000 * 60 * 60));
-                updateCheckinButton(false, `${hoursLeft}h`);
+                updateCheckinButton(false, `${hoursLeft}H`); // Changed to uppercase H
             }
         }
     } catch (error) {

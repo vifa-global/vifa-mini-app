@@ -978,7 +978,9 @@ function initApp() {
     loadUserData();
     setupEventListeners();
 }
-
+// Ensure home page is active on startup
+showPage('home-page');
+    
 // Load user data from backend
 async function loadUserData() {
     try {

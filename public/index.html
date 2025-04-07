@@ -958,6 +958,70 @@ function createCoinAnimation(x, y) {
     }
 }
 
+// Handle daily check-in button
+async function handleDailyCheckin() {
+    const button = document.getElementById('daily-checkin');
+    if (!button) return;
+
+    button.addEventListener('click', async function() {
+        try {
+            // Disable button during processing
+            button.disabled = true;
+            button.style.opacity = '0.7';
+            
+            const response = await fetch('https://vifa-backend.onrender.com/api/checkin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userData.id
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to check in');
+            }
+
+            // Update UI with new data
+            updateUserInterface(result.points, result.streak);
+            
+            // Show success message
+            alert(`✅ ${result.message}\n🔥 Streak: ${result.streak} days`);
+
+            // Update button appearance
+            const buttonRight = button.querySelector('.button-right');
+            if (buttonRight) {
+                buttonRight.textContent = '✅ Done';
+            }
+
+            // Disable button until next check-in
+            button.disabled = true;
+            button.style.opacity = '0.5';
+
+        } catch (error) {
+            console.error('Check-in error:', error);
+            alert(`❌ ${error.message}`);
+            
+            // Re-enable button if error wasn't cooldown
+            if (!error.message.includes('hours')) {
+                button.disabled = false;
+                button.style.opacity = '1';
+            } else {
+                // If cooldown error, show when next check-in is available
+                const nextCheckIn = new Date(error.nextCheckIn);
+                const hoursLeft = Math.ceil((nextCheckIn - new Date()) / (1000 * 60 * 60));
+                const buttonRight = button.querySelector('.button-right');
+                if (buttonRight) {
+                    buttonRight.textContent = `${hoursLeft}h`;
+                }
+            }
+        }
+    });
+}
+
 // Main initialization function
 function initApp() {
     const tg = window.Telegram.WebApp;
@@ -978,6 +1042,7 @@ function initApp() {
     
     loadUserData();
     setupEventListeners();
+    handleDailyCheckin(); // Initialize daily check-in handler
 }
 
 // Ensure home page is active on startup
@@ -1007,9 +1072,50 @@ async function loadUserData() {
 
         updateUserInterface(data.points, data.streak);
         
+        // Check if daily check-in is available
+        checkCheckinStatus();
+        
     } catch (error) {
         console.error("Error loading user data:", error);
         updateUserInterface(0, 0);
+    }
+}
+
+// Check if daily check-in is available
+async function checkCheckinStatus() {
+    try {
+        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/checkin-status`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const button = document.getElementById('daily-checkin');
+            if (button) {
+                if (data.canCheckIn) {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                    const buttonRight = button.querySelector('.button-right');
+                    if (buttonRight) {
+                        buttonRight.textContent = '+20 VP';
+                    }
+                } else {
+                    button.disabled = true;
+                    button.style.opacity = '0.5';
+                    const hoursLeft = Math.ceil((new Date(data.nextCheckIn) - new Date()) / (1000 * 60 * 60));
+                    const buttonRight = button.querySelector('.button-right');
+                    if (buttonRight) {
+                        buttonRight.textContent = `${hoursLeft}h`;
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error checking check-in status:", error);
     }
 }
 
@@ -1107,6 +1213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initApp();
     }
 });
+
 </script>
 </body>
 </html>

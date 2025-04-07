@@ -960,7 +960,8 @@ async function loadUserData() {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'Telegram-Init-Data': userData.initData || ''
-            }
+            },
+            credentials: 'include' // Important for CORS with credentials
         });
         
         if (!response.ok) {
@@ -1030,6 +1031,7 @@ async function handleVpClick() {
                 'Accept': 'application/json',
                 'Telegram-Init-Data': userData.initData || ''
             },
+            credentials: 'include', // Important for CORS with credentials
             body: JSON.stringify({
                 points: 1
             })
@@ -1061,12 +1063,13 @@ async function handleVpClick() {
         // Fallback: Try to update the entire user record
         try {
             const fallbackResponse = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`, {
-                method: 'PUT',
+                method: 'PATCH', // Changed from PUT to PATCH which is more commonly allowed
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'Telegram-Init-Data': userData.initData || ''
                 },
+                credentials: 'include', // Important for CORS with credentials
                 body: JSON.stringify({
                     points: userData.points + 1,
                     streak: userData.streak
@@ -1075,7 +1078,7 @@ async function handleVpClick() {
             
             if (!fallbackResponse.ok) {
                 const errorData = await fallbackResponse.json();
-                throw new Error(errorData.message || "Fallback PUT failed");
+                throw new Error(errorData.message || "Fallback PATCH failed");
             }
             
             const fallbackData = await fallbackResponse.json();

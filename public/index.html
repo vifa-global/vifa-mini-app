@@ -917,6 +917,911 @@
         </div>
     </div>
 
+
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIFA Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #0A003E;
+            color: white;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        .background-gif {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('assets/preloader.gif');
+            background-size: cover;
+            opacity: 0.05;
+            z-index: -1;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #0A003E;
+            padding: 15px 0;
+            border-bottom: 1px solid #1a1a2e;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .header-content {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            height: 50.6px;
+            width: auto;
+        }
+
+        #app {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            overflow: hidden;
+        }
+
+        .points-container {
+            text-align: right;
+        }
+
+        .points-display {
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .streak-display {
+            color: #FFD700;
+            font-size: 14px;
+        }
+
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .home-button {
+            background: rgba(0, 136, 204, 0.1);
+            color: white;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .home-button:hover {
+            background: rgba(0, 136, 204, 0.2);
+        }
+
+        .button-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-right {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #0A003E;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid #1a1a2e;
+        }
+
+        .nav-icon {
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 10px;
+        }
+
+        .nav-icon:hover, .nav-icon.active {
+            color: #FFD700;
+        }
+
+        .wallet-icon {
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            transition: color 0.3s;
+        }
+
+        .wallet-icon:hover, .wallet-icon.active {
+            color: #FFD700;
+        }
+
+        .page {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0A003E;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .preloader video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Coin animation styles */
+        .coin {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z"/><path d="M12 6a6 6 0 100 12 6 6 0 000-12zm0 10a4 4 0 110-8 4 4 0 010 8z"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 100;
+            pointer-events: none;
+            animation: float-up 1s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* TASKS PAGE STYLES */
+        .tasks-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .task-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            color: #FFD700;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .task-vp {
+            background: #FFD700;
+            color: #0A003E;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .task-command {
+            font-family: monospace;
+            color: #7fdbff;
+            font-size: 13px;
+            margin: 8px 0;
+        }
+
+        .task-button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .task-button:hover {
+            background: #0077b5;
+        }
+
+        .task-completed {
+            color: #2ecc40;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* WALLET PAGE STYLES */
+        .wallet-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .wallet-title {
+            color: #FFD700;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        .wallet-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto 25px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            max-width: 300px;
+        }
+
+        .wallet-button {
+            background: #FFD700;
+            color: #0A003E;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.3s;
+        }
+
+        .wallet-button:hover {
+            opacity: 0.9;
+        }
+
+        .wallet-button.secondary {
+            background: rgba(0, 136, 204, 0.2);
+            color: white;
+            border: 1px solid rgba(0, 136, 204, 0.5);
+        }
+
+        .wallet-qr {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .wallet-info {
+            color: #7fdbff;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        /* FRIENDS PAGE STYLES */
+        .friends-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .friends-title {
+            color: #FFD700;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .friends-subtitle {
+            color: #7fdbff;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .referral-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto 25px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            max-width: 300px;
+        }
+
+        .referral-code {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px dashed #FFD700;
+            color: #FFD700;
+            letter-spacing: 1px;
+        }
+
+        .share-button {
+            background: #FFD700;
+            color: #0A003E;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.3s;
+        }
+
+        .share-button:hover {
+            opacity: 0.9;
+        }
+
+        .reward-info {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 0 auto 25px;
+            max-width: 300px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .reward-title {
+            color: #FFD700;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .reward-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 136, 204, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .social-icon:hover {
+            background: rgba(0, 136, 204, 0.4);
+        }
+
+        .invites-list {
+            margin-top: 20px;
+            text-align: left;
+            max-width: 300px;
+            margin: 20px auto 0;
+        }
+
+        .invites-title {
+            color: #FFD700;
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .invite-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Referral chain styles */
+        .referral-chain {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 0 auto 25px;
+            max-width: 300px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+        }
+
+        .chain-level {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+        }
+
+        .chain-level-title {
+            font-weight: bold;
+        }
+
+        .chain-level-reward {
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .wallet-connected-info {
+            color: #7fdbff;
+            font-size: 14px;
+            margin: 15px 0;
+        }
+
+        /* New referral design styles */
+        .referral-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .referral-icon {
+            font-size: 24px;
+            color: #FFD700;
+        }
+
+        .referral-code-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .copy-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FFD700;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="background-gif"></div>
+    
+    <!-- PRELOADER -->
+    <div class="preloader" id="preloader">
+        <video autoplay muted playsinline>
+            <source src="assets/preloader.mp4" type="video/mp4">
+            Your browser doesn't support HTML5 video.
+        </video>
+    </div>
+    
+    <!-- MAIN APP CONTENT -->
+    <div id="app">
+        <div class="header">
+            <div class="header-content">
+                <img src="assets/logo.png" alt="VIFA Logo" class="logo">
+                
+                <div class="points-container">
+                    <div class="points-display" id="vp-balance">0 VP</div>
+                    <div class="streak-display" id="streak-display">Streak: 0 days</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Home Page -->
+        <div class="page active" id="home-page">
+            <div class="content">
+                <div class="home-button" id="click-for-vp">
+                    <div class="button-left">
+                        <i class="fas fa-hand-pointer"></i>
+                        <span>CLICK FOR 1 VP</span>
+                    </div>
+                    <div class="button-right">+1 VP</div>
+                </div>
+                
+                <div class="home-button" id="daily-checkin">
+                    <div class="button-left">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>DAILY CHECK-IN</span>
+                    </div>
+                    <div class="button-right">+20 VP</div>
+                </div>
+                
+                <div class="home-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
+                    <div class="button-left">
+                        <i class="fab fa-telegram"></i>
+                        <span>VIFA TELEGRAM</span>
+                    </div>
+                    <div class="button-right">
+                        <i class="fas fa-external-link-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks Page -->
+        <div class="page" id="tasks-page">
+            <div class="tasks-container">
+                <h2 style="text-align: center; margin-bottom: 25px; color: #FFD700;">Daily Tasks</h2>
+                
+                <!-- Twitter Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                        <span>Twitter Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Follow Twitter</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/follow_twitter</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-heart"></i>
+                                <span>Like our tweet</span>
+                            </div>
+                            <div class="task-vp">5 VP</div>
+                        </div>
+                        <div class="task-command">/like_tweet</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-at"></i>
+                                <span>Mention 3 friends</span>
+                            </div>
+                            <div class="task-vp">10 VP</div>
+                        </div>
+                        <div class="task-command">/mention_task</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
+                
+                <!-- Telegram Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fab fa-telegram" style="color: #0088cc;"></i>
+                        <span>Telegram Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-users"></i>
+                                <span>Join Telegram</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/join_telegram</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-share-alt"></i>
+                                <span>Like & share posts</span>
+                            </div>
+                            <div class="task-vp">10 VP</div>
+                        </div>
+                        <div class="task-command">/engage_telegram</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
+                
+                <!-- YouTube Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fab fa-youtube" style="color: #FF0000;"></i>
+                        <span>YouTube Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-bell"></i>
+                                <span>Subscribe YouTube</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/subscribe_yt</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>Like our video</span>
+                            </div>
+                            <div class="task-vp">5 VP</div>
+                        </div>
+                        <div class="task-command">/like_video</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-comment"></i>
+                                <span>Comment on video</span>
+                            </div>
+                            <div class="task-vp">10 VP</div>
+                        </div>
+                        <div class="task-command">/comment_video</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
+                
+                <!-- Website Tasks -->
+                <div class="task-category">
+                    <div class="category-title">
+                        <i class="fas fa-globe" style="color: #2ecc40;"></i>
+                        <span>Website Tasks</span>
+                    </div>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-name">
+                                <i class="fas fa-external-link-alt"></i>
+                                <span>Visit Website</span>
+                            </div>
+                            <div class="task-vp">15 VP</div>
+                        </div>
+                        <div class="task-command">/visit_website</div>
+                        <button class="task-button">Complete Task</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Friends Page -->
+        <div class="page" id="friends-page">
+            <div class="friends-container">
+                <h2 class="friends-title">Invite Friends</h2>
+                <p class="friends-subtitle">Earn rewards by sharing VIFA with friends</p>
+                
+                <div class="referral-card">
+                    <div class="referral-header">
+                        <i class="fas fa-user-plus referral-icon"></i>
+                        <span>Your Personal Invite Code</span>
+                    </div>
+                    <div class="referral-code-container">
+                        <div class="referral-code" id="referralCode">VIFA-8183350482</div>
+                        <i class="fas fa-copy copy-icon" onclick="copyReferralCode()"></i>
+                    </div>
+                    <button class="share-button" id="shareButton">
+                        <i class="fas fa-share-alt"></i> Share Invite
+                    </button>
+                </div>
+                
+                <div class="reward-info">
+                    <div class="reward-title">Direct Referral Bonus</div>
+                    <div class="reward-amount">50 VP</div>
+                    <div>for each friend who joins</div>
+                </div>
+                
+                <div class="referral-chain">
+                    <div class="reward-title">Referral Chain Bonuses</div>
+                    <div class="chain-level">
+                        <span class="chain-level-title">Level 1 (Direct)</span>
+                        <span class="chain-level-reward">50 VP</span>
+                    </div>
+                    <div class="chain-level">
+                        <span class="chain-level-title">Level 2</span>
+                        <span class="chain-level-reward">25 VP</span>
+                    </div>
+                    <div class="chain-level">
+                        <span class="chain-level-title">Level 3</span>
+                        <span class="chain-level-reward">25 VP</span>
+                    </div>
+                    <div class="chain-level">
+                        <span class="chain-level-title">Level 4</span>
+                        <span class="chain-level-reward">25 VP</span>
+                    </div>
+                </div>
+                
+                <div class="social-icons">
+                    <div class="social-icon" onclick="shareVia('telegram')">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <div class="social-icon" onclick="shareVia('twitter')">
+                        <i class="fab fa-twitter"></i>
+                    </div>
+                    <div class="social-icon" onclick="shareVia('whatsapp')">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                </div>
+                
+                <div class="invites-list">
+                    <div class="invites-title">Your Referral Network (5)</div>
+                    <div class="invite-item">
+                        <span>@john_doe (Level 1)</span>
+                        <span>+50 VP</span>
+                    </div>
+                    <div class="invite-item">
+                        <span>@crypto_queen (Level 1)</span>
+                        <span>+50 VP</span>
+                    </div>
+                    <div class="invite-item">
+                        <span>@vifa_lover (Level 2)</span>
+                        <span>+25 VP</span>
+                    </div>
+                    <div class="invite-item">
+                        <span>@blockchain_guy (Level 3)</span>
+                        <span>+25 VP</span>
+                    </div>
+                    <div class="invite-item">
+                        <span>@crypto_newbie (Level 4)</span>
+                        <span>+25 VP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wallet Page -->
+        <div class="page" id="wallet-page">
+            <div class="wallet-container">
+                <h2 class="wallet-title">TON Wallet</h2>
+                
+                <div class="wallet-card">
+                    <div id="wallet-status">
+                        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
+                        <h3>Connect Your Wallet</h3>
+                        <p class="wallet-info">Connect your TON wallet to receive rewards and participate in VIFA ecosystem</p>
+                        
+                        <button class="wallet-button" id="connect-wallet">
+                            <i class="fas fa-plug"></i> Connect Wallet
+                        </button>
+                        
+                        <div id="wallet-qr-container" style="display: none;">
+                            <div class="wallet-qr" id="wallet-qr"></div>
+                            <p>Scan with your wallet app</p>
+                        </div>
+                    </div>
+                    
+                    <div id="connected-wallet" style="display: none;">
+                        <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
+                        <h3>Wallet Connected</h3>
+                        
+                        <p class="wallet-connected-info">Your TON wallet is successfully connected to the VIFA ecosystem.</p>
+                        <p class="wallet-connected-info">All rewards will be automatically sent to your connected wallet.</p>
+                        
+                        <button class="wallet-button secondary" onclick="disconnectWallet()">
+                            <i class="fas fa-unlink"></i> Disconnect Wallet
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="wallet-info">
+                    <p>Supported wallets: Tonkeeper, OpenMask, etc.</p>
+                    <p>You'll need this for future TON rewards</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
+            <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
+            <i class="fas fa-user-friends nav-icon" onclick="showPage('friends-page')"></i>
+            <i class="fas fa-wallet wallet-icon" onclick="showPage('wallet-page')"></i>
+        </div>
+    </div>
+
 <script>
 // Global variables
 const userData = {
@@ -938,11 +1843,6 @@ function showPage(pageId) {
     const activePage = document.getElementById(pageId);
     if (activePage) {
         activePage.classList.add('active');
-        
-        // Load tasks when tasks page is shown
-        if (pageId === 'tasks-page') {
-            loadTasks();
-        }
     }
     
     // Update active nav icon
@@ -960,101 +1860,23 @@ function showPage(pageId) {
     }
 }
 
-// Load tasks from backend
-async function loadTasks() {
-    try {
-        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to load user data: ${response.status}`);
-        }
-
-        const user = await response.json();
-        updateTasksUI(user);
+// Create gold coin animation
+function createCoinAnimation(x, y) {
+    for (let i = 0; i < 5; i++) {
+        const coin = document.createElement('div');
+        coin.className = 'coin';
         
-    } catch (error) {
-        console.error("Error loading tasks:", error);
-        // Fallback to default tasks if API fails
-        updateTasksUI({
-            completedTasks: {
-                twitterFollow: false,
-                telegramJoin: false,
-                youtubeSubscribe: false,
-                websiteVisit: false,
-                twitterLike: false,
-                twitterMention: false,
-                youtubeLike: false,
-                youtubeComment: false,
-                telegramEngage: false
-            },
-            points: 0
-        });
-    }
-}
-
-// Update tasks UI based on completion status
-function updateTasksUI(user) {
-    if (!user || !user.completedTasks) return;
-    
-    // Update each task card
-    for (const [taskId, isCompleted] of Object.entries(user.completedTasks)) {
-        const card = document.querySelector(`.task-card[data-task="${taskId}"]`);
-        if (!card) continue;
+        const offsetX = (Math.random() - 0.5) * 50;
+        const offsetY = (Math.random() - 0.5) * 50;
         
-        const button = card.querySelector('.task-button');
-        const completedText = card.querySelector('.task-completed');
+        coin.style.left = (x + offsetX) + 'px';
+        coin.style.top = (y + offsetY) + 'px';
         
-        if (isCompleted) {
-            button.style.display = 'none';
-            if (completedText) {
-                completedText.style.display = 'block';
-            }
-        } else {
-            button.style.display = 'block';
-            if (completedText) {
-                completedText.style.display = 'none';
-            }
-            
-            // Add click handler for task completion
-            button.onclick = async () => {
-                try {
-                    button.disabled = true;
-                    button.textContent = 'Verifying...';
-                    
-                    // Since your backend doesn't have a dedicated complete-task endpoint,
-                    // we'll simulate the completion in the frontend
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-                    
-                    // Update UI
-                    button.style.display = 'none';
-                    if (completedText) {
-                        completedText.style.display = 'block';
-                    }
-                    
-                    // Get points from the task card
-                    const pointsElement = card.querySelector('.task-vp');
-                    const points = pointsElement ? parseInt(pointsElement.textContent) : 0;
-                    
-                    // Update points display
-                    userData.points += points;
-                    updateUserInterface(userData.points, userData.streak);
-                    
-                    // Show success message
-                    alert(`✅ Task completed! +${points} VP`);
-                    
-                } catch (error) {
-                    console.error("Error completing task:", error);
-                    button.disabled = false;
-                    button.textContent = 'Complete Task';
-                    alert(`❌ Failed to complete task: ${error.message}`);
-                }
-            };
-        }
+        document.body.appendChild(coin);
+        
+        setTimeout(() => {
+            coin.remove();
+        }, 1000);
     }
 }
 
@@ -1085,7 +1907,7 @@ async function handleDailyCheckin() {
                 // Handle cooldown error specifically
                 if (result.error && result.error.includes('hours')) {
                     const hoursLeft = result.error.match(/\d+/)?.[0] || '24';
-                    updateCheckinButton(false, hoursLeft + 'H');
+                    updateCheckinButton(false, hoursLeft + 'H'); // Changed to uppercase H
                     return;
                 }
                 throw new Error(result.error || 'Failed to check in');
@@ -1098,7 +1920,7 @@ async function handleDailyCheckin() {
             alert(`✅ ${result.message}\n🔥 Streak: ${result.streak} days`);
 
             // Update button state
-            updateCheckinButton(false, '24H');
+            updateCheckinButton(false, '24H'); // Changed to uppercase H
             
         } catch (error) {
             console.error('Check-in error:', error);
@@ -1110,6 +1932,26 @@ async function handleDailyCheckin() {
             }
         }
     });
+}
+
+// Update check-in button state
+function updateCheckinButton(enabled, text) {
+    const button = document.getElementById('daily-checkin');
+    if (!button) return;
+    
+    button.disabled = !enabled;
+    button.style.opacity = enabled ? '1' : '0.5';
+    
+    const buttonRight = button.querySelector('.button-right');
+    if (buttonRight) {
+        // Ensure all cooldown times end with H (uppercase)
+        const displayText = enabled ? '+20 VP' : 
+                            text === '24H' ? '24H' : 
+                            text === 'Done' ? '✅ Done' : 
+                            text.endsWith('h') ? text.replace('h', 'H') : // Convert h to H if present
+                            text.endsWith('H') ? text : text + 'H'; // Add H if missing
+        buttonRight.textContent = displayText;
+    }
 }
 
 // Main initialization function
@@ -1135,6 +1977,9 @@ function initApp() {
     handleDailyCheckin();
 }
 
+// Ensure home page is active on startup
+showPage('home-page');
+    
 // Load user data from backend
 async function loadUserData() {
     try {
@@ -1157,25 +2002,37 @@ async function loadUserData() {
             throw new Error("Invalid data format - missing points field");
         }
 
-        updateUserInterface(data.points, data.streak || 0);
-        
-        // Check if user can check in
-        if (data.nextCheckInAvailable) {
-            const now = new Date();
-            const nextCheckIn = new Date(data.nextCheckInAvailable);
-            if (now < nextCheckIn) {
-                const hoursLeft = Math.ceil((nextCheckIn - now) / (1000 * 60 * 60));
-                updateCheckinButton(false, `${hoursLeft}H`);
-            } else {
-                updateCheckinButton(true, '+20 VP');
-            }
-        } else {
-            updateCheckinButton(true, '+20 VP');
-        }
+        updateUserInterface(data.points, data.streak);
+        checkCheckinStatus();
         
     } catch (error) {
         console.error("Error loading user data:", error);
         updateUserInterface(0, 0);
+    }
+}
+
+// Check if daily check-in is available
+async function checkCheckinStatus() {
+    try {
+        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/checkin-status`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.canCheckIn) {
+                updateCheckinButton(true, '+20 VP');
+            } else {
+                const hoursLeft = Math.ceil((new Date(data.nextCheckIn) - new Date()) / (1000 * 60 * 60));
+                updateCheckinButton(false, `${hoursLeft}H`); // Changed to uppercase H
+            }
+        }
+    } catch (error) {
+        console.error("Error checking check-in status:", error);
         updateCheckinButton(true, '+20 VP');
     }
 }
@@ -1190,20 +2047,6 @@ function updateUserInterface(points, streak) {
     
     userData.points = points;
     userData.streak = streak;
-}
-
-// Update check-in button state
-function updateCheckinButton(enabled, text) {
-    const button = document.getElementById('daily-checkin');
-    if (!button) return;
-    
-    button.disabled = !enabled;
-    button.style.opacity = enabled ? '1' : '0.5';
-    
-    const buttonRight = button.querySelector('.button-right');
-    if (buttonRight) {
-        buttonRight.textContent = text;
-    }
 }
 
 // Setup event listeners

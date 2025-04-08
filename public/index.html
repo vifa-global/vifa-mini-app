@@ -735,7 +735,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://twitter.com/vifa_global', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('twitter-follow')">
                                 <i class="fas fa-external-link-alt"></i> Visit Twitter
                             </button>
                             <button class="task-button secondary" id="verify-twitter-follow">
@@ -768,7 +768,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('telegram-join')">
                                 <i class="fas fa-external-link-alt"></i> Join Channel
                             </button>
                             <button class="task-button secondary" id="verify-telegram-join">
@@ -801,7 +801,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://www.youtube.com/@VIFAGlobal', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('youtube-subscribe')">
                                 <i class="fas fa-external-link-alt"></i> Visit YouTube
                             </button>
                             <button class="task-button secondary" id="verify-youtube-subscribe">
@@ -834,7 +834,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://vi-fa.co/', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('website-visit')">
                                 <i class="fas fa-external-link-alt"></i> Visit Website
                             </button>
                             <button class="task-button secondary" id="verify-website-visit">
@@ -875,7 +875,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://twitter.com/vifa_global/status/1901339044547830113', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('twitter-like')">
                                 <i class="fas fa-external-link-alt"></i> View Tweet
                             </button>
                             <button class="task-button secondary" id="verify-twitter-like">
@@ -908,7 +908,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://twitter.com/vifa_global/status/1901339044547830113', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('twitter-mention')">
                                 <i class="fas fa-external-link-alt"></i> View Tweet
                             </button>
                             <button class="task-button secondary" id="verify-twitter-mention">
@@ -941,7 +941,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://www.youtube.com/watch?v=huagG5RimpE&t=8s', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('youtube-like')">
                                 <i class="fas fa-external-link-alt"></i> Watch Video
                             </button>
                             <button class="task-button secondary" id="verify-youtube-like">
@@ -974,7 +974,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://www.youtube.com/watch?v=huagG5RimpE&t=8s', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('youtube-comment')">
                                 <i class="fas fa-external-link-alt"></i> Watch Video
                             </button>
                             <button class="task-button secondary" id="verify-youtube-comment">
@@ -1007,7 +1007,7 @@
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button class="task-button" onclick="window.open('https://t.me/VifaGlobal', '_blank')">
+                            <button class="task-button" onclick="handleTaskLinkClick('telegram-engage')">
                                 <i class="fas fa-external-link-alt"></i> View Channel
                             </button>
                             <button class="task-button secondary" id="verify-telegram-engage">
@@ -1174,6 +1174,17 @@ const userData = {
         youtubeLike: false,
         youtubeComment: false,
         telegramEngage: false
+    },
+    taskLinksClicked: {
+        twitterFollow: false,
+        telegramJoin: false,
+        youtubeSubscribe: false,
+        websiteVisit: false,
+        twitterLike: false,
+        twitterMention: false,
+        youtubeLike: false,
+        youtubeComment: false,
+        telegramEngage: false
     }
 };
 
@@ -1223,6 +1234,45 @@ function createCoinAnimation(x, y) {
         setTimeout(() => {
             coin.remove();
         }, 1000);
+    }
+}
+
+// Handle task link clicks
+function handleTaskLinkClick(taskId) {
+    // Mark the task link as clicked
+    userData.taskLinksClicked[taskId] = true;
+    
+    // Update the progress step
+    const step1 = document.getElementById(`${taskId}-step1`);
+    if (step1) {
+        step1.classList.add('active');
+    }
+    
+    // Open the appropriate link
+    switch(taskId) {
+        case 'twitter-follow':
+            window.open('https://twitter.com/vifa_global', '_blank');
+            break;
+        case 'telegram-join':
+            window.open('https://t.me/VifaGlobal', '_blank');
+            break;
+        case 'youtube-subscribe':
+            window.open('https://www.youtube.com/@VIFAGlobal', '_blank');
+            break;
+        case 'website-visit':
+            window.open('https://vi-fa.co/', '_blank');
+            break;
+        case 'twitter-like':
+        case 'twitter-mention':
+            window.open('https://twitter.com/vifa_global/status/1901339044547830113', '_blank');
+            break;
+        case 'youtube-like':
+        case 'youtube-comment':
+            window.open('https://www.youtube.com/watch?v=huagG5RimpE&t=8s', '_blank');
+            break;
+        case 'telegram-engage':
+            window.open('https://t.me/VifaGlobal', '_blank');
+            break;
     }
 }
 
@@ -1378,6 +1428,7 @@ async function verifyTask(taskId, endpoint, points, verificationData = {}) {
 // Helper function to show task completion in UI
 function showTaskCompletion(taskId) {
     document.getElementById(`${taskId}-completed`).classList.add('show');
+    document.getElementById(`${taskId}-step1`).classList.add('active');
     document.getElementById(`${taskId}-step2`).classList.add('active');
 }
 
@@ -1652,6 +1703,10 @@ function updateCompletedTasksUI() {
             if (completedElement) completedElement.classList.add('show');
             if (step1) step1.classList.add('active');
             if (step2) step2.classList.add('active');
+        } else if (userData.taskLinksClicked[task.id]) {
+            // If task is not completed but link was clicked, show first step as active
+            const step1 = document.getElementById(`${task.id}-step1`);
+            if (step1) step1.classList.add('active');
         }
     });
 }
@@ -1744,4 +1799,3 @@ showPage('home-page');
 </script>
 </body>
 </html>
-

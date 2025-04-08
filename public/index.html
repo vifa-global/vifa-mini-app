@@ -1338,6 +1338,25 @@ async function verifyTask(taskId, endpoint, points, verificationData = {}) {
             body: JSON.stringify(requestData)
         });
 
+                const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || "Verification failed");
+        }
+
+        // ======== ADD THIS CODE BLOCK ======== //
+        // Update local state to match backend
+        userData.completedTasks[taskId] = true;
+        userData.points += points;
+        updateUserInterface(userData.points, userData.streak);
+        showTaskCompletion(taskId);
+        // ======== END OF ADDED CODE ======== //
+
+        alert(`✅ Task verified! +${points} VP`);
+        
+        // Reload user data to ensure sync with backend
+        loadUserData();
+        
         // Check if response is HTML (404 page)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
@@ -1560,12 +1579,15 @@ function setupEventListeners() {
                 const result = await response.json();
                 
                 if (result.success) {
-                    userData.points = result.points;
-                    updateUserInterface(userData.points, userData.streak);
-                    
-                    // Reload user data to ensure sync with backend
-                    loadUserData();
-                }
+    // Update local state
+    userData.completedTasks[taskId] = true;  // <-- NEW: Track completed task
+    userData.points = result.points;         // <-- Existing points update
+    updateUserInterface(userData.points, userData.streak);
+    showTaskCompletion(taskId);              // <-- NEW: Visual feedback
+    
+    // Optional: Keep this if you want full backend sync
+    loadUserData();
+}
             } catch (error) {
                 console.error("Error earning VP:", error);
                 userData.points += 1;

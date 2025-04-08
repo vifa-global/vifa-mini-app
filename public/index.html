@@ -1579,12 +1579,15 @@ function setupEventListeners() {
                 const result = await response.json();
                 
                 if (result.success) {
-                    userData.points = result.points;
-                    updateUserInterface(userData.points, userData.streak);
-                    
-                    // Reload user data to ensure sync with backend
-                    loadUserData();
-                }
+    // Update local state
+    userData.completedTasks[taskId] = true;  // <-- NEW: Track completed task
+    userData.points = result.points;         // <-- Existing points update
+    updateUserInterface(userData.points, userData.streak);
+    showTaskCompletion(taskId);              // <-- NEW: Visual feedback
+    
+    // Optional: Keep this if you want full backend sync
+    loadUserData();
+}
             } catch (error) {
                 console.error("Error earning VP:", error);
                 userData.points += 1;

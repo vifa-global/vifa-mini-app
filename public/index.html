@@ -1632,7 +1632,7 @@ function setupEventListeners() {
     }
 }
 
-// Load user data from backend
+// Load user data from backend - FIXED VERSION
 async function loadUserData() {
     try {
         console.log("Loading user data for ID:", userData.id);
@@ -1666,13 +1666,25 @@ async function loadUserData() {
         // Update all user data from backend
         userData.points = data.points;
         userData.streak = data.streak || 0;
+        
+        // Properly initialize completedTasks from backend data
         if (data.completedTasks) {
-            userData.completedTasks = data.completedTasks;
+            // Copy all completed task statuses from backend
+            for (const task in data.completedTasks) {
+                if (data.completedTasks.hasOwnProperty(task)) {
+                    userData.completedTasks[task] = data.completedTasks[task];
+                    
+                    // For tasks that are completed, mark their links as clicked too
+                    if (data.completedTasks[task]) {
+                        userData.taskLinksClicked[task] = true;
+                    }
+                }
+            }
         }
         
         updateUserInterface(userData.points, userData.streak);
         checkCheckinStatus();
-        updateCompletedTasksUI();
+        updateCompletedTasksUI(); // This will now properly show all completed tasks
         
     } catch (error) {
         console.error("Error loading user data:", error);
@@ -1680,7 +1692,7 @@ async function loadUserData() {
     }
 }
 
-// Update UI for completed tasks
+// Update UI for completed tasks - FIXED VERSION
 function updateCompletedTasksUI() {
     const tasks = [
         { id: 'twitter-follow', completed: userData.completedTasks.twitterFollow },
@@ -1695,18 +1707,27 @@ function updateCompletedTasksUI() {
     ];
 
     tasks.forEach(task => {
+        const completedElement = document.getElementById(`${task.id}-completed`);
+        const step1 = document.getElementById(`${task.id}-step1`);
+        const step2 = document.getElementById(`${task.id}-step2`);
+        const verifyButton = document.getElementById(`verify-${task.id}`);
+        
         if (task.completed) {
-            const completedElement = document.getElementById(`${task.id}-completed`);
-            const step1 = document.getElementById(`${task.id}-step1`);
-            const step2 = document.getElementById(`${task.id}-step2`);
-            
+            // For completed tasks
             if (completedElement) completedElement.classList.add('show');
             if (step1) step1.classList.add('active');
             if (step2) step2.classList.add('active');
+            if (verifyButton) verifyButton.disabled = true;
         } else if (userData.taskLinksClicked[task.id]) {
-            // If task is not completed but link was clicked, show first step as active
-            const step1 = document.getElementById(`${task.id}-step1`);
+            // For tasks where link was clicked but not yet verified
             if (step1) step1.classList.add('active');
+            if (step2) step2.classList.remove('active');
+            if (completedElement) completedElement.classList.remove('show');
+        } else {
+            // For not started tasks
+            if (step1) step1.classList.remove('active');
+            if (step2) step2.classList.remove('active');
+            if (completedElement) completedElement.classList.remove('show');
         }
     });
 }
@@ -1799,4 +1820,3 @@ showPage('home-page');
 </script>
 </body>
 </html>
-

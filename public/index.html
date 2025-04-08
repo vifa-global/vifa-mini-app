@@ -1744,44 +1744,7 @@ async function checkCheckinStatus() {
         updateCheckinButton(true, '+20 VP');
     }
 }
-// Add this function to your frontend code
-async function loadReferralNetwork() {
-  try {
-    const response = await fetch(`https://vifa-backend.onrender.com/api/referrals/${userData.id}`);
-    const data = await response.json();
-    
-    if (data.referrals && data.referrals.length > 0) {
-      const invitesList = document.querySelector('.invites-list');
-      
-      // Clear existing placeholder items
-      invitesList.innerHTML = `
-        <div class="invites-title">Your Referral Network (${data.referrals.length})</div>
-      `;
-      
-      // Add real referral items
-      data.referrals.forEach(ref => {
-        const inviteItem = document.createElement('div');
-        inviteItem.className = 'invite-item';
-        inviteItem.innerHTML = `
-          <span>@${ref.username} (Level ${ref.level})</span>
-          <span>+${ref.pointsEarned} VP</span>
-        `;
-        invitesList.appendChild(inviteItem);
-      });
-    }
-  } catch (error) {
-    console.error("Error loading referral network:", error);
-  }
-}
 
-// Call this function when the friends page is shown
-function showPage(pageId) {
-  // ... existing code ...
-  
-  if (pageId === 'friends-page') {
-    loadReferralNetwork();
-  }
-}
 // Update UI elements
 function updateUserInterface(points, streak) {
     const vpElement = document.getElementById('vp-balance');

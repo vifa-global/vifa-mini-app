@@ -665,22 +665,26 @@
         <div class="header-content">
             <!-- Logo Group -->
             <div class="brand-group">
-                <div class="logo-placeholder">VIFA</div> <!-- Replace with actual logo img -->
+                <img src="assets/logo.png" alt="VIFA Logo" class="logo">
                 <div class="app-name">VIFA</div>
             </div>
             
             <!-- Stats Group -->
             <div class="stats-group">
-                <!-- VP Counter -->
-                <div class="stat-card vp-counter">
-                    <div class="stat-value">75</div>
-                    <div class="stat-label">VP</div>
-                    <div class="shine-effect"></div>
+                <!-- Gold Coin Counter -->
+                <div class="coin-container">
+                    <div class="coin" id="gold-coin">
+                        <div class="coin-front"></div>
+                        <div class="coin-edge"></div>
+                        <div class="coin-back"></div>
+                        <div class="coin-shine"></div>
+                    </div>
+                    <div class="coin-counter" id="gold-balance">0</div>
                 </div>
                 
                 <!-- Streak Counter -->
                 <div class="stat-card streak-counter">
-                    <div class="stat-value">1</div>
+                    <div class="stat-value">0</div>
                     <div class="stat-label">day streak</div>
                     <div class="fire-effect">🔥</div>
                 </div>
@@ -1099,7 +1103,7 @@
                 </div>
                 
                 <div class="invites-list">
-                    <div class="invites-title">Your Referral Network (Ex.)</div>
+                    <div class="invites-title">Your Referral Network (5)</div>
                     <div class="invite-item">
                         <span>@john_doe (Level 1)</span>
                         <span>+50 VP</span>
@@ -1125,30 +1129,45 @@
         </div>
         
         <!-- Wallet Page -->
-        <div class="wallet-container">
-    <h2 class="wallet-title">TON Wallet</h2>
-    <div class="wallet-card">
-        <!-- Connected State (hidden by default) -->
-        <div id="connected-wallet" style="display: none;">
-            <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
-            <h3>Wallet Connected</h3>
-            <p class="wallet-connected-info" id="wallet-address"></p>
-            <button class="wallet-button secondary" id="disconnect-wallet">
-                <i class="fas fa-unlink"></i> Disconnect Wallet
-            </button>
+        <div class="page" id="wallet-page">
+            <div class="wallet-container">
+                <h2 class="wallet-title">TON Wallet</h2>
+                
+                <div class="wallet-card">
+                    <div id="wallet-status">
+                        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
+                        <h3>Connect Your Wallet</h3>
+                        <p class="wallet-info">Connect your TON wallet to receive rewards and participate in VIFA ecosystem</p>
+                        
+                        <button class="wallet-button" id="connect-wallet">
+                            <i class="fas fa-plug"></i> Connect Wallet
+                        </button>
+                        
+                        <div id="wallet-qr-container" style="display: none;">
+                            <div class="wallet-qr" id="wallet-qr"></div>
+                            <p>Scan with your wallet app</p>
+                        </div>
+                    </div>
+                    
+                    <div id="connected-wallet" style="display: none;">
+                        <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
+                        <h3>Wallet Connected</h3>
+                        
+                        <p class="wallet-connected-info">Your TON wallet is successfully connected to the VIFA ecosystem.</p>
+                        <p class="wallet-connected-info">All rewards will be automatically sent to your connected wallet.</p>
+                        
+                        <button class="wallet-button secondary" onclick="disconnectWallet()">
+                            <i class="fas fa-unlink"></i> Disconnect Wallet
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="wallet-info">
+                    <p>Supported wallets: Tonkeeper, OpenMask, etc.</p>
+                    <p>You'll need this for future TON rewards</p>
+                </div>
+            </div>
         </div>
-
-        <!-- Disconnected State (shown by default) -->
-        <div id="wallet-status">
-            <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
-            <h3>Connect Your Wallet</h3>
-            <p class="wallet-info">Connect your TON wallet to receive rewards.</p>
-            <button class="wallet-button" id="connect-wallet">
-                <i class="fas fa-plug"></i> Connect Wallet
-            </button>
-        </div>
-    </div>
-</div>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
@@ -1203,20 +1222,6 @@ function showPage(pageId) {
     if (activePage) {
         activePage.classList.add('active');
     }
-
-    // Add this at the TOP of your script
-const connector = new TonConnect.TonConnect({
-    manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-});
-
-// Add this to your global userData object
-const userData = {
-    // ... existing properties ...
-    tonWallet: {
-        address: null,
-        connected: false
-    }
-};
     
     // Update active nav icon
     const navIcons = document.querySelectorAll('.nav-icon, .wallet-icon');
@@ -1809,103 +1814,10 @@ document.addEventListener('DOMContentLoaded', () => {
         initApp();
     }
 });
-// ======================
-// TON Wallet Connection
-// ======================
-async function setupWallet() {
-    // Check if wallet is already connected
-    const wallet = await connector.restoreConnection();
-    if (wallet) {
-        handleWalletConnected(wallet);
-    }
-
-    // Connect Wallet Button
-    document.getElementById('connect-wallet').addEventListener('click', connectWallet);
-
-    // Disconnect Wallet Button
-    document.getElementById('disconnect-wallet').addEventListener('click', disconnectWallet);
-}
-
-async function connectWallet() {
-    try {
-        const universalLink = connector.connect({
-            bridgeUrl: 'https://bridge.tonapi.io/bridge'
-        });
-        window.open(universalLink, '_blank');
-
-        // Listen for connection
-        connector.onStatusChange((wallet) => {
-            if (wallet) {
-                handleWalletConnected(wallet);
-            } else {
-                handleWalletDisconnected();
-            }
-        });
-    } catch (error) {
-        alert("Failed to connect: " + error.message);
-    }
-}
-
-function handleWalletConnected(wallet) {
-    const address = wallet.account.address;
-    userData.tonWallet.address = address;
-    userData.tonWallet.connected = true;
-
-    // Update UI
-    document.getElementById('wallet-status').style.display = 'none';
-    document.getElementById('connected-wallet').style.display = 'block';
-    document.getElementById('wallet-address').textContent = `Address: ${address.slice(0, 6)}...${address.slice(-4)}`;
-
-    // Save to backend
-    saveWalletToBackend(address);
-}
-
-async function disconnectWallet() {
-    await connector.disconnect();
-    handleWalletDisconnected();
-    await removeWalletFromBackend();
-    alert("Wallet disconnected!");
-}
-
-function handleWalletDisconnected() {
-    userData.tonWallet.address = null;
-    userData.tonWallet.connected = false;
-
-    // Update UI
-    document.getElementById('wallet-status').style.display = 'block';
-    document.getElementById('connected-wallet').style.display = 'none';
-}
-
-// Backend calls
-async function saveWalletToBackend(address) {
-    await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: userData.id, 
-            walletAddress: address 
-        })
-    });
-}
-
-async function removeWalletFromBackend() {
-    await fetch('https://vifa-backend.onrender.com/api/remove-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userData.id })
-    });
-}
-
-// Initialize wallet on app start
-initApp(); // Your existing init function
-setupWallet(); // Add this line after initApp()
-    
 
 // Ensure home page is active on startup
 showPage('home-page');
 </script>
-    <!-- Add this line -->
-<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 </body>
 </html>
 

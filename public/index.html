@@ -1280,6 +1280,9 @@ async function handleDailyCheckin() {
             // Update button state
             updateCheckinButton(false, '24H');
             
+            // Reload user data to ensure sync with backend
+            loadUserData();
+            
         } catch (error) {
             console.error('Check-in error:', error);
             alert(`❌ ${error.message}`);
@@ -1358,6 +1361,9 @@ async function verifyTask(taskId, endpoint, points, verificationData = {}) {
         updateUserInterface(result.points, userData.streak);
         showTaskCompletion(taskId);
         alert(`✅ Task verified! +${points} VP`);
+        
+        // Reload user data to ensure sync with backend
+        loadUserData();
         
     } catch (error) {
         console.error(`Verification error for ${taskId}:`, error);
@@ -1556,6 +1562,9 @@ function setupEventListeners() {
                 if (result.success) {
                     userData.points = result.points;
                     updateUserInterface(userData.points, userData.streak);
+                    
+                    // Reload user data to ensure sync with backend
+                    loadUserData();
                 }
             } catch (error) {
                 console.error("Error earning VP:", error);
@@ -1603,14 +1612,16 @@ async function loadUserData() {
             throw new Error("Invalid data format - missing points field");
         }
 
-        updateUserInterface(data.points, data.streak);
-        checkCheckinStatus();
-        
-        // Update completed tasks in UI
+        // Update all user data from backend
+        userData.points = data.points;
+        userData.streak = data.streak || 0;
         if (data.completedTasks) {
             userData.completedTasks = data.completedTasks;
-            updateCompletedTasksUI();
         }
+        
+        updateUserInterface(userData.points, userData.streak);
+        checkCheckinStatus();
+        updateCompletedTasksUI();
         
     } catch (error) {
         console.error("Error loading user data:", error);

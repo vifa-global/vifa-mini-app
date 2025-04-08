@@ -628,6 +628,23 @@
             cursor: pointer;
             font-size: 16px;
         }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #FFD700;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -655,7 +672,7 @@
             </div>
         </div>
         
-        <!-- Home Page (unchanged) -->
+        <!-- Home Page -->
         <div class="page active" id="home-page">
             <div class="content">
                 <div class="home-button" id="click-for-vp">
@@ -686,7 +703,7 @@
             </div>
         </div>
         
-        <!-- Redesigned Tasks Page -->
+        <!-- Tasks Page -->
         <div class="page" id="tasks-page">
             <div class="tasks-container">
                 <h2 style="text-align: center; margin-bottom: 25px; color: #FFD700;">Complete Tasks & Earn VP</h2>
@@ -723,6 +740,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-twitter-follow">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="twitter-follow-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="twitter-follow-completed">
@@ -755,6 +773,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-telegram-join">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="telegram-join-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="telegram-join-completed">
@@ -787,6 +806,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-youtube-subscribe">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="youtube-subscribe-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="youtube-subscribe-completed">
@@ -819,6 +839,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-website-visit">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="website-visit-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="website-visit-completed">
@@ -859,6 +880,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-twitter-like">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="twitter-like-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="twitter-like-completed">
@@ -891,6 +913,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-twitter-mention">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="twitter-mention-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="twitter-mention-completed">
@@ -923,6 +946,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-youtube-like">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="youtube-like-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="youtube-like-completed">
@@ -955,6 +979,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-youtube-comment">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="youtube-comment-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="youtube-comment-completed">
@@ -987,6 +1012,7 @@
                             </button>
                             <button class="task-button secondary" id="verify-telegram-engage">
                                 <i class="fas fa-check-circle"></i> Verify
+                                <div class="spinner" id="telegram-engage-spinner"></div>
                             </button>
                         </div>
                         <div class="task-completed" id="telegram-engage-completed">
@@ -997,7 +1023,7 @@
             </div>
         </div>
         
-        <!-- Friends Page (unchanged) -->
+        <!-- Friends Page -->
         <div class="page" id="friends-page">
             <div class="friends-container">
                 <h2 class="friends-title">Invite Friends</h2>
@@ -1081,7 +1107,7 @@
             </div>
         </div>
         
-        <!-- Wallet Page (unchanged) -->
+        <!-- Wallet Page -->
         <div class="page" id="wallet-page">
             <div class="wallet-container">
                 <h2 class="wallet-title">TON Wallet</h2>
@@ -1285,396 +1311,121 @@ function updateCheckinButton(enabled, text) {
     }
 }
 
+// Generic task verification function
+async function verifyTask(taskId, endpoint, points, verificationData = {}) {
+    const button = document.getElementById(`verify-${taskId}`);
+    const spinner = document.getElementById(`${taskId}-spinner`);
+    
+    try {
+        // Show loading state
+        button.disabled = true;
+        spinner.style.display = 'inline-block';
+        
+        // Prepare request data
+        const requestData = {
+            userId: userData.id,
+            ...verificationData
+        };
+
+        const response = await fetch(`https://vifa-backend.onrender.com/api/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        // Check if response is HTML (404 page)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+            // Fallback behavior when API is not available
+            userData.completedTasks[taskId] = true;
+            userData.points += points;
+            updateUserInterface(userData.points, userData.streak);
+            showTaskCompletion(taskId);
+            alert(`✅ Task verified! +${points} VP`);
+            return;
+        }
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || "Verification failed");
+        }
+
+        // Update UI only after successful backend update
+        userData.completedTasks[taskId] = true;
+        updateUserInterface(result.points, userData.streak);
+        showTaskCompletion(taskId);
+        alert(`✅ Task verified! +${points} VP`);
+        
+    } catch (error) {
+        console.error(`Verification error for ${taskId}:`, error);
+        alert(`❌ Error verifying task: ${error.message}`);
+    } finally {
+        // Reset button state
+        if (button) button.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+    }
+}
+
+// Helper function to show task completion in UI
+function showTaskCompletion(taskId) {
+    document.getElementById(`${taskId}-completed`).classList.add('show');
+    document.getElementById(`${taskId}-step2`).classList.add('active');
+}
+
 // Setup task verification handlers
 function setupTaskVerification() {
     // Twitter Follow
     document.getElementById('verify-twitter-follow')?.addEventListener('click', async () => {
-        try {
-            const twitterHandle = prompt("Please enter your Twitter username (without @):");
-            if (!twitterHandle) return;
-
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-twitter-follow', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id,
-                    twitterHandle: twitterHandle
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('twitter-follow-completed').classList.add('show');
-                document.getElementById('twitter-follow-step2').classList.add('active');
-                userData.completedTasks.twitterFollow = true;
-                userData.points += 15;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ Twitter follow verified! +15 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('twitter-follow-completed').classList.add('show');
-                document.getElementById('twitter-follow-step2').classList.add('active');
-                userData.completedTasks.twitterFollow = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ Twitter follow verified! +15 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying Twitter follow");
-        }
+        const twitterHandle = prompt("Please enter your Twitter username (without @):");
+        if (!twitterHandle) return;
+        await verifyTask('twitter-follow', 'verify-twitter-follow', 15, { twitterHandle });
     });
 
     // Telegram Join
     document.getElementById('verify-telegram-join')?.addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-telegram-join', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('telegram-join-completed').classList.add('show');
-                document.getElementById('telegram-join-step2').classList.add('active');
-                userData.completedTasks.telegramJoin = true;
-                userData.points += 15;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ Telegram join verified! +15 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('telegram-join-completed').classList.add('show');
-                document.getElementById('telegram-join-step2').classList.add('active');
-                userData.completedTasks.telegramJoin = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ Telegram join verified! +15 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying Telegram join");
-        }
+        await verifyTask('telegram-join', 'verify-telegram-join', 15);
     });
 
     // YouTube Subscribe
     document.getElementById('verify-youtube-subscribe')?.addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-youtube-subscribe', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('youtube-subscribe-completed').classList.add('show');
-                document.getElementById('youtube-subscribe-step2').classList.add('active');
-                userData.completedTasks.youtubeSubscribe = true;
-                userData.points += 15;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ YouTube subscription verified! +15 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('youtube-subscribe-completed').classList.add('show');
-                document.getElementById('youtube-subscribe-step2').classList.add('active');
-                userData.completedTasks.youtubeSubscribe = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ YouTube subscription verified! +15 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying YouTube subscription");
-        }
+        await verifyTask('youtube-subscribe', 'verify-youtube-subscribe', 15);
     });
 
     // Website Visit
     document.getElementById('verify-website-visit')?.addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-website-visit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('website-visit-completed').classList.add('show');
-                document.getElementById('website-visit-step2').classList.add('active');
-                userData.completedTasks.websiteVisit = true;
-                userData.points += 15;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ Website visit verified! +15 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('website-visit-completed').classList.add('show');
-                document.getElementById('website-visit-step2').classList.add('active');
-                userData.completedTasks.websiteVisit = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ Website visit verified! +15 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying website visit");
-        }
+        await verifyTask('website-visit', 'verify-website-visit', 15);
     });
 
     // Twitter Like
     document.getElementById('verify-twitter-like')?.addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-twitter-like', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('twitter-like-completed').classList.add('show');
-                document.getElementById('twitter-like-step2').classList.add('active');
-                userData.completedTasks.twitterLike = true;
-                userData.points += 5;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ Tweet like verified! +5 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('twitter-like-completed').classList.add('show');
-                document.getElementById('twitter-like-step2').classList.add('active');
-                userData.completedTasks.twitterLike = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ Tweet like verified! +5 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying tweet like");
-        }
+        await verifyTask('twitter-like', 'verify-twitter-like', 5);
     });
 
     // Twitter Mention
     document.getElementById('verify-twitter-mention')?.addEventListener('click', async () => {
-        try {
-            const tweetUrl = prompt("Please enter the URL of your mention tweet:");
-            if (!tweetUrl) return;
-
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-twitter-mention', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id,
-                    tweetUrl: tweetUrl
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('twitter-mention-completed').classList.add('show');
-                document.getElementById('twitter-mention-step2').classList.add('active');
-                userData.completedTasks.twitterMention = true;
-                userData.points += 10;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ Tweet mention verified! +10 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('twitter-mention-completed').classList.add('show');
-                document.getElementById('twitter-mention-step2').classList.add('active');
-                userData.completedTasks.twitterMention = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ Tweet mention verified! +10 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying tweet mention");
-        }
+        const tweetUrl = prompt("Please enter the URL of your mention tweet:");
+        if (!tweetUrl) return;
+        await verifyTask('twitter-mention', 'verify-twitter-mention', 10, { tweetUrl });
     });
 
     // YouTube Like
     document.getElementById('verify-youtube-like')?.addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-youtube-like', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('youtube-like-completed').classList.add('show');
-                document.getElementById('youtube-like-step2').classList.add('active');
-                userData.completedTasks.youtubeLike = true;
-                userData.points += 5;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ YouTube like verified! +5 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('youtube-like-completed').classList.add('show');
-                document.getElementById('youtube-like-step2').classList.add('active');
-                userData.completedTasks.youtubeLike = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ YouTube like verified! +5 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying YouTube like");
-        }
+        await verifyTask('youtube-like', 'verify-youtube-like', 5);
     });
 
     // YouTube Comment
     document.getElementById('verify-youtube-comment')?.addEventListener('click', async () => {
-        try {
-            const commentText = prompt("Please enter your YouTube comment text:");
-            if (!commentText) return;
-
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-youtube-comment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id,
-                    commentText: commentText
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('youtube-comment-completed').classList.add('show');
-                document.getElementById('youtube-comment-step2').classList.add('active');
-                userData.completedTasks.youtubeComment = true;
-                userData.points += 10;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ YouTube comment verified! +10 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('youtube-comment-completed').classList.add('show');
-                document.getElementById('youtube-comment-step2').classList.add('active');
-                userData.completedTasks.youtubeComment = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ YouTube comment verified! +10 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying YouTube comment");
-        }
+        const commentText = prompt("Please enter your YouTube comment text:");
+        if (!commentText) return;
+        await verifyTask('youtube-comment', 'verify-youtube-comment', 10, { commentText });
     });
 
     // Telegram Engage
     document.getElementById('verify-telegram-engage')?.addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/verify-telegram-engage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                document.getElementById('telegram-engage-completed').classList.add('show');
-                document.getElementById('telegram-engage-step2').classList.add('active');
-                userData.completedTasks.telegramEngage = true;
-                userData.points += 10;
-                updateUserInterface(userData.points, userData.streak);
-                alert("✅ Telegram engagement verified! +10 VP");
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('telegram-engage-completed').classList.add('show');
-                document.getElementById('telegram-engage-step2').classList.add('active');
-                userData.completedTasks.telegramEngage = true;
-                updateUserInterface(result.points, userData.streak);
-                alert("✅ Telegram engagement verified! +10 VP");
-            } else {
-                alert(result.error || "Verification failed");
-            }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("❌ Error verifying Telegram engagement");
-        }
+        await verifyTask('telegram-engage', 'verify-telegram-engage', 10);
     });
 }
 

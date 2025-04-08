@@ -1433,56 +1433,38 @@ function showTaskCompletion(taskId) {
 }
 
 // Setup task verification handlers
-function setupTaskVerification() {
-    // Twitter Follow
-    document.getElementById('verify-twitter-follow')?.addEventListener('click', async () => {
-        const twitterHandle = prompt("Please enter your Twitter username (without @):");
-        if (!twitterHandle) return;
-        await verifyTask('twitter-follow', 'verify-twitter-follow', 15, { twitterHandle });
-    });
+// Update UI for completed tasks
+function updateCompletedTasksUI() {
+    const tasks = [
+        { id: 'twitter-follow', completed: userData.completedTasks.twitterFollow },
+        { id: 'telegram-join', completed: userData.completedTasks.telegramJoin },
+        { id: 'youtube-subscribe', completed: userData.completedTasks.youtubeSubscribe },
+        { id: 'website-visit', completed: userData.completedTasks.websiteVisit },
+        { id: 'twitter-like', completed: userData.completedTasks.twitterLike },
+        { id: 'twitter-mention', completed: userData.completedTasks.twitterMention },
+        { id: 'youtube-like', completed: userData.completedTasks.youtubeLike },
+        { id: 'youtube-comment', completed: userData.completedTasks.youtubeComment },
+        { id: 'telegram-engage', completed: userData.completedTasks.telegramEngage }
+    ];
 
-    // Telegram Join
-    document.getElementById('verify-telegram-join')?.addEventListener('click', async () => {
-        await verifyTask('telegram-join', 'verify-telegram-join', 15);
-    });
-
-    // YouTube Subscribe
-    document.getElementById('verify-youtube-subscribe')?.addEventListener('click', async () => {
-        await verifyTask('youtube-subscribe', 'verify-youtube-subscribe', 15);
-    });
-
-    // Website Visit
-    document.getElementById('verify-website-visit')?.addEventListener('click', async () => {
-        await verifyTask('website-visit', 'verify-website-visit', 15);
-    });
-
-    // Twitter Like
-    document.getElementById('verify-twitter-like')?.addEventListener('click', async () => {
-        await verifyTask('twitter-like', 'verify-twitter-like', 5);
-    });
-
-    // Twitter Mention
-    document.getElementById('verify-twitter-mention')?.addEventListener('click', async () => {
-        const tweetUrl = prompt("Please enter the URL of your mention tweet:");
-        if (!tweetUrl) return;
-        await verifyTask('twitter-mention', 'verify-twitter-mention', 10, { tweetUrl });
-    });
-
-    // YouTube Like
-    document.getElementById('verify-youtube-like')?.addEventListener('click', async () => {
-        await verifyTask('youtube-like', 'verify-youtube-like', 5);
-    });
-
-    // YouTube Comment
-    document.getElementById('verify-youtube-comment')?.addEventListener('click', async () => {
-        const commentText = prompt("Please enter your YouTube comment text:");
-        if (!commentText) return;
-        await verifyTask('youtube-comment', 'verify-youtube-comment', 10, { commentText });
-    });
-
-    // Telegram Engage
-    document.getElementById('verify-telegram-engage')?.addEventListener('click', async () => {
-        await verifyTask('telegram-engage', 'verify-telegram-engage', 10);
+    tasks.forEach(task => {
+        const completedElement = document.getElementById(`${task.id}-completed`);
+        const step1 = document.getElementById(`${task.id}-step1`);
+        const step2 = document.getElementById(`${task.id}-step2`);
+        
+        if (task.completed) {
+            if (completedElement) completedElement.classList.add('show');
+            if (step1) step1.classList.add('active');
+            if (step2) step2.classList.add('active');
+        } else if (userData.taskLinksClicked[task.id]) {
+            // If task is not completed but link was clicked, show first step as active
+            if (step1) step1.classList.add('active');
+        } else {
+            // Reset if neither completed nor clicked
+            if (completedElement) completedElement.classList.remove('show');
+            if (step1) step1.classList.remove('active');
+            if (step2) step2.classList.remove('active');
+        }
     });
 }
 
@@ -1633,51 +1615,52 @@ function setupEventListeners() {
 }
 
 // Load user data from backend
+// Load user data from backend
 async function loadUserData() {
-    try {
-        console.log("Loading user data for ID:", userData.id);
-        const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        });
+  try {
+    console.log("Loading user data for ID:", userData.id);
+    const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/tasks`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
 
-        // Check if response is HTML (404 page)
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('text/html')) {
-            // Fallback behavior when API is not available
-            updateUserInterface(0, 0);
-            checkCheckinStatus();
-            return;
-        }
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load user data: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data || typeof data.points === 'undefined') {
-            throw new Error("Invalid data format - missing points field");
-        }
-
-        // Update all user data from backend
-        userData.points = data.points;
-        userData.streak = data.streak || 0;
-        if (data.completedTasks) {
-            userData.completedTasks = data.completedTasks;
-        }
-        
-        updateUserInterface(userData.points, userData.streak);
-        checkCheckinStatus();
-        updateCompletedTasksUI();
-        
-    } catch (error) {
-        console.error("Error loading user data:", error);
-        updateUserInterface(0, 0);
+    // Check if response is HTML (404 page)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      // Fallback behavior when API is not available
+      updateUserInterface(0, 0);
+      checkCheckinStatus();
+      return;
     }
+    
+    if (!response.ok) {
+      throw new Error(`Failed to load user data: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data || typeof data.points === 'undefined') {
+      throw new Error("Invalid data format - missing points field");
+    }
+
+    // Update all user data from backend
+    userData.points = data.points;
+    userData.streak = data.streak || 0;
+    if (data.completedTasks) {
+      userData.completedTasks = data.completedTasks;
+    }
+    
+    updateUserInterface(userData.points, userData.streak);
+    checkCheckinStatus();
+    updateCompletedTasksUI();
+    
+  } catch (error) {
+    console.error("Error loading user data:", error);
+    updateUserInterface(0, 0);
+  }
 }
 
 // Update UI for completed tasks

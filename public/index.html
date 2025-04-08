@@ -1190,25 +1190,25 @@ const userData = {
 
 // Show specific page and hide others
 function showPage(pageId) {
+    // Hide all pages
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => {
         page.classList.remove('active');
     });
     
+    // Show selected page
     const activePage = document.getElementById(pageId);
     if (activePage) {
         activePage.classList.add('active');
-        
-        if (pageId === 'referrals-page') {
-            loadReferralNetwork();
-        }
     }
     
+    // Update active nav icon
     const navIcons = document.querySelectorAll('.nav-icon, .wallet-icon');
     navIcons.forEach(icon => {
         icon.classList.remove('active');
     });
     
+    // Find and activate the clicked icon
     const clickedIcon = Array.from(navIcons).find(icon => 
         icon.getAttribute('onclick').includes(pageId)
     );
@@ -1217,50 +1217,20 @@ function showPage(pageId) {
     }
 }
 
-// Load referral network data
-async function loadReferralNetwork() {
-    try {
-        const response = await fetch(`https://vifa-backend.onrender.com/api/referrals/${userData.id}`);
-        const data = await response.json();
-        
-        if (data.referrals && data.referrals.length > 0) {
-            const container = document.getElementById('referral-network');
-            if (container) {
-                container.innerHTML = '';
-                data.referrals.forEach(ref => {
-                    const referralElement = document.createElement('div');
-                    referralElement.className = 'referral-item';
-                    referralElement.innerHTML = `
-                        <div class="referral-user">
-                            <span class="username">${ref.username || `user_${ref.userId}`}</span>
-                            <span class="level">Level ${ref.level}</span>
-                        </div>
-                        <div class="referral-points">+${ref.pointsEarned} VP</div>
-                    `;
-                    container.appendChild(referralElement);
-                });
-            }
-        } else {
-            const container = document.getElementById('referral-network');
-            if (container) {
-                container.innerHTML = '<p class="empty-state">No referrals yet. Share your link to earn VP!</p>';
-            }
-        }
-    } catch (error) {
-        console.error("Error loading referrals:", error);
-    }
-}
-
 // Create gold coin animation
 function createCoinAnimation(x, y) {
     for (let i = 0; i < 5; i++) {
         const coin = document.createElement('div');
         coin.className = 'coin';
+        
         const offsetX = (Math.random() - 0.5) * 50;
         const offsetY = (Math.random() - 0.5) * 50;
+        
         coin.style.left = (x + offsetX) + 'px';
         coin.style.top = (y + offsetY) + 'px';
+        
         document.body.appendChild(coin);
+        
         setTimeout(() => {
             coin.remove();
         }, 1000);
@@ -1269,24 +1239,40 @@ function createCoinAnimation(x, y) {
 
 // Handle task link clicks
 function handleTaskLinkClick(taskId) {
+    // Mark the task link as clicked
     userData.taskLinksClicked[taskId] = true;
+    
+    // Update the progress step
     const step1 = document.getElementById(`${taskId}-step1`);
-    if (step1) step1.classList.add('active');
+    if (step1) {
+        step1.classList.add('active');
+    }
     
-    const links = {
-        'twitter-follow': 'https://twitter.com/vifa_global',
-        'telegram-join': 'https://t.me/VifaGlobal',
-        'youtube-subscribe': 'https://www.youtube.com/@VIFAGlobal',
-        'website-visit': 'https://vi-fa.co/',
-        'twitter-like': 'https://twitter.com/vifa_global/status/1901339044547830113',
-        'twitter-mention': 'https://twitter.com/vifa_global/status/1901339044547830113',
-        'youtube-like': 'https://www.youtube.com/watch?v=huagG5RimpE&t=8s',
-        'youtube-comment': 'https://www.youtube.com/watch?v=huagG5RimpE&t=8s',
-        'telegram-engage': 'https://t.me/VifaGlobal'
-    };
-    
-    if (links[taskId]) {
-        window.open(links[taskId], '_blank');
+    // Open the appropriate link
+    switch(taskId) {
+        case 'twitter-follow':
+            window.open('https://twitter.com/vifa_global', '_blank');
+            break;
+        case 'telegram-join':
+            window.open('https://t.me/VifaGlobal', '_blank');
+            break;
+        case 'youtube-subscribe':
+            window.open('https://www.youtube.com/@VIFAGlobal', '_blank');
+            break;
+        case 'website-visit':
+            window.open('https://vi-fa.co/', '_blank');
+            break;
+        case 'twitter-like':
+        case 'twitter-mention':
+            window.open('https://twitter.com/vifa_global/status/1901339044547830113', '_blank');
+            break;
+        case 'youtube-like':
+        case 'youtube-comment':
+            window.open('https://www.youtube.com/watch?v=huagG5RimpE&t=8s', '_blank');
+            break;
+        case 'telegram-engage':
+            window.open('https://t.me/VifaGlobal', '_blank');
+            break;
     }
 }
 
@@ -1297,17 +1283,24 @@ async function handleDailyCheckin() {
 
     button.addEventListener('click', async function() {
         try {
+            // Disable button during processing
             button.disabled = true;
             button.style.opacity = '0.7';
             
             const response = await fetch('https://vifa-backend.onrender.com/api/checkin', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({userId: userData.id})
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userData.id
+                })
             });
 
+            // First check if the response is HTML (404 page)
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('text/html')) {
+                // Fallback behavior when API is not available
                 userData.points += 20;
                 userData.streak += 1;
                 updateUserInterface(userData.points, userData.streak);
@@ -1317,7 +1310,9 @@ async function handleDailyCheckin() {
             }
 
             const result = await response.json();
+
             if (!response.ok) {
+                // Handle cooldown error specifically
                 if (result.error && result.error.includes('hours')) {
                     const hoursLeft = result.error.match(/\d+/)?.[0] || '24';
                     updateCheckinButton(false, hoursLeft + 'H');
@@ -1326,14 +1321,23 @@ async function handleDailyCheckin() {
                 throw new Error(result.error || 'Failed to check in');
             }
 
+            // Update UI with new data
             updateUserInterface(result.points, result.streak);
+            
+            // Show success message
             alert(`✅ ${result.message}\n🔥 Streak: ${result.streak} days`);
+
+            // Update button state
             updateCheckinButton(false, '24H');
+            
+            // Reload user data to ensure sync with backend
             loadUserData();
             
         } catch (error) {
             console.error('Check-in error:', error);
             alert(`❌ ${error.message}`);
+            
+            // Reset button if it's not a cooldown error
             if (!error.message.includes('hours')) {
                 updateCheckinButton(true, '+20 VP');
             }
@@ -1345,15 +1349,17 @@ async function handleDailyCheckin() {
 function updateCheckinButton(enabled, text) {
     const button = document.getElementById('daily-checkin');
     if (!button) return;
+    
     button.disabled = !enabled;
     button.style.opacity = enabled ? '1' : '0.5';
+    
     const buttonRight = button.querySelector('.button-right');
     if (buttonRight) {
         const displayText = enabled ? '+20 VP' : 
-                          text === '24H' ? '24H' : 
-                          text === 'Done' ? '✅ Done' : 
-                          text.endsWith('h') ? text.replace('h', 'H') :
-                          text.endsWith('H') ? text : text + 'H';
+                            text === '24H' ? '24H' : 
+                            text === 'Done' ? '✅ Done' : 
+                            text.endsWith('h') ? text.replace('h', 'H') :
+                            text.endsWith('H') ? text : text + 'H';
         buttonRight.textContent = displayText;
     }
 }
@@ -1364,20 +1370,28 @@ async function verifyTask(taskId, endpoint, points, verificationData = {}) {
     const spinner = document.getElementById(`${taskId}-spinner`);
     
     try {
+        // Show loading state
         button.disabled = true;
-        if (spinner) spinner.style.display = 'inline-block';
+        spinner.style.display = 'inline-block';
         
+        // Prepare request data
+        const requestData = {
+            userId: userData.id,
+            ...verificationData
+        };
+
         const response = await fetch(`https://vifa-backend.onrender.com/api/${endpoint}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                userId: userData.id,
-                ...verificationData
-            })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
         });
 
+        // Check if response is HTML (404 page)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
+            // Fallback behavior when API is not available
             userData.completedTasks[taskId] = true;
             userData.points += points;
             updateUserInterface(userData.points, userData.streak);
@@ -1387,18 +1401,25 @@ async function verifyTask(taskId, endpoint, points, verificationData = {}) {
         }
 
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Verification failed");
+        
+        if (!response.ok) {
+            throw new Error(result.error || "Verification failed");
+        }
 
+        // Update UI only after successful backend update
         userData.completedTasks[taskId] = true;
         updateUserInterface(result.points, userData.streak);
         showTaskCompletion(taskId);
         alert(`✅ Task verified! +${points} VP`);
+        
+        // Reload user data to ensure sync with backend
         loadUserData();
         
     } catch (error) {
         console.error(`Verification error for ${taskId}:`, error);
         alert(`❌ Error verifying task: ${error.message}`);
     } finally {
+        // Reset button state
         if (button) button.disabled = false;
         if (spinner) spinner.style.display = 'none';
     }
@@ -1406,44 +1427,62 @@ async function verifyTask(taskId, endpoint, points, verificationData = {}) {
 
 // Helper function to show task completion in UI
 function showTaskCompletion(taskId) {
-    const completedElement = document.getElementById(`${taskId}-completed`);
-    const step1 = document.getElementById(`${taskId}-step1`);
-    const step2 = document.getElementById(`${taskId}-step2`);
-    if (completedElement) completedElement.classList.add('show');
-    if (step1) step1.classList.add('active');
-    if (step2) step2.classList.add('active');
+    document.getElementById(`${taskId}-completed`).classList.add('show');
+    document.getElementById(`${taskId}-step1`).classList.add('active');
+    document.getElementById(`${taskId}-step2`).classList.add('active');
 }
 
 // Setup task verification handlers
 function setupTaskVerification() {
-    const tasks = [
-        {id: 'twitter-follow', endpoint: 'verify-twitter-follow', points: 15, prompt: 'Twitter username'},
-        {id: 'telegram-join', endpoint: 'verify-telegram-join', points: 15},
-        {id: 'youtube-subscribe', endpoint: 'verify-youtube-subscribe', points: 15},
-        {id: 'website-visit', endpoint: 'verify-website-visit', points: 15},
-        {id: 'twitter-like', endpoint: 'verify-twitter-like', points: 5},
-        {id: 'twitter-mention', endpoint: 'verify-twitter-mention', points: 10, prompt: 'Tweet URL'},
-        {id: 'youtube-like', endpoint: 'verify-youtube-like', points: 5},
-        {id: 'youtube-comment', endpoint: 'verify-youtube-comment', points: 10, prompt: 'Comment text'},
-        {id: 'telegram-engage', endpoint: 'verify-telegram-engage', points: 10}
-    ];
+    // Twitter Follow
+    document.getElementById('verify-twitter-follow')?.addEventListener('click', async () => {
+        const twitterHandle = prompt("Please enter your Twitter username (without @):");
+        if (!twitterHandle) return;
+        await verifyTask('twitter-follow', 'verify-twitter-follow', 15, { twitterHandle });
+    });
 
-    tasks.forEach(task => {
-        const button = document.getElementById(`verify-${task.id}`);
-        if (button) {
-            button.addEventListener('click', async () => {
-                if (task.prompt) {
-                    const input = prompt(`Please enter your ${task.prompt}:`);
-                    if (!input) return;
-                    await verifyTask(task.id, task.endpoint, task.points, 
-                                   task.prompt === 'Twitter username' ? {twitterHandle: input} : 
-                                   task.prompt === 'Tweet URL' ? {tweetUrl: input} : 
-                                   {commentText: input});
-                } else {
-                    await verifyTask(task.id, task.endpoint, task.points);
-                }
-            });
-        }
+    // Telegram Join
+    document.getElementById('verify-telegram-join')?.addEventListener('click', async () => {
+        await verifyTask('telegram-join', 'verify-telegram-join', 15);
+    });
+
+    // YouTube Subscribe
+    document.getElementById('verify-youtube-subscribe')?.addEventListener('click', async () => {
+        await verifyTask('youtube-subscribe', 'verify-youtube-subscribe', 15);
+    });
+
+    // Website Visit
+    document.getElementById('verify-website-visit')?.addEventListener('click', async () => {
+        await verifyTask('website-visit', 'verify-website-visit', 15);
+    });
+
+    // Twitter Like
+    document.getElementById('verify-twitter-like')?.addEventListener('click', async () => {
+        await verifyTask('twitter-like', 'verify-twitter-like', 5);
+    });
+
+    // Twitter Mention
+    document.getElementById('verify-twitter-mention')?.addEventListener('click', async () => {
+        const tweetUrl = prompt("Please enter the URL of your mention tweet:");
+        if (!tweetUrl) return;
+        await verifyTask('twitter-mention', 'verify-twitter-mention', 10, { tweetUrl });
+    });
+
+    // YouTube Like
+    document.getElementById('verify-youtube-like')?.addEventListener('click', async () => {
+        await verifyTask('youtube-like', 'verify-youtube-like', 5);
+    });
+
+    // YouTube Comment
+    document.getElementById('verify-youtube-comment')?.addEventListener('click', async () => {
+        const commentText = prompt("Please enter your YouTube comment text:");
+        if (!commentText) return;
+        await verifyTask('youtube-comment', 'verify-youtube-comment', 10, { commentText });
+    });
+
+    // Telegram Engage
+    document.getElementById('verify-telegram-engage')?.addEventListener('click', async () => {
+        await verifyTask('telegram-engage', 'verify-telegram-engage', 10);
     });
 }
 
@@ -1454,14 +1493,21 @@ function handleShareInvite() {
     const message = `Join VIFA Global and earn rewards! Use my referral code: ${referralCode}\nhttps://t.me/VIFACoinBot?start=ref_${userData.id}`;
     
     if (tg && tg.share) {
+        // Use Telegram's native sharing if available
         tg.share(message);
     } else if (navigator.share) {
+        // Use Web Share API if available
         navigator.share({
             title: 'Join VIFA Global',
             text: message,
             url: `https://t.me/VIFACoinBot?start=ref_${userData.id}`
-        }).catch(() => shareVia('telegram'));
+        }).catch(err => {
+            console.log('Error sharing:', err);
+            // Fallback to social media options
+            shareVia('telegram');
+        });
     } else {
+        // Fallback to opening Telegram share dialog
         shareVia('telegram');
     }
 }
@@ -1472,15 +1518,22 @@ function shareVia(platform) {
     const message = `Join VIFA Global and earn rewards! Use my referral code: ${referralCode}`;
     const url = `https://t.me/VIFACoinBot?start=ref_${userData.id}`;
     
-    const shareUrls = {
-        'telegram': `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`,
-        'twitter': `https://twitter.com/intent/tweet?text=${encodeURIComponent(message + ' ' + url)}`,
-        'whatsapp': `https://wa.me/?text=${encodeURIComponent(message + ' ' + url)}`
-    };
-    
-    if (shareUrls[platform]) {
-        window.open(shareUrls[platform], '_blank');
+    let shareUrl = '';
+    switch(platform) {
+        case 'telegram':
+            shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message + ' ' + url)}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(message + ' ' + url)}`;
+            break;
+        default:
+            return;
     }
+    
+    window.open(shareUrl, '_blank');
 }
 
 // Copy referral code function
@@ -1498,13 +1551,19 @@ function initApp() {
     const tg = window.Telegram.WebApp;
     if (tg) {
         tg.expand();
+        
         if (tg.initDataUnsafe?.user) {
             userData.id = tg.initDataUnsafe.user.id;
+            console.log("Telegram user ID:", userData.id);
+            
+            // Set referral code to user's ID
             document.getElementById('referralCode').textContent = `VIFA-${userData.id}`;
         } else {
+            console.warn("No user data from Telegram, using test ID");
             userData.id = "test_user_123";
         }
     } else {
+        console.warn("Not running in Telegram WebApp, using test ID");
         userData.id = "test_user_123";
     }
     
@@ -1520,27 +1579,42 @@ function setupEventListeners() {
     if (vpButton) {
         vpButton.addEventListener('click', async function(event) {
             const rect = this.getBoundingClientRect();
-            createCoinAnimation(rect.left + rect.width/2, rect.top + rect.height/2);
+            const x = rect.left + rect.width/2;
+            const y = rect.top + rect.height/2;
+            
+            createCoinAnimation(x, y);
             
             try {
                 const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({userId: userData.id})
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userData.id
+                    })
                 });
 
+                // Check if response is HTML (404 page)
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('text/html')) {
+                    // Fallback behavior when API is not available
                     userData.points += 1;
                     updateUserInterface(userData.points, userData.streak);
                     return;
                 }
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const result = await response.json();
+                
                 if (result.success) {
                     userData.points = result.points;
                     updateUserInterface(userData.points, userData.streak);
+                    
+                    // Reload user data to ensure sync with backend
                     loadUserData();
                 }
             } catch (error) {
@@ -1551,32 +1625,50 @@ function setupEventListeners() {
         });
     }
 
+    // Add event listener for share button
     const shareButton = document.getElementById('shareButton');
-    if (shareButton) shareButton.addEventListener('click', handleShareInvite);
+    if (shareButton) {
+        shareButton.addEventListener('click', handleShareInvite);
+    }
 }
 
 // Load user data from backend
 async function loadUserData() {
     try {
+        console.log("Loading user data for ID:", userData.id);
         const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`, {
             method: 'GET',
-            headers: {'Content-Type': 'application/json'}
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
         });
 
+        // Check if response is HTML (404 page)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
+            // Fallback behavior when API is not available
             updateUserInterface(0, 0);
             checkCheckinStatus();
             return;
         }
         
-        if (!response.ok) throw new Error(`Failed to load user data: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`Failed to load user data: ${response.status}`);
+        }
+        
         const data = await response.json();
-        if (!data || typeof data.points === 'undefined') throw new Error("Invalid data format");
+        
+        if (!data || typeof data.points === 'undefined') {
+            throw new Error("Invalid data format - missing points field");
+        }
 
+        // Update all user data from backend
         userData.points = data.points;
         userData.streak = data.streak || 0;
-        if (data.completedTasks) userData.completedTasks = data.completedTasks;
+        if (data.completedTasks) {
+            userData.completedTasks = data.completedTasks;
+        }
         
         updateUserInterface(userData.points, userData.streak);
         checkCheckinStatus();
@@ -1607,10 +1699,12 @@ function updateCompletedTasksUI() {
             const completedElement = document.getElementById(`${task.id}-completed`);
             const step1 = document.getElementById(`${task.id}-step1`);
             const step2 = document.getElementById(`${task.id}-step2`);
+            
             if (completedElement) completedElement.classList.add('show');
             if (step1) step1.classList.add('active');
             if (step2) step2.classList.add('active');
         } else if (userData.taskLinksClicked[task.id]) {
+            // If task is not completed but link was clicked, show first step as active
             const step1 = document.getElementById(`${task.id}-step1`);
             if (step1) step1.classList.add('active');
         }
@@ -1622,11 +1716,16 @@ async function checkCheckinStatus() {
     try {
         const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/checkin-status`, {
             method: 'GET',
-            headers: {'Content-Type': 'application/json'}
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
         });
 
+        // Check if response is HTML (404 page)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
+            // Fallback behavior when API is not available
             updateCheckinButton(true, '+20 VP');
             return;
         }
@@ -1636,7 +1735,7 @@ async function checkCheckinStatus() {
             if (data.canCheckIn) {
                 updateCheckinButton(true, '+20 VP');
             } else {
-                const hoursLeft = Math.ceil((new Date(data.nextCheckIn) - new Date()) / (1000 * 60 * 60);
+                const hoursLeft = Math.ceil((new Date(data.nextCheckIn) - new Date()) / (1000 * 60 * 60));
                 updateCheckinButton(false, `${hoursLeft}H`);
             }
         }
@@ -1650,8 +1749,10 @@ async function checkCheckinStatus() {
 function updateUserInterface(points, streak) {
     const vpElement = document.getElementById('vp-balance');
     const streakElement = document.getElementById('streak-display');
+    
     if (vpElement) vpElement.textContent = `${points} VP`;
     if (streakElement) streakElement.textContent = `Streak: ${streak} days`;
+    
     userData.points = points;
     userData.streak = streak;
 }
@@ -1675,6 +1776,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         const playPromise = video.play();
+        
         if (playPromise !== undefined) {
             playPromise.catch(e => {
                 console.error("Video play failed:", e);

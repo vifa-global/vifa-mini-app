@@ -1801,26 +1801,40 @@ showPage('home-page');
 <script>
 document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
-    // Check if running in Telegram
+    // 1. Open Tonkeeper
     if (window.Telegram && window.Telegram.WebApp) {
-      // Open Tonkeeper directly for Telegram users
       window.open('https://app.tonkeeper.com/ton-connect', '_blank');
-      alert("Please connect your wallet in Tonkeeper, then return to this app.");
-    } else {
-      // Original code for regular browsers
-      const connector = new TonConnect.TonConnect({
-        manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-      });
-      const wallets = await connector.getWallets();
-      await wallets[0].connect();
-      alert(`Connected!`);
+      
+      // 2. After returning to app, detect connection
+      const checkConnection = setInterval(async () => {
+        const connector = new TonConnect.TonConnect({
+          manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+        });
+        const connected = await connector.connected;
+        
+        if (connected) {
+          clearInterval(checkConnection);
+          const address = connector.account?.address;
+          
+          // 3. Save to backend
+          await fetch('https://your-backend-url.com/connect-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId: window.Telegram.WebApp.initDataUnsafe.user.id,
+              walletAddress: address 
+            })
+          });
+          
+          alert(`✅ Wallet connected: ${address}`);
+        }
+      }, 1000); // Checks every 1 second
     }
   } catch (error) {
-    console.error("Connection error:", error);
-    alert("Please install Tonkeeper from tonkeeper.com");
+    alert("⚠️ Complete connection in Tonkeeper first!");
   }
 });
-</script>>
+</script>
 </body>
 </html>
 

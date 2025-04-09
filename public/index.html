@@ -1799,36 +1799,59 @@ showPage('home-page');
     </script>
 <!-- Load TonConnect SDK first -->
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-
-<!-- Your script -->
 <script>
-    // Ensure home page is active on startup
-    showPage('home-page');
+    // Add this code where the wallet button is handled
+document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+  try {
+    // Show loading spinner
+    const button = document.getElementById('connect-wallet-button');
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+    button.disabled = true;
 
-    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-        // Telegram Mini Apps need special handling
-        if (window.Telegram?.WebApp?.platform) {
-            // Method 1: Direct deep link (works best in Telegram)
-            window.location.href = 'https://app.tonkeeper.com/ton-connect?' +
-            new URLSearchParams({
-                manifest_url: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-                redirect: 'https://vifa-mini-app-frontend.onrender.com'
-            }).toString();
+    // Open Tonkeeper
+    const tonConnect = new TonConnect.TonConnect({
+      manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+    });
+    
+    const wallets = await tonConnect.getWallets();
+    const walletConnectionSource = {
+      jsBridgeKey: 'tonconnect',
+      universalLink: 'https://app.tonkeeper.com/ton-connect'
+    };
+    
+    // Connect wallet
+    await wallets[0].connect(walletConnectionSource);
+    const userAddress = tonConnect.account?.address;
+    
+    if (!userAddress) {
+      throw new Error("Failed to connect wallet");
+    }
 
-            // Method 2: Fallback button (shown if Method 1 fails)
-            setTimeout(() => {
-                const fallback = confirm("Open Tonkeeper manually? (Press OK)");
-                if (fallback) window.open('https://app.tonkeeper.com', '_blank'); // Fixed: '.blank' → '_blank'
-            }, 1000);
-        } else {
-            // Standard browser flow
-            const connector = new TonConnect.TonConnect({
-                manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-            });
-            const wallet = (await connector.getWallets())[0];
-            await wallet.connect();
-        }
-    }); // <-- Added missing closing parenthesis and semicolon
+    // Send wallet address to backend
+    const response = await fetch('/api/connect-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId: userData.id, 
+        address: userAddress 
+      })
+    });
+
+    if (!response.ok) throw new Error("Failed to save wallet");
+
+    // Show success message
+    document.getElementById('wallet-status').style.display = 'none';
+    document.getElementById('connected-wallet').style.display = 'block';
+    
+  } catch (error) {
+    alert("❌ Failed to connect wallet: " + error.message);
+    console.error(error);
+    // Reset button
+    const button = document.getElementById('connect-wallet-button');
+    button.innerHTML = '<i class="fas fa-plug"></i> Connect TON Wallet';
+    button.disabled = false;
+  }
+});
 </script>
 </body>
 </html>

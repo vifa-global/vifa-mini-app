@@ -1800,34 +1800,33 @@ showPage('home-page');
 <!-- Load TonConnect SDK first -->
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 <script>
-    // Add this code where the wallet button is handled
+   // Updated wallet connection code
 document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
-    // Show loading spinner
+    // Show loading state
     const button = document.getElementById('connect-wallet-button');
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
     button.disabled = true;
 
-    // Open Tonkeeper
-    const tonConnect = new TonConnect.TonConnect({
+    // Initialize TonConnect
+    const connector = new TonConnect.TonConnect({
       manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
     });
-    
-    const wallets = await tonConnect.getWallets();
+
+    // Open Tonkeeper
     const walletConnectionSource = {
       jsBridgeKey: 'tonconnect',
       universalLink: 'https://app.tonkeeper.com/ton-connect'
     };
-    
-    // Connect wallet
-    await wallets[0].connect(walletConnectionSource);
-    const userAddress = tonConnect.account?.address;
-    
-    if (!userAddress) {
-      throw new Error("Failed to connect wallet");
-    }
 
-    // Send wallet address to backend
+    const wallets = await connector.getWallets();
+    await wallets[0].connect(walletConnectionSource);
+
+    // Get user's wallet address
+    const userAddress = connector.account?.address;
+    if (!userAddress) throw new Error("No wallet address detected");
+
+    // Send address to backend
     const response = await fetch('/api/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1837,14 +1836,14 @@ document.getElementById('connect-wallet-button').addEventListener('click', async
       })
     });
 
-    if (!response.ok) throw new Error("Failed to save wallet");
+    if (!response.ok) throw new Error("Backend failed to save wallet");
 
-    // Show success message
+    // SUCCESS: Show connected state
     document.getElementById('wallet-status').style.display = 'none';
     document.getElementById('connected-wallet').style.display = 'block';
     
   } catch (error) {
-    alert("❌ Failed to connect wallet: " + error.message);
+    alert("❌ Error: " + error.message);
     console.error(error);
     // Reset button
     const button = document.getElementById('connect-wallet-button');

@@ -1855,5 +1855,12 @@ document.getElementById('connect-wallet-button').addEventListener('click', async
   }
 });
 </script>
+    <script>
+  // Safety check
+  if(typeof TonConnect === 'undefined') {
+    alert("CRITICAL: TonConnect not loaded. Check script order.");
+    throw new Error("TonConnect SDK missing");
+  }
+</script>
 </body>
 </html>

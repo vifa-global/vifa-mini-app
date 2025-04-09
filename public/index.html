@@ -648,7 +648,6 @@
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Add this line in the <head> section -->
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
@@ -1800,25 +1799,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
+<!-- Load TonConnect SDK first -->
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 
+<!-- Your script -->
 <script>
    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
-    // 1. Initialize connector
-    const connector = new TonConnect.TonConnect({
-      manifestUrl: 'https://vifa-backend.onrender.com/tonconnect-manifest.json'
-    });
-    
-    // 2. Initialize UI
+    // 1. Open Tonkeeper connection
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      connector: connector, // Use the connector we just created
-      buttonRootId: 'connect-wallet-button' // Attach to your button
+      manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json'
     });
     
-    // 3. Connect wallet
+    // 2. Connect wallet
     const wallet = await tonConnectUI.connectWallet();
     
-    // 4. Save to your backend (keep your existing MongoDB code)
+    // 3. Save to your backend
     const response = await fetch('/api/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1828,15 +1824,17 @@ showPage('home-page');
       })
     });
     
+    // 4. Show success
     if (response.ok) {
-      alert('Wallet connected!');
-      location.reload();
+      alert('Wallet connected successfully!');
+      location.reload(); // Refresh to show connected state
     }
   } catch (error) {
     console.error('Connection failed:', error);
-    alert('Failed to connect: ' + error.message);
+    alert('Failed to connect wallet');
   }
 });
 </script>
 </body>
 </html>
+

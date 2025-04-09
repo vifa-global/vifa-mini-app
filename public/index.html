@@ -1806,13 +1806,15 @@ showPage('home-page');
 <script>
    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
-    // 1. Open Tonkeeper connection
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://vifa-telegram-bot.onrender.com/tonconnect-manifest.json'
-    });
-    
-    // 2. Connect wallet
-    const wallet = await tonConnectUI.connectWallet();
+    // 1. First initialize connector
+const connector = new TonConnect.TonConnect({
+  manifestUrl: 'https://vifa-backend.onrender.com/tonconnect-manifest.json' // ← Must match your actual backend URL
+});
+
+// 2. Then create UI instance
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  connector: connector // Pass the connector here
+});
     
     // 3. Save to your backend
     const response = await fetch('/api/connect-wallet', {

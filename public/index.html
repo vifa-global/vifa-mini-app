@@ -1797,6 +1797,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+<script>
+document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+  try {
+    // Simple mobile-friendly version
+    if (window.Telegram?.WebApp) {
+      // Open Tonkeeper directly
+      window.open('https://app.tonkeeper.com/ton-connect', '_blank'); 
+      alert("Please approve connection in Tonkeeper, then refresh this page.");
+    } else {
+      // Desktop fallback
+      const connector = new TonConnect.TonConnect({
+        manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+      });
+      const wallet = (await connector.getWallets())[0];
+      await wallet.connect();
+      alert("Connected!");
+    }
+  } catch (error) {
+    alert("Please install Tonkeeper from tonkeeper.com");
+  }
+});
+</script>
 </body>
 </html>
 

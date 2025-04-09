@@ -1,7 +1,5 @@
 {
-    "url": "https://vifa-mini-app-frontend.onrender.com",
-    "name": "VIFA Rewards",
-    "iconUrl": "https://vifa-mini-app-frontend.onrender.com/assets/logo.png",
-    "termsOfUseUrl": "https://vi-fa.co/terms",
-    "privacyPolicyUrl": "https://vi-fa.co/privacy"
+  "url": "https://vifa-mini-app-frontend.onrender.com",
+  "name": "VIFA Rewards",
+  "iconUrl": "https://vifa-mini-app-frontend.onrender.com/logo.png"
 }

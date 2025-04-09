@@ -1797,9 +1797,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
 </script>
-    <script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+<script>
   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-    alert("We'll add the real connection code next step!");
+    try {
+      const connector = new TonConnect.TonConnect({
+        manifestUrl: 'https://YOUR-FRONTEND-URL.com/tonconnect-manifest.json'
+      });
+      const wallets = await connector.getWallets();
+      const wallet = wallets[0]; // Tonkeeper or OpenMask
+      await wallet.connect();
+      const address = connector.account?.address;
+      alert(`Connected! Wallet address: ${address}`);
+    } catch (error) {
+      alert("Connection failed. Please try again.");
+    }
   });
 </script>
 </body>

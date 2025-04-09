@@ -1796,14 +1796,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Ensure home page is active on startup
 showPage('home-page');
-</script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 <script>
   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
     try {
       const connector = new TonConnect.TonConnect({
-        manifestUrl: 'https://YOUR-FRONTEND-URL.com/tonconnect-manifest.json'
+        manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
       });
       const wallets = await connector.getWallets();
       const wallet = wallets[0]; // Tonkeeper or OpenMask
@@ -1811,7 +1809,8 @@ showPage('home-page');
       const address = connector.account?.address;
       alert(`Connected! Wallet address: ${address}`);
     } catch (error) {
-      alert("Connection failed. Please try again.");
+      console.error("Connection error:", error);
+      alert("Connection failed. Is Tonkeeper installed?");
     }
   });
 </script>

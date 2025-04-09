@@ -647,6 +647,8 @@
         }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Add this in the <head> section -->
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 </head>
 <body>
     <div class="background-gif"></div>
@@ -1797,10 +1799,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
-<!-- Load TonConnect SDK first -->
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 <script>
-   // Updated wallet connection code
+// CONNECT WALLET BUTTON CODE
 document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
     // Show loading state
@@ -1808,25 +1809,27 @@ document.getElementById('connect-wallet-button').addEventListener('click', async
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
     button.disabled = true;
 
-    // Initialize TonConnect
+    // 1. Initialize TonConnect
+    if (typeof TonConnect === 'undefined') {
+      throw new Error("TonConnect SDK failed to load. Refresh the page.");
+    }
+
     const connector = new TonConnect.TonConnect({
       manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
     });
 
-    // Open Tonkeeper
-    const walletConnectionSource = {
+    // 2. Open Tonkeeper
+    const wallets = await connector.getWallets();
+    await wallets[0].connect({
       jsBridgeKey: 'tonconnect',
       universalLink: 'https://app.tonkeeper.com/ton-connect'
-    };
+    });
 
-    const wallets = await connector.getWallets();
-    await wallets[0].connect(walletConnectionSource);
-
-    // Get user's wallet address
+    // 3. Get wallet address
     const userAddress = connector.account?.address;
-    if (!userAddress) throw new Error("No wallet address detected");
+    if (!userAddress) throw new Error("Wallet connection failed");
 
-    // Send address to backend
+    // 4. Send address to backend
     const response = await fetch('/api/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1836,12 +1839,12 @@ document.getElementById('connect-wallet-button').addEventListener('click', async
       })
     });
 
-    if (!response.ok) throw new Error("Backend failed to save wallet");
+    if (!response.ok) throw new Error("Failed to save wallet");
 
-    // SUCCESS: Show connected state
+    // 5. Show success UI
     document.getElementById('wallet-status').style.display = 'none';
     document.getElementById('connected-wallet').style.display = 'block';
-    
+
   } catch (error) {
     alert("❌ Error: " + error.message);
     console.error(error);

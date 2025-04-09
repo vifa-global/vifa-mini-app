@@ -1802,33 +1802,36 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-    // Ensure home page is active on startup
-    showPage('home-page');
-
-    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-        // Telegram Mini Apps need special handling
-        if (window.Telegram?.WebApp?.platform) {
-            // Method 1: Direct deep link (works best in Telegram)
-            window.location.href = 'https://app.tonkeeper.com/ton-connect?' +
-            new URLSearchParams({
-                manifest_url: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-                redirect: 'https://vifa-mini-app-frontend.onrender.com'
-            }).toString();
-
-            // Method 2: Fallback button (shown if Method 1 fails)
-            setTimeout(() => {
-                const fallback = confirm("Open Tonkeeper manually? (Press OK)");
-                if (fallback) window.open('https://app.tonkeeper.com', '_blank'); // Fixed: '.blank' → '_blank'
-            }, 1000);
-        } else {
-            // Standard browser flow
-            const connector = new TonConnect.TonConnect({
-                manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-            });
-            const wallet = (await connector.getWallets())[0];
-            await wallet.connect();
-        }
-    }); // <-- Added missing closing parenthesis and semicolon
+   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+  try {
+    // 1. Open Tonkeeper connection
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json'
+    });
+    
+    // 2. Connect wallet
+    const wallet = await tonConnectUI.connectWallet();
+    
+    // 3. Save to your backend
+    const response = await fetch('/api/connect-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userData.id,
+        address: wallet.account.address
+      })
+    });
+    
+    // 4. Show success
+    if (response.ok) {
+      alert('Wallet connected successfully!');
+      location.reload(); // Refresh to show connected state
+    }
+  } catch (error) {
+    console.error('Connection failed:', error);
+    alert('Failed to connect wallet');
+  }
+});
 </script>
 </body>
 </html>

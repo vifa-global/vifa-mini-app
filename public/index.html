@@ -1804,75 +1804,35 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-   // Initialize TonConnectUI once at the global level
-let tonConnectUI;
-
-function initTonConnect() {
-    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json',
-        buttonRootId: 'connect-wallet-button' // This connects the UI to your button
+   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+  try {
+    // 1. Open Tonkeeper connection
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json'
     });
-
-    // Handle connection status changes
-    tonConnectUI.onStatusChange((wallet) => {
-        if (wallet) {
-            // Wallet is connected
-            console.log('Wallet connected:', wallet);
-            handleWalletConnected(wallet);
-        } else {
-            // Wallet is disconnected
-            console.log('Wallet disconnected');
-            handleWalletDisconnected();
-        }
+    
+    // 2. Connect wallet
+    const wallet = await tonConnectUI.connectWallet();
+    
+    // 3. Save to your backend
+    const response = await fetch('/api/connect-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userData.id,
+        address: wallet.account.address
+      })
     });
-}
-
-async function handleWalletConnected(wallet) {
-    try {
-        // Save to your backend
-        const response = await fetch('https://vifa-backend.onrender.com/api/connect-wallet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: userData.id,
-                address: wallet.account.address
-            })
-        });
-
-        if (response.ok) {
-            // Show connected UI
-            document.getElementById('wallet-status').style.display = 'none';
-            document.getElementById('connected-wallet').style.display = 'block';
-            document.getElementById('wallet-qr-container').style.display = 'none';
-        } else {
-            throw new Error('Failed to save wallet to backend');
-        }
-    } catch (error) {
-        console.error('Error handling wallet connection:', error);
-        alert('Failed to save wallet connection');
-        tonConnectUI.disconnect(); // Disconnect if there was an error
+    
+    // 4. Show success
+    if (response.ok) {
+      alert('Wallet connected successfully!');
+      location.reload(); // Refresh to show connected state
     }
-}
-
-function handleWalletDisconnected() {
-    // Show disconnected UI
-    document.getElementById('wallet-status').style.display = 'block';
-    document.getElementById('connected-wallet').style.display = 'none';
-}
-
-// Call this in your initApp function
-function initApp() {
-    // ... existing initApp code ...
-    initTonConnect();
-    // ... rest of your initApp code ...
-}
-
-// Disconnect wallet function
-function disconnectWallet() {
-    if (tonConnectUI) {
-        tonConnectUI.disconnect();
-    }
-}
+  } catch (error) {
+    console.error('Connection failed:', error);
+    alert('Failed to connect wallet');
+  }
 });
 </script>
 </body>

@@ -1808,6 +1808,24 @@ document.getElementById('connect-wallet-button').addEventListener('click', () =>
   alert("Please approve the connection in Tonkeeper. After approving, CLOSE Tonkeeper and return here.");
 });
 </script>
+    <script>
+// Automatically check for wallet connection when page loads
+window.addEventListener('load', async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('tonconnect')) {
+    const address = urlParams.get('tonconnect');
+    await fetch('https://your-backend-url.com/connect-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId: window.Telegram.WebApp.initDataUnsafe.user.id,
+        walletAddress: address 
+      })
+    });
+    alert("✅ Wallet connected automatically!");
+  }
+});
+</script>
 </body>
 </html>
 

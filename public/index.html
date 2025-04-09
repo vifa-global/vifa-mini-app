@@ -1798,37 +1798,99 @@ document.addEventListener('DOMContentLoaded', () => {
 showPage('home-page');
     </script>
 <!-- Load TonConnect SDK first -->
-<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-
-<!-- Your script -->
 <script>
-    // Ensure home page is active on startup
-    showPage('home-page');
+// Add this to your script section
+let connector;
+let walletConnectionSource;
 
-    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-        // Telegram Mini Apps need special handling
-        if (window.Telegram?.WebApp?.platform) {
-            // Method 1: Direct deep link (works best in Telegram)
-            window.location.href = 'https://app.tonkeeper.com/ton-connect?' +
-            new URLSearchParams({
-                manifest_url: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-                redirect: 'https://vifa-mini-app-frontend.onrender.com'
-            }).toString();
+async function initTonConnect() {
+  const manifestUrl = 'https://yourdomain.com/tonconnect-manifest.json';
+  connector = new TonConnect.TonConnect({ manifestUrl });
 
-            // Method 2: Fallback button (shown if Method 1 fails)
-            setTimeout(() => {
-                const fallback = confirm("Open Tonkeeper manually? (Press OK)");
-                if (fallback) window.open('https://app.tonkeeper.com', '_blank'); // Fixed: '.blank' → '_blank'
-            }, 1000);
-        } else {
-            // Standard browser flow
-            const connector = new TonConnect.TonConnect({
-                manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-            });
-            const wallet = (await connector.getWallets())[0];
-            await wallet.connect();
-        }
-    }); // <-- Added missing closing parenthesis and semicolon
+  // Check if connection already exists
+  const connectedWallet = await connector.getConnectedWallet();
+  if (connectedWallet) {
+    handleConnectedWallet(connectedWallet);
+    return;
+  }
+
+  // Handle connection restoration from redirect
+  if (window.location.search.includes('tonconnect')) {
+    try {
+      const wallet = await connector.connect();
+      handleConnectedWallet(wallet);
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (err) {
+      console.error("Connection error:", err);
+    }
+  }
+}
+
+async function connectWallet() {
+  try {
+    // For Telegram Mini Apps
+    if (window.Telegram?.WebApp?.platform) {
+      walletConnectionSource = 'telegram';
+      
+      // Create universal link for Tonkeeper
+      const universalLink = connector.connect({
+        jsBridgeKey: 'tonconnect',
+        universalLink: 'https://app.tonkeeper.com/ton-connect'
+      });
+      
+      // Open in Telegram browser
+      window.location.href = universalLink;
+      
+    } else {
+      // Standard browser flow
+      walletConnectionSource = 'browser';
+      const wallets = await connector.getWallets();
+      const wallet = wallets[0];
+      await wallet.connect();
+      handleConnectedWallet(wallet);
+    }
+    
+  } catch (err) {
+    console.error("Connection error:", err);
+    alert("Failed to connect wallet. Please try again.");
+  }
+}
+
+async function handleConnectedWallet(wallet) {
+  try {
+    // Show loading state
+    document.getElementById('connect-wallet-button').innerHTML = 
+      '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+    
+    // Send wallet address to backend
+    const response = await fetch('/api/connect-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userData.id,
+        walletAddress: wallet.account.address
+      })
+    });
+
+    if (!response.ok) throw new Error("Failed to save wallet");
+
+    // Update UI
+    document.getElementById('wallet-status').style.display = 'none';
+    document.getElementById('connected-wallet').style.display = 'block';
+    
+    // Store connection locally
+    localStorage.setItem('tonWalletConnected', 'true');
+    
+  } catch (err) {
+    console.error("Connection handling error:", err);
+    alert("Wallet connected but failed to save. Please try again.");
+    await connector.disconnect();
+  }
+}
+
+// Call this on page load
+initTonConnect();
 </script>
 </body>
 </html>

@@ -1818,7 +1818,7 @@ window.addEventListener('load', async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        userId: window.Telegram.WebApp.initDataUnsafe.user.id,
+        userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "unknown_user",  // ← Safer version
         walletAddress: address 
       })
     });

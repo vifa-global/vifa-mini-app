@@ -1808,8 +1808,12 @@ showPage('home-page');
   try {
     // 1. Open Tonkeeper connection
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://vifa-backend.onrender.com/tonconnect-manifest.json'
-    });
+  manifestUrl: 'https://vifa-backend.onrender.com/tonconnect-manifest.json', // ← YOUR BACKEND URL
+  connector: {
+    bridgeUrl: 'https://bridge.tonapi.io/bridge'
+  },
+  walletsListSource: 'https://raw.githubusercontent.com/ton-connect/wallets-list/main/wallets.json' // ← KEEP THIS
+});
     
     // 2. Connect wallet
     const wallet = await tonConnectUI.connectWallet();

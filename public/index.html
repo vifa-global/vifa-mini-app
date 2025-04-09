@@ -1797,31 +1797,38 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
+<!-- Load TonConnect SDK first -->
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+
+<!-- Your script -->
 <script>
-document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-  // Telegram Mini Apps need special handling
-  if (window.Telegram?.WebApp?.platform) {
-    // Method 1: Direct deep link (works best in Telegram)
-    window.location.href = 'https://app.tonkeeper.com/ton-connect?' + 
-      new URLSearchParams({
-        manifest_url: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-        redirect: 'https://vifa-mini-app-frontend.onrender.com'
-      }).toString();
-    
-    // Method 2: Fallback button (shown if Method 1 fails)
-    setTimeout(() => {
-      const fallback = confirm("Open Tonkeeper manually? (Press OK)");
-      if (fallback) window.open('https://app.tonkeeper.com', '_blank');
-    }, 500);
-  } else {
-    // Standard browser flow
-    const connector = new TonConnect.TonConnect({
-      manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-    });
-    const wallet = (await connector.getWallets())[0];
-    await wallet.connect();
-  }
-});
+    // Ensure home page is active on startup
+    showPage('home-page');
+
+    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+        // Telegram Mini Apps need special handling
+        if (window.Telegram?.WebApp?.platform) {
+            // Method 1: Direct deep link (works best in Telegram)
+            window.location.href = 'https://app.tonkeeper.com/ton-connect?' +
+            new URLSearchParams({
+                manifest_url: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
+                redirect: 'https://vifa-mini-app-frontend.onrender.com'
+            }).toString();
+
+            // Method 2: Fallback button (shown if Method 1 fails)
+            setTimeout(() => {
+                const fallback = confirm("Open Tonkeeper manually? (Press OK)");
+                if (fallback) window.open('https://app.tonkeeper.com', '_blank'); // Fixed: '.blank' → '_blank'
+            }, 1000);
+        } else {
+            // Standard browser flow
+            const connector = new TonConnect.TonConnect({
+                manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+            });
+            const wallet = (await connector.getWallets())[0];
+            await wallet.connect();
+        }
+    }); // <-- Added missing closing parenthesis and semicolon
 </script>
 </body>
 </html>

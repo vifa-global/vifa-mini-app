@@ -1797,36 +1797,37 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
-    <script>
-document.getElementById('connect-wallet-button').addEventListener('click', () => {
-  // Open Tonkeeper directly - works 100% in Telegram
-  window.open(`tonconnect://connect?manifest_url=${encodeURIComponent('https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json')}&redirect=${encodeURIComponent('https://vifa-mini-app-frontend.onrender.com')}`, '_blank');
-  
-  // Simple message
-  alert("Please approve the connection in Tonkeeper. After approving, CLOSE Tonkeeper and return here.");
+    <!-- TON Connect SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+
+<script>
+// 1. Initialize
+const connector = new TonConnect.TonConnect({
+  manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
 });
-</script>
-    <script>// Check for return from Tonkeeper every 2 seconds
-const checkInterval = setInterval(() => {
-  if (window.location.search.includes('tonconnect=')) {
-    clearInterval(checkInterval);
-    window.location.reload(); // Trigger auto-save
-  }
-}, 2000);
-// Automatically check for wallet connection when page loads
-window.addEventListener('load', async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('tonconnect')) {
-    const address = urlParams.get('tonconnect');
-    await fetch('https://vifa-mini-app-frontend.onrender.com/connect-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "unknown_user",  // ← Safer version
-        walletAddress: address 
-      })
+
+// 2. Connect Button
+document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+  try {
+    const wallets = await connector.getWallets();
+    const wallet = wallets[0]; // Tonkeeper
+    await wallet.connect(); // Opens wallet app
+    
+    // 3. Auto-save on success
+    connector.onStatusChange((wallet) => {
+      if (wallet?.account?.address) {
+        fetch('https://vifa-backend.onrender.com/connect-wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "unknown",
+            walletAddress: wallet.account.address
+          })
+        }).then(() => alert("✅ Connected!"));
+      }
     });
-    alert("✅ Wallet connected automatically!");
+  } catch (error) {
+    alert("⚠️ Install Tonkeeper from tonkeeper.com");
   }
 });
 </script>

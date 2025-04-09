@@ -646,9 +646,8 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-     <!-- ✅ CORRECTED SCRIPTS -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
 <body>
     <div class="background-gif"></div>
     
@@ -1798,68 +1797,38 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
+<!-- Load TonConnect SDK first -->
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+
+<!-- Your script -->
 <script>
-// CONNECT WALLET BUTTON CODE
-document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-  try {
-    // Show loading state
-    const button = document.getElementById('connect-wallet-button');
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-    button.disabled = true;
+    // Ensure home page is active on startup
+    showPage('home-page');
 
-    // 1. Initialize TonConnect
-    if (typeof TonConnect === 'undefined') {
-      throw new Error("TonConnect SDK failed to load. Refresh the page.");
-    }
+    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+        // Telegram Mini Apps need special handling
+        if (window.Telegram?.WebApp?.platform) {
+            // Method 1: Direct deep link (works best in Telegram)
+            window.location.href = 'https://app.tonkeeper.com/ton-connect?' +
+            new URLSearchParams({
+                manifest_url: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
+                redirect: 'https://vifa-mini-app-frontend.onrender.com'
+            }).toString();
 
-    const connector = new TonConnect.TonConnect({
-      manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
-    });
-
-    // 2. Open Tonkeeper
-    const wallets = await connector.getWallets();
-    await wallets[0].connect({
-      jsBridgeKey: 'tonconnect',
-      universalLink: 'https://app.tonkeeper.com/ton-connect'
-    });
-
-    // 3. Get wallet address
-    const userAddress = connector.account?.address;
-    if (!userAddress) throw new Error("Wallet connection failed");
-
-    // 4. Send address to backend
-    const response = await fetch('/api/connect-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        userId: userData.id, 
-        address: userAddress 
-      })
-    });
-
-    if (!response.ok) throw new Error("Failed to save wallet");
-
-    // 5. Show success UI
-    document.getElementById('wallet-status').style.display = 'none';
-    document.getElementById('connected-wallet').style.display = 'block';
-
-  } catch (error) {
-    alert("❌ Error: " + error.message);
-    console.error(error);
-    // Reset button
-    const button = document.getElementById('connect-wallet-button');
-    button.innerHTML = '<i class="fas fa-plug"></i> Connect TON Wallet';
-    button.disabled = false;
-  }
-});
-</script>
-    <script>
-  // Safety check
-  if(typeof TonConnect === 'undefined') {
-    alert("CRITICAL: TonConnect not loaded. Check script order.");
-    throw new Error("TonConnect SDK missing");
-  }
+            // Method 2: Fallback button (shown if Method 1 fails)
+            setTimeout(() => {
+                const fallback = confirm("Open Tonkeeper manually? (Press OK)");
+                if (fallback) window.open('https://app.tonkeeper.com', '_blank'); // Fixed: '.blank' → '_blank'
+            }, 1000);
+        } else {
+            // Standard browser flow
+            const connector = new TonConnect.TonConnect({
+                manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+            });
+            const wallet = (await connector.getWallets())[0];
+            await wallet.connect();
+        }
+    }); // <-- Added missing closing parenthesis and semicolon
 </script>
 </body>
 </html>

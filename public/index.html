@@ -1800,9 +1800,7 @@ showPage('home-page');
     <script>
 document.getElementById('connect-wallet-button').addEventListener('click', () => {
   // Open Tonkeeper directly - works 100% in Telegram
-  window.open('https://app.tonkeeper.com/ton-connect?redirect=' + 
-    encodeURIComponent('https://vifa-mini-app-frontend.onrender.com'), 
-    '_blank');
+  window.open(`tonconnect://connect?manifest_url=${encodeURIComponent('https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json')}&redirect=${encodeURIComponent('https://vifa-mini-app-frontend.onrender.com')}`, '_blank');
   
   // Simple message
   alert("Please approve the connection in Tonkeeper. After approving, CLOSE Tonkeeper and return here.");

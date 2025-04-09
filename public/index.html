@@ -1814,7 +1814,7 @@ window.addEventListener('load', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has('tonconnect')) {
     const address = urlParams.get('tonconnect');
-    await fetch('https://your-backend-url.com/connect-wallet', {
+    await fetch('https://vifa-mini-app-frontend.onrender.com/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 

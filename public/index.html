@@ -1806,7 +1806,13 @@ document.getElementById('connect-wallet-button').addEventListener('click', () =>
   alert("Please approve the connection in Tonkeeper. After approving, CLOSE Tonkeeper and return here.");
 });
 </script>
-    <script>
+    <script>// Check for return from Tonkeeper every 2 seconds
+const checkInterval = setInterval(() => {
+  if (window.location.search.includes('tonconnect=')) {
+    clearInterval(checkInterval);
+    window.location.reload(); // Trigger auto-save
+  }
+}, 2000);
 // Automatically check for wallet connection when page loads
 window.addEventListener('load', async () => {
   const urlParams = new URLSearchParams(window.location.search);

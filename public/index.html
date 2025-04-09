@@ -1804,19 +1804,21 @@ showPage('home-page');
 <script>
    document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
-    // 1. Open Tonkeeper connection
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://https://vifa-backend.onrender.com/tonconnect-manifest.json', // ← YOUR BACKEND URL
-  connector: {
-    bridgeUrl: 'https://bridge.tonapi.io/bridge'
-  },
-  walletsListSource: 'https://raw.githubusercontent.com/ton-connect/wallets-list/main/wallets.json' // ← KEEP THIS
-});
+    // 1. Initialize connector
+    const connector = new TonConnect.TonConnect({
+      manifestUrl: 'https://vifa-backend.onrender.com/tonconnect-manifest.json'
+    });
     
-    // 2. Connect wallet
+    // 2. Initialize UI
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      connector: connector, // Use the connector we just created
+      buttonRootId: 'connect-wallet-button' // Attach to your button
+    });
+    
+    // 3. Connect wallet
     const wallet = await tonConnectUI.connectWallet();
     
-    // 3. Save to your backend
+    // 4. Save to your backend (keep your existing MongoDB code)
     const response = await fetch('/api/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1826,14 +1828,13 @@ showPage('home-page');
       })
     });
     
-    // 4. Show success
     if (response.ok) {
-      alert('Wallet connected successfully!');
-      location.reload(); // Refresh to show connected state
+      alert('Wallet connected!');
+      location.reload();
     }
   } catch (error) {
     console.error('Connection failed:', error);
-    alert('Failed to connect wallet');
+    alert('Failed to connect: ' + error.message);
   }
 });
 </script>

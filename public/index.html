@@ -1111,44 +1111,46 @@
         
         <!-- Wallet Page -->
         <div class="page" id="wallet-page">
-            <div class="wallet-container">
-                <h2 class="wallet-title">TON Wallet</h2>
-                
-                <div class="wallet-card">
-                    <div id="wallet-status">
-                        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
-                        <h3>Connect Your Wallet</h3>
-                        <p class="wallet-info">Connect your TON wallet to receive rewards and participate in VIFA ecosystem</p>
-                        
-                        <button class="wallet-button" id="connect-wallet-button">
-  <i class="fas fa-plug"></i> Connect TON Wallet
-</button>
-                        
-                        <div id="wallet-qr-container" style="display: none;">
-                            <div class="wallet-qr" id="wallet-qr"></div>
-                            <p>Scan with your wallet app</p>
-                        </div>
-                    </div>
-                    
-                    <div id="connected-wallet" style="display: none;">
-                        <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
-                        <h3>Wallet Connected</h3>
-                        
-                        <p class="wallet-connected-info">Your TON wallet is successfully connected to the VIFA ecosystem.</p>
-                        <p class="wallet-connected-info">All rewards will be automatically sent to your connected wallet.</p>
-                        
-                        <button class="wallet-button secondary" onclick="disconnectWallet()">
-                            <i class="fas fa-unlink"></i> Disconnect Wallet
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="wallet-info">
-                    <p>Supported wallets: Tonkeeper.</p>
-                    <p>You'll need this for future TON rewards</p>
-                </div>
-            </div>
+  <div class="wallet-container">
+    <h2 class="wallet-title">Telegram Wallet</h2>
+    
+    <div class="wallet-card">
+      <div id="wallet-status">
+        <i class="fab fa-telegram" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
+        <h3>Connect Telegram Wallet</h3>
+        <p class="wallet-info">Securely connect your Telegram Wallet to receive rewards</p>
+        
+        <button class="wallet-button" id="connect-telegram-wallet">
+          <i class="fab fa-telegram"></i> Connect @wallet
+        </button>
+        
+        <div id="wallet-qr-container" style="display: none; margin-top: 20px;">
+          <div class="wallet-qr" id="wallet-qr"></div>
+          <p>Scan with Telegram Wallet</p>
         </div>
+      </div>
+      
+      <div id="connected-wallet" style="display: none;">
+        <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
+        <h3>Wallet Connected</h3>
+        
+        <p class="wallet-connected-info">Your Telegram Wallet is ready for secure transactions.</p>
+        
+        <button class="wallet-button" id="send-payment-button">
+          <i class="fas fa-paper-plane"></i> Send Payment
+        </button>
+        
+        <button class="wallet-button secondary" id="disconnect-wallet-button">
+          <i class="fas fa-unlink"></i> Disconnect Wallet
+        </button>
+      </div>
+    </div>
+    
+    <div class="wallet-info">
+      <p>All transactions are secured by Telegram</p>
+    </div>
+  </div>
+</div>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">

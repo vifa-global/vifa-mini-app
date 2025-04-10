@@ -1804,82 +1804,59 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-   // 1. Initialize TonConnect at the top of your app.js
-let tonConnectUI;
-
-// 2. Initialize connection manager
-function initTonConnect() {
-  if (!tonConnectUI) {
-    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-      buttonRootId: 'connect-wallet-button-container',
-      language: 'en'
-    });
-    
-    // Handle connection status changes
-    tonConnectUI.onStatusChange((wallet) => {
-      if (wallet) {
-        saveWalletConnection(wallet.account.address);
-      } else {
-        console.log('Wallet disconnected');
-      }
-    });
-  }
-  return tonConnectUI;
-}
-
-// 3. Save wallet connection (separate function)
-async function saveWalletConnection(address) {
-  try {
-    showLoading(true);
-    const response = await fetch('/api/connect-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: userData.id,
-        address: address
-      })
-    });
-    
-    if (!response.ok) throw new Error('Failed to save wallet');
-    
-    alert('Wallet connected successfully!');
-    updateWalletUI(true);
-  } catch (error) {
-    console.error('Save error:', error);
-    alert('Failed to save wallet connection: ' + error.message);
-  } finally {
-    showLoading(false);
-  }
-}
-
-// 4. Update your connect button handler
-document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-  try {
-    const connector = initTonConnect();
-    await connector.connectWallet();
-  } catch (error) {
-    console.error('Connection failed:', error);
-    showErrorModal('Wallet connection failed. Please try again.');
-  }
+// Initialize TonConnect when wallet page is shown
+document.getElementById('wallet-page').addEventListener('click', function() {
+    initTonConnect();
 });
 
-// 5. Add wallet provider check (new)
-function checkWalletProviders() {
-  const tonConnect = new TonConnect();
-  tonConnect.getWallets().then((wallets) => {
-    if (wallets.length === 0) {
-      document.getElementById('wallet-options').innerHTML = `
-        <div class="warning">
-          No wallets detected. Please install Tonkeeper or OpenMask.
-        </div>
-      `;
+let tonConnectUI;
+
+function initTonConnect() {
+    if (!tonConnectUI) {
+        tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
+            buttonRootId: 'connect-wallet-button-container',
+            language: 'en'
+        });
+
+        tonConnectUI.onStatusChange((wallet) => {
+            if (wallet) {
+                // Wallet connected
+                document.getElementById('wallet-status').style.display = 'none';
+                document.getElementById('connected-wallet').style.display = 'block';
+                saveWalletConnection(wallet.account.address);
+            } else {
+                // Wallet disconnected
+                document.getElementById('wallet-status').style.display = 'block';
+                document.getElementById('connected-wallet').style.display = 'none';
+            }
+        });
     }
-  });
 }
 
-// Call this when your app loads
-checkWalletProviders();
+async function saveWalletConnection(address) {
+    try {
+        const response = await fetch('https://vifa-backend.onrender.com/api/connect-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: userData.id,
+                address: address
+            })
+        });
+        
+        if (!response.ok) throw new Error('Failed to save wallet');
+        console.log('Wallet connection saved successfully');
+    } catch (error) {
+        console.error('Error saving wallet:', error);
+    }
+}
+
+function disconnectWallet() {
+    if (tonConnectUI) {
+        tonConnectUI.disconnect();
+    }
+}
 </script>
 </body>
 </html>

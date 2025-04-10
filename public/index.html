@@ -646,9 +646,10 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <meta property="og:url" content="https://vifa-mini-app-frontend.onrender.com">
+<meta property="og:type" content="website">
+<meta property="og:title" content="VIFA Wallet">
+<meta property="og:description" content="Connect your Telegram Wallet">
 </head>
 <body>
     <div class="background-gif"></div>
@@ -1801,19 +1802,26 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-document.getElementById('connect-telegram-wallet').onclick = function() {
-  // FORCE Telegram detection
-  if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.openWallet) {
-    alert("STOP! You must:\n1. Open in OFFICIAL Telegram app\n2. Use latest version\n3. Access via bot menu");
-    return;
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.expand();
+    tg.MainButton.hide();
+    
+    document.getElementById('connect-telegram-wallet').onclick = () => {
+      tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', 
+        {try_instant_view: true},
+        (status) => console.log('Wallet status:', status)
+      );
+    };
+  } else {
+    document.body.innerHTML = `
+      <div style="padding:20px;text-align:center">
+        <h2 style="color:red">INVALID ACCESS</h2>
+        <p>Open through:<br>@VIFACoinBot → "Open VIFA App"</p>
+        <a href="tg://resolve?domain=VIFACoinBot" style="color:blue">Open Correctly</a>
+      </div>
+    `;
   }
-  
-  // Direct wallet call
-  window.Telegram.WebApp.openWallet(
-    'tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq',
-    {try_instant_view: true}
-  );
-};
 </script>
 </body>
 </html>

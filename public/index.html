@@ -1800,76 +1800,109 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-   // Telegram Wallet Connection
+// 1. Wallet Connection Handler
 document.getElementById('connect-telegram-wallet').addEventListener('click', async () => {
   try {
-    if (window.Telegram && Telegram.WebApp.openWallet) {
-      // Using Telegram's native wallet interface
-      Telegram.WebApp.openWallet(
-        'tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq',
-        (status) => {
-          if (status === 'opened') {
-            document.getElementById('wallet-status').style.display = 'none';
-            document.getElementById('connected-wallet').style.display = 'block';
-            
-            // Save connection to backend
-            fetch('/api/connect-telegram-wallet', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                userId: userData.id,
-                walletType: 'telegram' 
-              })
-            });
-          }
-        }
-      );
-    } else {
-      // Fallback QR code
-      document.getElementById('wallet-qr-container').style.display = 'block';
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq`;
-      document.getElementById('wallet-qr').innerHTML = `<img src="${qrCodeUrl}" alt="Wallet QR Code">`;
+    const tg = window.Telegram.WebApp;
+    
+    if (!tg?.openWallet) {
+      alert('Please use the Telegram app to connect your wallet');
+      return;
     }
+
+    // Open Telegram's native wallet interface
+    tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', async (status) => {
+      if (status === 'opened') {
+        // Send connection data to backend
+        const response = await fetch('https://vifa-backend.onrender.com/api/connect-telegram-wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId: tg.initDataUnsafe.user.id 
+          })
+        });
+
+        if (response.ok) {
+          // Update UI
+          document.getElementById('wallet-status').style.display = 'none';
+          document.getElementById('connected-wallet').style.display = 'block';
+        } else {
+          alert('Connection verification failed');
+        }
+      }
+    });
   } catch (err) {
     console.error('Wallet connection error:', err);
-    alert('Failed to connect wallet');
+    alert('Connection failed. Please try again.');
   }
 });
 
-// Disconnect handler
+// 2. Disconnect Handler
 document.getElementById('disconnect-wallet-button').addEventListener('click', async () => {
   try {
-    const response = await fetch('/api/disconnect-telegram-wallet', {
+    const tg = window.Telegram.WebApp;
+    const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-telegram-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: userData.id })
+      body: JSON.stringify({ 
+        userId: tg.initDataUnsafe.user.id 
+      })
     });
-    
+
     if (response.ok) {
       document.getElementById('wallet-status').style.display = 'block';
       document.getElementById('connected-wallet').style.display = 'none';
-      document.getElementById('wallet-qr-container').style.display = 'none';
     }
   } catch (err) {
     console.error('Disconnect error:', err);
   }
 });
 
-// Payment handler
-document.getElementById('send-payment-button').addEventListener('click', () => {
-  if (window.Telegram && Telegram.WebApp.openInvoice) {
-    Telegram.WebApp.openInvoice(
-      'your_invoice_url_here', 
-      (status) => {
-        if (status === 'paid') {
-          alert('Payment successful!');
-        }
-      }
-    );
-  } else {
-    alert('Please use the Telegram app to make payments');
+// 3. Payment Handler (Using Telegram ID)
+document.getElementById('send-payment-button').addEventListener('click', async () => {
+  const tg = window.Telegram.WebApp;
+  
+  // In production, you would specify the actual amount
+  const paymentData = {
+    recipient: 'UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', // Your project's wallet
+    amount: 1, // In TON
+    userId: tg.initDataUnsafe.user.id
+  };
+
+  try {
+    const response = await fetch('https://vifa-backend.onrender.com/api/send-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(paymentData)
+    });
+
+    const result = await response.json();
+    alert(result.message || 'Payment initiated successfully');
+  } catch (err) {
+    alert('Payment failed: ' + err.message);
   }
 });
+
+// 4. Check connection status on page load
+async function checkWalletConnection() {
+  try {
+    const tg = window.Telegram.WebApp;
+    const response = await fetch(`https://vifa-backend.onrender.com/api/user/${tg.initDataUnsafe.user.id}/wallet-status`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.connected) {
+        document.getElementById('wallet-status').style.display = 'none';
+        document.getElementById('connected-wallet').style.display = 'block';
+      }
+    }
+  } catch (err) {
+    console.error('Connection check error:', err);
+  }
+}
+
+// Initialize
+checkWalletConnection();
 </script>
 </body>
 </html>

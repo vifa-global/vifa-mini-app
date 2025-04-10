@@ -1109,103 +1109,46 @@
             </div>
         </div>
         
-       <!-- Wallet Page -->
-<div class="page" id="wallet-page">
-    <div class="wallet-container">
-        <h2 class="wallet-title">TON Wallet</h2>
-        
-        <div class="wallet-card">
-            <!-- Connection Status Container -->
-            <div id="wallet-status-container">
-                <!-- Initial State -->
-                <div id="wallet-disconnected">
-                    <div class="wallet-icon">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <h3>Connect Your Wallet</h3>
-                    <p class="wallet-info">Connect your TON wallet to receive rewards and participate in VIFA ecosystem</p>
-                    
-                    <div id="connect-wallet-button-container">
-                        <button class="wallet-button" id="connect-wallet-button">
-                            <i class="fas fa-plug"></i> Connect TON Wallet
-                        </button>
-                    </div>
-                    
-                    <!-- QR Code Fallback -->
-                    <div id="wallet-qr-container" class="wallet-qr-container">
-                        <div class="wallet-qr" id="wallet-qr"></div>
-                        <p class="qr-instruction">Scan with your wallet app</p>
-                        <button class="wallet-button secondary" id="retry-connection">
-                            <i class="fas fa-sync-alt"></i> Retry Connection
-                        </button>
-                    </div>
-                </div>
+        <!-- Wallet Page -->
+        <div class="page" id="wallet-page">
+            <div class="wallet-container">
+                <h2 class="wallet-title">TON Wallet</h2>
                 
-                <!-- Connected State -->
-                <div id="wallet-connected" class="wallet-connected-state">
-                    <div class="connection-success">
-                        <i class="fas fa-check-circle"></i>
-                        <h3>Wallet Connected</h3>
-                    </div>
-                    
-                    <div class="wallet-details">
-                        <div class="wallet-address">
-                            <span class="label">Address:</span>
-                            <span id="connected-address" class="address"></span>
-                            <button class="copy-address" onclick="copyWalletAddress()">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                <div class="wallet-card">
+                    <div id="wallet-status">
+                        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #0088cc;"></i>
+                        <h3>Connect Your Wallet</h3>
+                        <p class="wallet-info">Connect your TON wallet to receive rewards and participate in VIFA ecosystem</p>
+                        
+                        <button class="wallet-button" id="connect-wallet-button">
+  <i class="fas fa-plug"></i> Connect TON Wallet
+</button>
+                        
+                        <div id="wallet-qr-container" style="display: none;">
+                            <div class="wallet-qr" id="wallet-qr"></div>
+                            <p>Scan with your wallet app</p>
                         </div>
                     </div>
                     
-                    <p class="wallet-connected-info">
-                        <i class="fas fa-check"></i> Your TON wallet is successfully connected
-                    </p>
-                    <p class="wallet-connected-info">
-                        <i class="fas fa-coins"></i> All rewards will be sent to this wallet
-                    </p>
-                    
-                    <button class="wallet-button secondary" id="disconnect-wallet-button">
-                        <i class="fas fa-unlink"></i> Disconnect Wallet
-                    </button>
-                </div>
-                
-                <!-- Loading State -->
-                <div id="wallet-loading" class="wallet-loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Connecting to wallet...</p>
-                </div>
-                
-                <!-- Error State -->
-                <div id="wallet-error" class="wallet-error-state">
-                    <div class="error-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div id="connected-wallet" style="display: none;">
+                        <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
+                        <h3>Wallet Connected</h3>
+                        
+                        <p class="wallet-connected-info">Your TON wallet is successfully connected to the VIFA ecosystem.</p>
+                        <p class="wallet-connected-info">All rewards will be automatically sent to your connected wallet.</p>
+                        
+                        <button class="wallet-button secondary" onclick="disconnectWallet()">
+                            <i class="fas fa-unlink"></i> Disconnect Wallet
+                        </button>
                     </div>
-                    <h3>Connection Failed</h3>
-                    <p class="error-message" id="wallet-error-message"></p>
-                    <button class="wallet-button" id="retry-connection-button">
-                        <i class="fas fa-redo"></i> Try Again
-                    </button>
+                </div>
+                
+                <div class="wallet-info">
+                    <p>Supported wallets: Tonkeeper.</p>
+                    <p>You'll need this for future TON rewards</p>
                 </div>
             </div>
         </div>
-        
-        <div class="wallet-support-info">
-            <h4>Supported Wallets</h4>
-            <div class="wallet-badges">
-                <div class="wallet-badge">
-                    <img src="assets/tonkeeper-icon.png" alt="Tonkeeper">
-                    <span>Tonkeeper</span>
-                </div>
-                <div class="wallet-badge">
-                    <img src="assets/openmask-icon.png" alt="OpenMask">
-                    <span>OpenMask</span>
-                </div>
-            </div>
-            <p class="wallet-note">You'll need a TON wallet to receive rewards</p>
-        </div>
-    </div>
-</div>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">

@@ -1802,30 +1802,27 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+document.getElementById('connect-wallet-button').addEventListener('click', async () => {
   try {
-    // 1. Open Tonkeeper connection
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json'
-    });
+    // Simple connection without TonConnect
+    const walletAddress = prompt("Please enter your TON wallet address:");
+    if (!walletAddress) return;
     
-    // 2. Connect wallet
-    const wallet = await tonConnectUI.connectWallet();
-    
-    // 3. Save to your backend
+    // Save to backend
     const response = await fetch('/api/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: userData.id,
-        address: wallet.account.address
+        address: walletAddress
       })
     });
     
-    // 4. Show success
     if (response.ok) {
       alert('Wallet connected successfully!');
-      location.reload(); // Refresh to show connected state
+      location.reload();
+    } else {
+      alert('Failed to save wallet');
     }
   } catch (error) {
     console.error('Connection failed:', error);

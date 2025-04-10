@@ -1804,34 +1804,74 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+   // Telegram Wallet Connection
+document.getElementById('connect-telegram-wallet').addEventListener('click', async () => {
   try {
-    // 1. Open Tonkeeper connection
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json'
-    });
-    
-    // 2. Connect wallet
-    const wallet = await tonConnectUI.connectWallet();
-    
-    // 3. Save to your backend
-    const response = await fetch('/api/connect-wallet', {
+    if (window.Telegram && Telegram.WebApp.openWallet) {
+      // Using Telegram's native wallet interface
+      Telegram.WebApp.openWallet(
+        'tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq',
+        (status) => {
+          if (status === 'opened') {
+            document.getElementById('wallet-status').style.display = 'none';
+            document.getElementById('connected-wallet').style.display = 'block';
+            
+            // Save connection to backend
+            fetch('/api/connect-telegram-wallet', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                userId: userData.id,
+                walletType: 'telegram' 
+              })
+            });
+          }
+        }
+      );
+    } else {
+      // Fallback QR code
+      document.getElementById('wallet-qr-container').style.display = 'block';
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq`;
+      document.getElementById('wallet-qr').innerHTML = `<img src="${qrCodeUrl}" alt="Wallet QR Code">`;
+    }
+  } catch (err) {
+    console.error('Wallet connection error:', err);
+    alert('Failed to connect wallet');
+  }
+});
+
+// Disconnect handler
+document.getElementById('disconnect-wallet-button').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/api/disconnect-telegram-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: userData.id,
-        address: wallet.account.address
-      })
+      body: JSON.stringify({ userId: userData.id })
     });
     
-    // 4. Show success
     if (response.ok) {
-      alert('Wallet connected successfully!');
-      location.reload(); // Refresh to show connected state
+      document.getElementById('wallet-status').style.display = 'block';
+      document.getElementById('connected-wallet').style.display = 'none';
+      document.getElementById('wallet-qr-container').style.display = 'none';
     }
-  } catch (error) {
-    console.error('Connection failed:', error);
-    alert('Failed to connect wallet');
+  } catch (err) {
+    console.error('Disconnect error:', err);
+  }
+});
+
+// Payment handler
+document.getElementById('send-payment-button').addEventListener('click', () => {
+  if (window.Telegram && Telegram.WebApp.openInvoice) {
+    Telegram.WebApp.openInvoice(
+      'your_invoice_url_here', 
+      (status) => {
+        if (status === 'paid') {
+          alert('Payment successful!');
+        }
+      }
+    );
+  } else {
+    alert('Please use the Telegram app to make payments');
   }
 });
 </script>

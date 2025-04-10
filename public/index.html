@@ -1801,18 +1801,18 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-// 1. SAFE Telegram detection
-const tg = window.Telegram && window.Telegram.WebApp;
-
-// 2. DIRECT connection handler
 document.getElementById('connect-telegram-wallet').onclick = function() {
-  if (!tg?.openWallet) {
-    alert("🚨 OPEN IN TELEGRAM APP!\nThis feature only works in official Telegram app");
+  // FORCE Telegram detection
+  if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.openWallet) {
+    alert("STOP! You must:\n1. Open in OFFICIAL Telegram app\n2. Use latest version\n3. Access via bot menu");
     return;
   }
   
-  // PROPER wallet opening call
-  tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq');
+  // Direct wallet call
+  window.Telegram.WebApp.openWallet(
+    'tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq',
+    {try_instant_view: true}
+  );
 };
 </script>
 </body>

@@ -1801,109 +1801,31 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-// 1. Wallet Connection Handler
+// 1. Check if user is in Telegram
+const tg = window.Telegram?.WebApp;
+
+// 2. Connect Wallet Button
 document.getElementById('connect-telegram-wallet').addEventListener('click', async () => {
-  try {
-    const tg = window.Telegram.WebApp;
-    
-    if (!tg?.openWallet) {
-      alert('Please use the Telegram app to connect your wallet');
-      return;
-    }
-
-    // Open Telegram's native wallet interface
-    tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', async (status) => {
-      if (status === 'opened') {
-        // Send connection data to backend
-        const response = await fetch('https://vifa-backend.onrender.com/api/connect-telegram-wallet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            userId: tg.initDataUnsafe.user.id 
-          })
-        });
-
-        if (response.ok) {
-          // Update UI
-          document.getElementById('wallet-status').style.display = 'none';
-          document.getElementById('connected-wallet').style.display = 'block';
-        } else {
-          alert('Connection verification failed');
-        }
-      }
-    });
-  } catch (err) {
-    console.error('Wallet connection error:', err);
-    alert('Connection failed. Please try again.');
+  if (!tg) {
+    alert("⚠️ Please open in Telegram app to connect wallet");
+    return;
   }
+
+  // Open Telegram Wallet
+  tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', (status) => {
+    if (status === 'opened') {
+      // Hide Connect Button, Show Connected UI
+      document.getElementById('wallet-status').style.display = 'none';
+      document.getElementById('connected-wallet').style.display = 'block';
+    }
+  });
 });
 
-// 2. Disconnect Handler
-document.getElementById('disconnect-wallet-button').addEventListener('click', async () => {
-  try {
-    const tg = window.Telegram.WebApp;
-    const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-telegram-wallet', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        userId: tg.initDataUnsafe.user.id 
-      })
-    });
-
-    if (response.ok) {
-      document.getElementById('wallet-status').style.display = 'block';
-      document.getElementById('connected-wallet').style.display = 'none';
-    }
-  } catch (err) {
-    console.error('Disconnect error:', err);
-  }
+// 3. Disconnect Button (Optional)
+document.getElementById('disconnect-wallet-button').addEventListener('click', () => {
+  document.getElementById('wallet-status').style.display = 'block';
+  document.getElementById('connected-wallet').style.display = 'none';
 });
-
-// 3. Payment Handler (Using Telegram ID)
-document.getElementById('send-payment-button').addEventListener('click', async () => {
-  const tg = window.Telegram.WebApp;
-  
-  // In production, you would specify the actual amount
-  const paymentData = {
-    recipient: 'UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', // Your project's wallet
-    amount: 1, // In TON
-    userId: tg.initDataUnsafe.user.id
-  };
-
-  try {
-    const response = await fetch('https://vifa-backend.onrender.com/api/send-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(paymentData)
-    });
-
-    const result = await response.json();
-    alert(result.message || 'Payment initiated successfully');
-  } catch (err) {
-    alert('Payment failed: ' + err.message);
-  }
-});
-
-// 4. Check connection status on page load
-async function checkWalletConnection() {
-  try {
-    const tg = window.Telegram.WebApp;
-    const response = await fetch(`https://vifa-backend.onrender.com/api/user/${tg.initDataUnsafe.user.id}/wallet-status`);
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.connected) {
-        document.getElementById('wallet-status').style.display = 'none';
-        document.getElementById('connected-wallet').style.display = 'block';
-      }
-    }
-  } catch (err) {
-    console.error('Connection check error:', err);
-  }
-}
-
-// Initialize
-checkWalletConnection();
 </script>
 </body>
 </html>

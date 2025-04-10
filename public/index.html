@@ -1142,21 +1142,25 @@
       </div>
     </div>
     
-    <div class="wallet-info">
-      <p>No addresses or QR codes needed</p>
-      <p>Powered by Telegram's secure system</p>
-    </div>
-  </div>
+   <div class="wallet-info">
+    <p>No addresses or QR codes needed</p>
+    <p>Powered by Telegram's secure system</p>
 </div>
-        
-        <!-- Bottom Navigation -->
-        <div class="bottom-nav">
-            <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
-            <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
-            <i class="fas fa-user-friends nav-icon" onclick="showPage('friends-page')"></i>
-            <i class="fas fa-wallet wallet-icon" onclick="showPage('wallet-page')"></i>
-        </div>
-    </div>
+
+<div id="non-telegram-message" style="display: none; background: #ffeb3b33; color: white; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid #ffeb3b;">
+    <p><i class="fas fa-exclamation-triangle"></i> <b>Telegram App Required</b></p>
+    <p>Wallet features only work in the Telegram mobile app</p>
+    <a href="https://t.me/VIFACoinBot" style="color: #FFD700;">Open in Telegram</a>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+    <i class="fas fa-home nav-icon active" onclick="showPage('home-page')"></i>
+    <i class="fas fa-tasks nav-icon" onclick="showPage('tasks-page')"></i>
+    <i class="fas fa-user-friends nav-icon" onclick="showPage('friends-page')"></i>
+    <i class="fas fa-wallet wallet-icon" onclick="showPage('wallet-page')"></i>
+</div>
+    
 
 <script>
 // Global variables
@@ -1801,55 +1805,54 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-// Wallet Connection Logic
+///////////////////////
+// 1. FALLBACK MESSAGE //
+///////////////////////
+function showAlternativeConnection() {
+  document.getElementById('non-telegram-message').style.display = 'block';
+}
+
+////////////////////////
+// 2. WALLET CONNECTION //
+////////////////////////
 document.getElementById('connect-telegram-wallet').addEventListener('click', async () => {
+  // Check if in Telegram app
+  if (!window.Telegram?.WebApp?.openWallet) {
+    showAlternativeConnection();
+    return;
+  }
+
   try {
     const tg = window.Telegram.WebApp;
     
-    if (tg?.openWallet) {
-      // Open Telegram Wallet interface
-      tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', async (status) => {
-        if (status === 'opened') {
-          // Send connection data to backend
-          const response = await fetch('/api/connect-telegram-wallet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              userId: tg.initDataUnsafe.user.id 
-            })
-          });
+    // Open Telegram Wallet
+    tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', async (status) => {
+      if (status === 'opened') {
+        const response = await fetch('/api/connect-telegram-wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId: tg.initDataUnsafe.user.id 
+          })
+        });
 
-          if (response.ok) {
-            // Update UI
-            document.getElementById('wallet-status').style.display = 'none';
-            document.getElementById('connected-wallet').style.display = 'block';
-          } else {
-            alert('Connection verification failed');
-          }
+        if (response.ok) {
+          document.getElementById('wallet-status').style.display = 'none';
+          document.getElementById('connected-wallet').style.display = 'block';
+        } else {
+          alert('Connection verification failed');
         }
-      });
-    } else {
-      // Fallback for non-Telegram browsers
-      const response = await fetch('/api/connect-telegram-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: tg?.initDataUnsafe?.user?.id || 'web-user' 
-        })
-      });
-      
-      if (response.ok) {
-        document.getElementById('wallet-status').style.display = 'none';
-        document.getElementById('connected-wallet').style.display = 'block';
       }
-    }
+    });
   } catch (err) {
     console.error('Wallet connection error:', err);
     alert('Connection failed. Please try again.');
   }
 });
 
-// Disconnect Handler
+///////////////////////
+// 3. DISCONNECT //
+///////////////////////
 document.getElementById('disconnect-wallet-button').addEventListener('click', async () => {
   try {
     const tg = window.Telegram.WebApp;
@@ -1870,10 +1873,11 @@ document.getElementById('disconnect-wallet-button').addEventListener('click', as
   }
 });
 
-// Payment Handler
+///////////////////////
+// 4. PAYMENT //
+///////////////////////
 document.getElementById('send-payment-button').addEventListener('click', async () => {
   const tg = window.Telegram.WebApp;
-  const amount = 1; // Default amount or get from UI
   
   try {
     const response = await fetch('/api/send-payment', {
@@ -1881,7 +1885,7 @@ document.getElementById('send-payment-button').addEventListener('click', async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: tg.initDataUnsafe.user.id,
-        amount: amount
+        amount: 1 // Default amount (1 TON)
       })
     });
 
@@ -1892,7 +1896,9 @@ document.getElementById('send-payment-button').addEventListener('click', async (
   }
 });
 
-// Check connection status on page load
+///////////////////////
+// 5. CHECK CONNECTION ON LOAD //
+///////////////////////
 async function checkWalletConnection() {
   try {
     const tg = window.Telegram.WebApp;
@@ -1910,7 +1916,7 @@ async function checkWalletConnection() {
   }
 }
 
-// Initialize
+// Initialize when page loads
 checkWalletConnection();
 </script>
 </body>

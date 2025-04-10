@@ -1805,24 +1805,35 @@ showPage('home-page');
 const tg = window.Telegram?.WebApp;
 
 // 2. Connect Wallet Button
-document.getElementById('connect-telegram-wallet').addEventListener('click', async () => {
+<script>
+// 1. Get Telegram instance safely
+const tg = window.Telegram?.WebApp;
+
+// 2. Wallet connection handler
+document.getElementById('connect-telegram-wallet').addEventListener('click', () => {
   if (!tg) {
-    alert("⚠️ Please open in Telegram app to connect wallet");
+    alert("⚠️ Please open this in the official Telegram app");
     return;
   }
 
-  // Open Telegram Wallet
-  tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', (status) => {
-    if (status === 'opened') {
-      // Hide Connect Button, Show Connected UI
-      document.getElementById('wallet-status').style.display = 'none';
-      document.getElementById('connected-wallet').style.display = 'block';
-    }
-  });
+  // ✅ CORRECT FUNCTION: openWallet (not openMallet)
+  if (typeof tg.openWallet === 'function') {
+    // Open Telegram's native wallet interface
+    tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', (status) => {
+      if (status === 'opened') {
+        console.log("Telegram wallet opened successfully");
+        // Optional: Update UI here
+        document.getElementById('wallet-status').style.display = 'none';
+        document.getElementById('connected-wallet').style.display = 'block';
+      }
+    });
+  } else {
+    alert("❌ Please update Telegram to the latest version");
+  }
 });
 
-// 3. Disconnect Button (Optional)
-document.getElementById('disconnect-wallet-button').addEventListener('click', () => {
+// 3. Disconnect button (optional)
+document.getElementById('disconnect-wallet-button')?.addEventListener('click', () => {
   document.getElementById('wallet-status').style.display = 'block';
   document.getElementById('connected-wallet').style.display = 'none';
 });

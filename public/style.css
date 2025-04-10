@@ -1,38 +1,4 @@
-/* Wallet connection styles */
-.wallet-section {
-  margin: 20px 0;
-  text-align: center;
-}
-
-.wallet-options {
-  margin-top: 15px;
-}
-
-.warning {
-  color: #ff9800;
-  padding: 10px;
-  background: rgba(255, 152, 0, 0.1);
-  border-radius: 8px;
-}
-
-.loading-indicator {
-  margin-top: 20px;
-}
-
-.loading-indicator .spinner {
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top: 3px solid #FFD700;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 10px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-} update the whole file and return the whole file to me /* PRELOADER STYLES */
+/* PRELOADER STYLES */
 .preloader {
     position: fixed;
     top: 0;
@@ -154,4 +120,40 @@ main {
     color: green;
     font-size: 24px;
     font-weight: bold;
+}
+
+/* Wallet connection styles */
+.wallet-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.wallet-options {
+  margin-top: 15px;
+}
+
+.warning {
+  color: #ff9800;
+  padding: 10px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 8px;
+}
+
+.loading-indicator {
+  margin-top: 20px;
+}
+
+.loading-indicator .spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid #FFD700;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

@@ -1110,8 +1110,7 @@
         </div>
         
         <!-- Wallet Page -->
-        <!-- Wallet Page -->
-<div class="page" id="wallet-page">
+        <div class="page" id="wallet-page">
   <div class="wallet-container">
     <h2 class="wallet-title">Telegram Wallet</h2>
     
@@ -1141,16 +1140,12 @@
         </button>
       </div>
     </div>
-  <div class="wallet-info">
+    
+    <div class="wallet-info">
       <p>No addresses or QR codes needed</p>
       <p>Powered by Telegram's secure system</p>
     </div>
   </div>
-</div>
-        <div id="non-telegram-message" style="display: none; background: #ffeb3b33; color: white; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid #ffeb3b;">
-  <p><i class="fas fa-exclamation-triangle"></i> <b>Telegram App Required</b></p>
-  <p>Wallet features only work in the Telegram mobile app</p>
-  <a href="https://t.me/VIFACoinBot" style="color: #FFD700;">Open in Telegram</a>
 </div>
         
         <!-- Bottom Navigation -->
@@ -1162,7 +1157,6 @@
         </div>
     </div>
 
-      
 <script>
 // Global variables
 const userData = {
@@ -1806,30 +1800,21 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-///////////////////////
-// 1. FALLBACK MESSAGE //
-///////////////////////
-function showAlternativeConnection() {
-  document.getElementById('non-telegram-message').style.display = 'block';
-}
-
-////////////////////////
-// 2. WALLET CONNECTION //
-////////////////////////
+// 1. Wallet Connection Handler
 document.getElementById('connect-telegram-wallet').addEventListener('click', async () => {
-  // Check if in Telegram app
-  if (!window.Telegram?.WebApp?.openWallet) {
-    showAlternativeConnection();
-    return;
-  }
-
   try {
     const tg = window.Telegram.WebApp;
     
-    // Open Telegram Wallet
+    if (!tg?.openWallet) {
+      alert('Please use the Telegram app to connect your wallet');
+      return;
+    }
+
+    // Open Telegram's native wallet interface
     tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', async (status) => {
       if (status === 'opened') {
-        const response = await fetch('/api/connect-telegram-wallet', {
+        // Send connection data to backend
+        const response = await fetch('https://vifa-backend.onrender.com/api/connect-telegram-wallet', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -1838,6 +1823,7 @@ document.getElementById('connect-telegram-wallet').addEventListener('click', asy
         });
 
         if (response.ok) {
+          // Update UI
           document.getElementById('wallet-status').style.display = 'none';
           document.getElementById('connected-wallet').style.display = 'block';
         } else {
@@ -1851,13 +1837,11 @@ document.getElementById('connect-telegram-wallet').addEventListener('click', asy
   }
 });
 
-///////////////////////
-// 3. DISCONNECT //
-///////////////////////
+// 2. Disconnect Handler
 document.getElementById('disconnect-wallet-button').addEventListener('click', async () => {
   try {
     const tg = window.Telegram.WebApp;
-    const response = await fetch('/api/disconnect-telegram-wallet', {
+    const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-telegram-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -1874,20 +1858,22 @@ document.getElementById('disconnect-wallet-button').addEventListener('click', as
   }
 });
 
-///////////////////////
-// 4. PAYMENT //
-///////////////////////
+// 3. Payment Handler (Using Telegram ID)
 document.getElementById('send-payment-button').addEventListener('click', async () => {
   const tg = window.Telegram.WebApp;
   
+  // In production, you would specify the actual amount
+  const paymentData = {
+    recipient: 'UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', // Your project's wallet
+    amount: 1, // In TON
+    userId: tg.initDataUnsafe.user.id
+  };
+
   try {
-    const response = await fetch('/api/send-payment', {
+    const response = await fetch('https://vifa-backend.onrender.com/api/send-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: tg.initDataUnsafe.user.id,
-        amount: 1 // Default amount (1 TON)
-      })
+      body: JSON.stringify(paymentData)
     });
 
     const result = await response.json();
@@ -1897,13 +1883,11 @@ document.getElementById('send-payment-button').addEventListener('click', async (
   }
 });
 
-///////////////////////
-// 5. CHECK CONNECTION ON LOAD //
-///////////////////////
+// 4. Check connection status on page load
 async function checkWalletConnection() {
   try {
     const tg = window.Telegram.WebApp;
-    const response = await fetch(`/api/user/${tg.initDataUnsafe.user.id}/wallet-status`);
+    const response = await fetch(`https://vifa-backend.onrender.com/api/user/${tg.initDataUnsafe.user.id}/wallet-status`);
     
     if (response.ok) {
       const data = await response.json();
@@ -1917,9 +1901,8 @@ async function checkWalletConnection() {
   }
 }
 
-// Initialize when page loads
+// Initialize
 checkWalletConnection();
 </script>
 </body>
 </html>
-

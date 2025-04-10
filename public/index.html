@@ -1804,36 +1804,82 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-   document.getElementById('connect-wallet-button').addEventListener('click', async () => {
-  try {
-    // 1. Open Tonkeeper connection
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://your-render-url.com/tonconnect-manifest.json'
+   // 1. Initialize TonConnect at the top of your app.js
+let tonConnectUI;
+
+// 2. Initialize connection manager
+function initTonConnect() {
+  if (!tonConnectUI) {
+    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
+      buttonRootId: 'connect-wallet-button-container',
+      language: 'en'
     });
     
-    // 2. Connect wallet
-    const wallet = await tonConnectUI.connectWallet();
-    
-    // 3. Save to your backend
+    // Handle connection status changes
+    tonConnectUI.onStatusChange((wallet) => {
+      if (wallet) {
+        saveWalletConnection(wallet.account.address);
+      } else {
+        console.log('Wallet disconnected');
+      }
+    });
+  }
+  return tonConnectUI;
+}
+
+// 3. Save wallet connection (separate function)
+async function saveWalletConnection(address) {
+  try {
+    showLoading(true);
     const response = await fetch('/api/connect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: userData.id,
-        address: wallet.account.address
+        address: address
       })
     });
     
-    // 4. Show success
-    if (response.ok) {
-      alert('Wallet connected successfully!');
-      location.reload(); // Refresh to show connected state
-    }
+    if (!response.ok) throw new Error('Failed to save wallet');
+    
+    alert('Wallet connected successfully!');
+    updateWalletUI(true);
+  } catch (error) {
+    console.error('Save error:', error);
+    alert('Failed to save wallet connection: ' + error.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// 4. Update your connect button handler
+document.getElementById('connect-wallet-button').addEventListener('click', async () => {
+  try {
+    const connector = initTonConnect();
+    await connector.connectWallet();
   } catch (error) {
     console.error('Connection failed:', error);
-    alert('Failed to connect wallet');
+    showErrorModal('Wallet connection failed. Please try again.');
   }
 });
+
+// 5. Add wallet provider check (new)
+function checkWalletProviders() {
+  const tonConnect = new TonConnect();
+  tonConnect.getWallets().then((wallets) => {
+    if (wallets.length === 0) {
+      document.getElementById('wallet-options').innerHTML = `
+        <div class="warning">
+          No wallets detected. Please install Tonkeeper or OpenMask.
+        </div>
+      `;
+    }
+  });
+}
+
+// Call this when your app loads
+checkWalletProviders();
 </script>
 </body>
 </html>

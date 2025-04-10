@@ -1801,42 +1801,19 @@ showPage('home-page');
 
 <!-- Your script -->
 <script>
-// 1. Check if user is in Telegram
-const tg = window.Telegram?.WebApp;
+// 1. SAFE Telegram detection
+const tg = window.Telegram && window.Telegram.WebApp;
 
-// 2. Connect Wallet Button
-<script>
-// 1. Get Telegram instance safely
-const tg = window.Telegram?.WebApp;
-
-// 2. Wallet connection handler
-document.getElementById('connect-telegram-wallet').addEventListener('click', () => {
-  if (!tg) {
-    alert("⚠️ Please open this in the official Telegram app");
+// 2. DIRECT connection handler
+document.getElementById('connect-telegram-wallet').onclick = function() {
+  if (!tg?.openWallet) {
+    alert("🚨 OPEN IN TELEGRAM APP!\nThis feature only works in official Telegram app");
     return;
   }
-
-  // ✅ CORRECT FUNCTION: openWallet (not openMallet)
-  if (typeof tg.openWallet === 'function') {
-    // Open Telegram's native wallet interface
-    tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq', (status) => {
-      if (status === 'opened') {
-        console.log("Telegram wallet opened successfully");
-        // Optional: Update UI here
-        document.getElementById('wallet-status').style.display = 'none';
-        document.getElementById('connected-wallet').style.display = 'block';
-      }
-    });
-  } else {
-    alert("❌ Please update Telegram to the latest version");
-  }
-});
-
-// 3. Disconnect button (optional)
-document.getElementById('disconnect-wallet-button')?.addEventListener('click', () => {
-  document.getElementById('wallet-status').style.display = 'block';
-  document.getElementById('connected-wallet').style.display = 'none';
-});
+  
+  // PROPER wallet opening call
+  tg.openWallet('tg://wallet?startattach=UQAaAbux2CP4q-xd2nrUyNZVLf-mIWfwqnpUZYogL_Dgcnvq');
+};
 </script>
 </body>
 </html>

@@ -1825,7 +1825,7 @@ document.getElementById('connect-telegram-wallet').onclick = async function() {
           Telegram.WebApp.onEvent('walletDataReceived', async (data) => {
             try {
               // Send wallet address to backend
-              const response = await fetch('https://your-backend-url.onrender.com/api/connect-wallet', {
+              const response = await fetch('https://vifa-backend.onrender.com/api/connect-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1860,7 +1860,7 @@ document.getElementById('connect-telegram-wallet').onclick = async function() {
 // Disconnect Wallet Handler
 document.getElementById('disconnect-wallet-button').onclick = async function() {
   try {
-    const response = await fetch('https://your-backend-url.onrender.com/api/disconnect-wallet', {
+    const response = await fetch('https://https://vifa-backend.onrender.com/api/disconnect-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

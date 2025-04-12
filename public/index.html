@@ -1110,7 +1110,8 @@
         </div>
         
         <!-- Wallet Page -->
-        <div class="page" id="wallet-page">
+       <!-- Wallet Page -->
+<div class="page" id="wallet-page">
   <div class="wallet-container">
     <h2 class="wallet-title">Connect TON Wallet</h2>
     
@@ -1119,41 +1120,27 @@
       <div id="wallet-not-connected">
         <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
         <h3>Connect Your Wallet</h3>
-        <p class="wallet-info">To withdraw your VIFA Points, you'll need to connect a <strong>TON Space wallet</strong> from @wallet</p>
+        <p class="wallet-info">To withdraw your VIFA Points, connect your TON Space wallet</p>
         
-        <div class="wallet-requirements" style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid rgba(255,215,0,0.3);">
-          <h4 style="color: #FFD700; margin-bottom: 10px;">Before you start:</h4>
-          <ul style="text-align: left; padding-left: 20px;">
-            <li>Install/update the official <strong>@wallet</strong> bot</li>
-            <li>Make sure you have a <strong>TON Space wallet</strong> created</li>
-            <li>Have your wallet address ready to copy</li>
-          </ul>
+        <div class="wallet-address-input-container" style="margin: 20px 0;">
+          <input type="text" id="wallet-address-input" placeholder="Paste your TON wallet address" 
+                 style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
+                        background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
+                 onclick="this.focus();">
         </div>
         
-        <button class="wallet-button" id="start-connect-wallet">
+        <button class="wallet-button" id="submit-wallet-address">
           <i class="fas fa-link"></i> Connect Wallet
         </button>
         
-        <div class="wallet-instructions" style="margin-top: 20px; display: none;" id="wallet-instructions">
-          <div style="background: rgba(0,136,204,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(0,136,204,0.3);">
-            <h4 style="color: #7fdbff; margin-bottom: 10px;">Follow these steps:</h4>
-            <ol style="text-align: left; padding-left: 20px; margin-bottom: 0;">
-              <li>Open <strong>@wallet</strong> bot in Telegram</li>
-              <li>Select your <strong>TON Space wallet</strong></li>
-              <li>Tap <strong>"Copy Wallet Address"</strong></li>
-              <li>Return here and paste below</li>
-            </ol>
-          </div>
-          
-          <div style="position: relative; margin: 20px 0;">
-            <input type="text" id="wallet-address-input" placeholder="Paste your TON Space wallet address" 
-                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
-                          background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
-                   onclick="this.focus();">
-            <button class="wallet-button" id="submit-wallet-address" style="margin-top: 10px;">
-              <i class="fas fa-check-circle"></i> Confirm Address
-            </button>
-          </div>
+        <div class="wallet-instructions" style="margin-top: 20px; text-align: left;">
+          <p style="color: #7fdbff; font-size: 14px; margin-bottom: 5px;">Follow these steps:</p>
+          <ol style="color: #b3d9ff; padding-left: 20px; font-size: 13px;">
+            <li>Open @wallet bot in Telegram</li>
+            <li>Select your TON Space wallet</li>
+            <li>Tap "Copy Wallet Address"</li>
+            <li>Return here and paste above</li>
+          </ol>
         </div>
       </div>
     </div>
@@ -1171,10 +1158,6 @@
       <button class="wallet-button secondary" id="disconnect-wallet-btn">
         <i class="fas fa-unlink"></i> Disconnect Wallet
       </button>
-    </div>
-    
-    <div class="wallet-info">
-      <p>Securely connect your TON Space wallet to receive rewards</p>
     </div>
   </div>
 </div>
@@ -1830,11 +1813,8 @@ showPage('home-page');
     </script>
 
 <!-- Your script -->
-<script>
 // Wallet Connection Logic
 document.addEventListener('DOMContentLoaded', function() {
-  const startConnectBtn = document.getElementById('start-connect-wallet');
-  const walletInstructions = document.getElementById('wallet-instructions');
   const submitWalletBtn = document.getElementById('submit-wallet-address');
   const walletInput = document.getElementById('wallet-address-input');
   const disconnectWalletBtn = document.getElementById('disconnect-wallet-btn');
@@ -1842,33 +1822,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const connectedView = document.getElementById('wallet-connected-view');
   const connectedAddress = document.getElementById('connected-wallet-address');
   
-  // Keyboard handling
-  walletInput.addEventListener('focus', function() {
-    // Ensure the input stays visible when keyboard appears
-    setTimeout(() => {
-      this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-  });
-  
   // Check if wallet is already connected
   checkWalletConnectionStatus();
-  
-  // Start connection process
-  startConnectBtn.addEventListener('click', function() {
-    walletInstructions.style.display = 'block';
-    startConnectBtn.style.display = 'none';
-    
-    // Auto-scroll to input field
-    setTimeout(() => {
-      walletInput.focus();
-      walletInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-    
-    // Optional: Auto-open @wallet bot if in Telegram
-    if (window.Telegram && Telegram.WebApp) {
-      Telegram.WebApp.openTelegramLink('https://t.me/wallet');
-    }
-  });
   
   // Submit wallet address
   submitWalletBtn.addEventListener('click', async function() {
@@ -1920,7 +1875,7 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Error connecting wallet: ' + error.message);
     } finally {
       submitWalletBtn.disabled = false;
-      submitWalletBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Address';
+      submitWalletBtn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
     }
   });
   
@@ -1948,8 +1903,6 @@ document.addEventListener('DOMContentLoaded', function() {
           connectFlow.style.display = 'block';
           connectedView.style.display = 'none';
           walletInput.value = '';
-          walletInstructions.style.display = 'none';
-          startConnectBtn.style.display = 'block';
           
           // Clear local storage
           localStorage.removeItem('vifa_wallet_address');
@@ -1994,7 +1947,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
-</script>
 </body>
 </html>
 

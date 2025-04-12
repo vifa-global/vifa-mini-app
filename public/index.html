@@ -1880,10 +1880,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const response = await handleApiRequest(`${API_BASE_URL}/api/save_wallet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: { 
           userId: getTelegramUserId(),
           walletAddress: address 
-        })
+        }
       });
 
       if (response.success) {
@@ -1909,9 +1909,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const response = await handleApiRequest(`${API_BASE_URL}/api/disconnect_wallet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           userId: getTelegramUserId()
-        })
+        }
       });
 
       if (response.success) {
@@ -1939,7 +1939,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (!TON_ADDRESS_REGEX.test(address)) {
-      showError('Please enter a valid TON wallet address starting with EQ or UQ');
+      showError('Please enter a valid TON wallet address starting with EQ or UQ (48+ characters)');
       return false;
     }
     
@@ -1947,14 +1947,26 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function handleApiRequest(url, options) {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || `Request failed with status ${response.status}`);
+    try {
+      const fetchOptions = {
+        ...options,
+        body: JSON.stringify(options.body)
+      };
+      
+      const response = await fetch(url, fetchOptions);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        const error = new Error(data.error || `Request failed with status ${response.status}`);
+        error.response = data;
+        throw error;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
-    
-    return data;
   }
 
   function handleWalletConnected(address) {
@@ -1973,8 +1985,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function handleWalletError(error) {
-    console.error('Wallet error:', error);
-    showError(error.message || 'An error occurred. Please try again.');
+    console.error('Wallet operation error:', error);
+    
+    let userMessage = 'Failed to complete wallet operation';
+    if (error.response) {
+      // Handle specific error codes from backend
+      switch(error.response.code) {
+        case 'VALIDATION_ERROR':
+          userMessage = 'Invalid wallet address format';
+          break;
+        case 'DUPLICATE_WALLET':
+          userMessage = 'This wallet is already connected to another account';
+          break;
+        case 'MISSING_FIELDS':
+          userMessage = 'Required information is missing';
+          break;
+        default:
+          userMessage = error.response.error || userMessage;
+      }
+    } else {
+      userMessage = error.message || userMessage;
+    }
+    
+    showError(userMessage);
   }
 
   function setLoadingState(button, isLoading) {
@@ -1990,6 +2023,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (walletErrorMsg) {
       walletErrorMsg.textContent = message;
       walletErrorMsg.style.display = 'block';
+      
+      // Auto-hide error after 5 seconds
+      setTimeout(() => {
+        walletErrorMsg.style.display = 'none';
+      }, 5000);
     } else {
       alert(message);
     }

@@ -1862,7 +1862,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 300);
     
     if (window.Telegram?.WebApp) {
-      Telegram.WebApp.openTelegramLink('https://t.me/wallet');
+      // Open official Telegram Wallet with proper URL
+      Telegram.WebApp.openTelegramLink('https://t.me/wallet/start?startapp=vifa_wallet');
+    } else {
+      window.open('https://t.me/wallet', '_blank');
     }
   });
   
@@ -1879,7 +1882,10 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const response = await handleApiRequest(`${API_BASE_URL}/api/save_wallet`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: { 
           userId: getTelegramUserId(),
           walletAddress: address 
@@ -1888,7 +1894,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (response.success) {
         handleWalletConnected(address);
-        showSuccessMessage('Wallet connected successfully!');
+        showSuccessMessage('✅ Wallet connected successfully!');
+        
+        // Refresh wallet status
+        setTimeout(checkWalletConnectionStatus, 1000);
       } else {
         throw new Error(response.error || 'Connection failed');
       }
@@ -1901,14 +1910,17 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Disconnect wallet
   disconnectWalletBtn.addEventListener('click', async function() {
-    if (!confirm('Are you sure you want to disconnect your wallet?')) return;
+    if (!confirm('⚠️ Are you sure you want to disconnect your wallet?\n\nYou will need to reconnect to withdraw rewards.')) return;
 
     try {
       setLoadingState(disconnectWalletBtn, true);
       
       const response = await handleApiRequest(`${API_BASE_URL}/api/disconnect_wallet`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: {
           userId: getTelegramUserId()
         }
@@ -1916,7 +1928,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (response.success) {
         handleWalletDisconnected();
-        showSuccessMessage('Wallet disconnected successfully');
+        showSuccessMessage('✅ Wallet disconnected successfully');
       } else {
         throw new Error(response.error || 'Disconnection failed');
       }
@@ -1929,17 +1941,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Helper Functions
   function getTelegramUserId() {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    try {
+      return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'unknown_user';
+    } catch (e) {
+      console.error('Failed to get Telegram user ID:', e);
+      return 'unknown_user';
+    }
   }
 
   function validateWalletAddress(address) {
     if (!address) {
-      showError('Please enter your wallet address');
+      showError('❌ Please enter your wallet address');
       return false;
     }
     
     if (!TON_ADDRESS_REGEX.test(address)) {
-      showError('Please enter a valid TON wallet address starting with EQ or UQ (48+ characters)');
+      showError('❌ Invalid TON wallet format\n\nMust start with EQ/UQ and be 48+ characters\n\nExample: EQABC123...XYZ');
       return false;
     }
     
@@ -1954,26 +1971,34 @@ document.addEventListener('DOMContentLoaded', function() {
       };
       
       const response = await fetch(url, fetchOptions);
-      const data = await response.json();
       
-      if (!response.ok) {
-        const error = new Error(data.error || `Request failed with status ${response.status}`);
-        error.response = data;
-        throw error;
+      // Handle non-JSON responses (like 502 errors)
+      if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`);
       }
       
+      const data = await response.json();
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+      console.error('API request failed:', {
+        url,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+      throw new Error('Network error - please try again later');
     }
   }
 
   function handleWalletConnected(address) {
     connectFlow.style.display = 'none';
     connectedView.style.display = 'block';
-    connectedAddress.textContent = address;
+    connectedAddress.textContent = formatWalletAddress(address);
     localStorage.setItem('vifa_wallet_address', address);
+    
+    // Update UI state
+    document.querySelectorAll('.wallet-icon').forEach(icon => {
+      icon.classList.add('active');
+    });
   }
 
   function handleWalletDisconnected() {
@@ -1982,32 +2007,36 @@ document.addEventListener('DOMContentLoaded', function() {
     walletInput.value = '';
     walletInstructions.style.display = 'none';
     localStorage.removeItem('vifa_wallet_address');
+    
+    // Update UI state
+    document.querySelectorAll('.wallet-icon').forEach(icon => {
+      icon.classList.remove('active');
+    });
   }
 
   function handleWalletError(error) {
-    console.error('Wallet operation error:', error);
+    console.error('Wallet operation error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     
-    let userMessage = 'Failed to complete wallet operation';
-    if (error.response) {
-      // Handle specific error codes from backend
-      switch(error.response.code) {
-        case 'VALIDATION_ERROR':
-          userMessage = 'Invalid wallet address format';
-          break;
-        case 'DUPLICATE_WALLET':
-          userMessage = 'This wallet is already connected to another account';
-          break;
-        case 'MISSING_FIELDS':
-          userMessage = 'Required information is missing';
-          break;
-        default:
-          userMessage = error.response.error || userMessage;
-      }
-    } else {
-      userMessage = error.message || userMessage;
+    let userMessage = '❌ Failed to complete wallet operation';
+    
+    if (error.message.includes('Network error')) {
+      userMessage = '🌐 Network issue - please check your connection';
+    } else if (error.message.includes('DUPLICATE_WALLET')) {
+      userMessage = '⚠️ Wallet already connected to another account';
+    } else if (error.message.includes('VALIDATION')) {
+      userMessage = '❌ Invalid wallet address format';
     }
     
     showError(userMessage);
+  }
+
+  function formatWalletAddress(address) {
+    if (!address) return '';
+    return `${address.substring(0, 6)}...${address.slice(-4)}`;
   }
 
   function setLoadingState(button, isLoading) {
@@ -2021,13 +2050,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showError(message) {
     if (walletErrorMsg) {
-      walletErrorMsg.textContent = message;
+      walletErrorMsg.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
       walletErrorMsg.style.display = 'block';
       
-      // Auto-hide error after 5 seconds
       setTimeout(() => {
         walletErrorMsg.style.display = 'none';
-      }, 5000);
+      }, 8000);
     } else {
       alert(message);
     }
@@ -2051,21 +2079,22 @@ document.addEventListener('DOMContentLoaded', function() {
   async function checkWalletConnectionStatus() {
     try {
       const userId = getTelegramUserId();
-      if (!userId) return;
+      if (!userId || userId === 'unknown_user') return;
       
       try {
         const response = await handleApiRequest(`${API_BASE_URL}/api/user/${userId}/wallet-status`);
         
         if (response.connected && response.walletAddress) {
           handleWalletConnected(response.walletAddress);
+        } else {
+          // Fallback to local storage
+          const savedAddress = localStorage.getItem('vifa_wallet_address');
+          if (savedAddress) {
+            handleWalletConnected(savedAddress);
+          }
         }
       } catch (error) {
         console.error('Connection check error:', error);
-        // Fallback to local storage
-        const savedAddress = localStorage.getItem('vifa_wallet_address');
-        if (savedAddress) {
-          handleWalletConnected(savedAddress);
-        }
       }
     } catch (error) {
       console.error('Wallet status check error:', error);

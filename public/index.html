@@ -1841,9 +1841,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const connectedView = document.getElementById('wallet-connected-view');
   const connectedAddress = document.getElementById('connected-wallet-address');
   
-  // Check initial connection status
-  checkWalletConnectionStatus();
-  
+  // Initialize wallet connection state
+  let isWalletConnected = false;
+  let walletAddress = '';
+
+  // Check initial connection status when page loads
+  initWalletConnection();
+
   // Start connection process
   startConnectBtn.addEventListener('click', function() {
     walletInstructions.style.display = 'block';
@@ -1883,11 +1887,12 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error(await response.text());
       }
       
-      // Update UI
-      connectFlow.style.display = 'none';
-      connectedView.style.display = 'block';
-      connectedAddress.textContent = address;
+      // Update local state
+      isWalletConnected = true;
+      walletAddress = address;
       
+      // Update UI
+      updateWalletUI();
       alert('✅ Wallet connected!');
       
     } catch (error) {
@@ -1913,9 +1918,12 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (!response.ok) throw new Error('Disconnect failed');
       
+      // Update local state
+      isWalletConnected = false;
+      walletAddress = '';
+      
       // Update UI
-      connectFlow.style.display = 'block';
-      connectedView.style.display = 'none';
+      updateWalletUI();
       walletInput.value = '';
       
       alert('Wallet disconnected');
@@ -1925,22 +1933,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Check connection status from backend
-  async function checkWalletConnectionStatus() {
+  // Initialize wallet connection
+  async function initWalletConnection() {
     try {
       const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`);
       if (response.ok) {
         const user = await response.json();
         if (user?.tonWallet?.address) {
-          connectFlow.style.display = 'none';
-          connectedView.style.display = 'block';
-          connectedAddress.textContent = user.tonWallet.address;
+          isWalletConnected = true;
+          walletAddress = user.tonWallet.address;
         }
       }
     } catch (error) {
       console.log('Wallet check error:', error);
+    } finally {
+      updateWalletUI();
     }
   }
+
+  // Update UI based on connection state
+  function updateWalletUI() {
+    if (isWalletConnected && walletAddress) {
+      connectFlow.style.display = 'none';
+      connectedView.style.display = 'block';
+      connectedAddress.textContent = walletAddress;
+      
+      // Also store in localStorage as fallback
+      localStorage.setItem('vifa_wallet_address', walletAddress);
+    } else {
+      connectFlow.style.display = 'block';
+      connectedView.style.display = 'none';
+      connectedAddress.textContent = '';
+      
+      // Clear localStorage if disconnected
+      localStorage.removeItem('vifa_wallet_address');
+    }
+  }
+
+  // Check for wallet address in localStorage as fallback
+  function checkLocalStorage() {
+    const savedAddress = localStorage.getItem('vifa_wallet_address');
+    if (savedAddress && savedAddress.match(/^(EQ|UQ)[a-zA-Z0-9_-]{43,}$/)) {
+      walletAddress = savedAddress;
+      isWalletConnected = true;
+      updateWalletUI();
+    }
+  }
+
+  // Initialize with localStorage check
+  checkLocalStorage();
 });
 </script>
 </body>

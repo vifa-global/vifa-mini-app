@@ -172,3 +172,13 @@ main {
   font-size: 14px;
   margin: 15px 0;
 }
+
+.error-message {
+  display: none;
+  color: #ff6b6b;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  font-size: 14px;
+}

@@ -1830,7 +1830,7 @@ document.addEventListener('DOMContentLoaded', () => {
 showPage('home-page');
     </script>
 <script>
-// Wallet Connection Logic
+// Wallet Connection Logic (Updated)
 document.addEventListener('DOMContentLoaded', function() {
   const startConnectBtn = document.getElementById('start-connect-wallet');
   const walletInstructions = document.getElementById('wallet-instructions');
@@ -1841,21 +1841,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const connectedView = document.getElementById('wallet-connected-view');
   const connectedAddress = document.getElementById('connected-wallet-address');
   
-  // Check if wallet is already connected
+  // Check initial connection status
   checkWalletConnectionStatus();
   
-  // Start connection process - show input field
+  // Start connection process
   startConnectBtn.addEventListener('click', function() {
     walletInstructions.style.display = 'block';
+    walletInput.focus();
     
-    // Auto-scroll to input field
-    setTimeout(() => {
-      walletInput.focus();
-      walletInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-    
-    // Optional: Auto-open @wallet bot if in Telegram
-    if (window.Telegram && Telegram.WebApp) {
+    // Auto-open @wallet in Telegram
+    if (window.Telegram?.WebApp) {
       Telegram.WebApp.openTelegramLink('https://t.me/wallet');
     }
   });
@@ -1864,35 +1859,40 @@ document.addEventListener('DOMContentLoaded', function() {
   submitWalletBtn.addEventListener('click', async function() {
     const address = walletInput.value.trim();
     
-    // Basic validation
-    if (!address) {
-      alert('Please enter your wallet address');
-      return;
-    }
-    
+    // Validation
     if (!address.match(/^(EQ|UQ)[a-zA-Z0-9_-]{43,}$/)) {
-      alert('Please enter a valid TON Space wallet address starting with EQ or UQ');
+      alert('Invalid TON wallet address');
       return;
     }
     
     try {
-      // Show loading state
       submitWalletBtn.disabled = true;
       submitWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
       
-      // Store locally
-      localStorage.setItem('vifa_wallet_address', address);
+      // Call backend API
+      const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userData.id,
+          walletAddress: address
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
       
       // Update UI
       connectFlow.style.display = 'none';
       connectedView.style.display = 'block';
       connectedAddress.textContent = address;
       
-      alert('Wallet connected successfully!');
+      alert('✅ Wallet connected!');
       
     } catch (error) {
-      console.error('Wallet connection error:', error);
-      alert('Error saving wallet: ' + error.message);
+      console.error('Connection error:', error);
+      alert('❌ Failed to connect: ' + error.message);
     } finally {
       submitWalletBtn.disabled = false;
       submitWalletBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Address';
@@ -1900,28 +1900,45 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Disconnect wallet
-  disconnectWalletBtn.addEventListener('click', function() {
-    if (confirm('Are you sure you want to disconnect your wallet?')) {
+  disconnectWalletBtn.addEventListener('click', async function() {
+    if (!confirm('Disconnect this wallet?')) return;
+    
+    try {
+      // Call backend API
+      const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userData.id })
+      });
+      
+      if (!response.ok) throw new Error('Disconnect failed');
+      
       // Update UI
       connectFlow.style.display = 'block';
       connectedView.style.display = 'none';
       walletInput.value = '';
-      walletInstructions.style.display = 'none';
       
-      // Clear local storage
-      localStorage.removeItem('vifa_wallet_address');
+      alert('Wallet disconnected');
       
-      alert('Wallet disconnected successfully!');
+    } catch (error) {
+      alert('Error disconnecting: ' + error.message);
     }
   });
   
-  // Check wallet connection status
-  function checkWalletConnectionStatus() {
-    const savedAddress = localStorage.getItem('vifa_wallet_address');
-    if (savedAddress) {
-      connectFlow.style.display = 'none';
-      connectedView.style.display = 'block';
-      connectedAddress.textContent = savedAddress;
+  // Check connection status from backend
+  async function checkWalletConnectionStatus() {
+    try {
+      const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`);
+      if (response.ok) {
+        const user = await response.json();
+        if (user?.tonWallet?.address) {
+          connectFlow.style.display = 'none';
+          connectedView.style.display = 'block';
+          connectedAddress.textContent = user.tonWallet.address;
+        }
+      }
+    } catch (error) {
+      console.log('Wallet check error:', error);
     }
   }
 });

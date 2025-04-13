@@ -1110,7 +1110,7 @@
         </div>
         
         <!-- Wallet Page -->
-        <!-- Wallet Page -->
+    <!-- Updated Wallet Page -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
     <h2 class="wallet-title">Connect TON Wallet</h2>
@@ -1120,7 +1120,7 @@
       <div id="wallet-not-connected">
         <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
         <h3>Connect Your Wallet</h3>
-        <p class="wallet-info">To withdraw your VIFA Points, you'll need to connect a <strong>TON Space wallet</strong> from @wallet</p>
+        <p class="wallet-info">To withdraw your VIFA Points, you'll need to connect a <strong>TON wallet</strong> (TON Space from @wallet or TonKeeper)</p>
         
         <button class="wallet-button" id="start-connect-wallet">
           <i class="fas fa-link"></i> Connect Wallet
@@ -1128,17 +1128,14 @@
         
         <div class="wallet-instructions" style="margin-top: 20px; display: none;" id="wallet-instructions">
           <div style="background: rgba(0,136,204,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(0,136,204,0.3);">
-            <h4 style="color: #7fdbff; margin-bottom: 10px;">Follow these steps:</h4>
-            <ol style="text-align: left; padding-left: 20px; margin-bottom: 0;">
-              <li>Open <strong>@wallet</strong> bot in Telegram</li>
-              <li>Select your <strong>TON Space wallet</strong></li>
-              <li>Tap <strong>"Copy Wallet Address"</strong></li>
-              <li>Return here and paste below</li>
-            </ol>
+            <h4 style="color: #7fdbff; margin-bottom: 10px;">How to get your wallet address:</h4>
+            <p style="text-align: left; margin-bottom: 15px;">1. Open your TON wallet app (@wallet or TonKeeper)</p>
+            <p style="text-align: left; margin-bottom: 15px;">2. Find your wallet address (usually in Receive or Wallet section)</p>
+            <p style="text-align: left; margin-bottom: 0;">3. Copy the full address starting with "EQ..." or "UQ..."</p>
           </div>
           
           <div style="position: relative; margin: 20px 0;">
-            <input type="text" id="wallet-address-input" placeholder="Paste your TON Space wallet address" 
+            <input type="text" id="wallet-address-input" placeholder="Paste your TON wallet address here" 
                    style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
                           background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
                    onclick="this.focus();">
@@ -1149,11 +1146,11 @@
         </div>
         
         <div class="wallet-requirements" style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid rgba(255,215,0,0.3);">
-          <h4 style="color: #FFD700; margin-bottom: 10px;">Before you start:</h4>
+          <h4 style="color: #FFD700; margin-bottom: 10px;">Supported Wallets:</h4>
           <ul style="text-align: left; padding-left: 20px;">
-            <li>Install/update the official <strong>@wallet</strong> bot</li>
-            <li>Make sure you have a <strong>TON Space wallet</strong> created</li>
-            <li>Have your wallet address ready to copy</li>
+            <li><strong>@wallet</strong> (TON Space in Telegram)</li>
+            <li><strong>TonKeeper</strong> (Mobile app)</li>
+            <li>Other TON-compatible wallets</li>
           </ul>
         </div>
       </div>
@@ -1165,7 +1162,7 @@
       <h3>Wallet Connected</h3>
       
       <div class="wallet-connected-info">
-        <p>Your TON Space wallet is successfully connected</p>
+        <p>Your TON wallet is successfully connected</p>
         <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 15px 0; word-break: break-all; font-size: 12px;" id="connected-wallet-address"></div>
       </div>
       
@@ -1175,7 +1172,7 @@
     </div>
     
     <div class="wallet-info">
-      <p>Securely connect your TON Space wallet to receive rewards</p>
+      <p>Securely connect your TON wallet to receive rewards</p>
     </div>
   </div>
 </div>
@@ -1848,24 +1845,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // Check initial connection status when page loads
   initWalletConnection();
 
-  // Start connection process
+  // Start connection process - removed automatic redirection
   startConnectBtn.addEventListener('click', function() {
     walletInstructions.style.display = 'block';
     walletInput.focus();
-    
-    // Auto-open @wallet in Telegram
-    if (window.Telegram?.WebApp) {
-      Telegram.WebApp.openTelegramLink('https://t.me/wallet');
-    }
   });
   
   // Submit wallet address
   submitWalletBtn.addEventListener('click', async function() {
     const address = walletInput.value.trim();
     
-    // Validation
+    // Enhanced validation with better error message
     if (!address.match(/^(EQ|UQ)[a-zA-Z0-9_-]{43,}$/)) {
-      alert('Invalid TON wallet address');
+      alert('Please enter a valid TON wallet address starting with EQ or UQ');
       return;
     }
     
@@ -1884,7 +1876,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to connect wallet');
       }
       
       // Update local state
@@ -1893,22 +1886,27 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Update UI
       updateWalletUI();
-      alert('✅ Wallet connected!');
+      
+      // Show success message with wallet address snippet
+      const shortAddress = address.substring(0, 6) + '...' + address.substring(address.length - 4);
+      alert(`✅ Wallet connected successfully!\n\nAddress: ${shortAddress}`);
       
     } catch (error) {
       console.error('Connection error:', error);
-      alert('❌ Failed to connect: ' + error.message);
+      alert(`❌ Error: ${error.message}\n\nPlease check your wallet address and try again.`);
     } finally {
       submitWalletBtn.disabled = false;
       submitWalletBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Address';
     }
   });
   
-  // Disconnect wallet
+  // Disconnect wallet with confirmation
   disconnectWalletBtn.addEventListener('click', async function() {
-    if (!confirm('Disconnect this wallet?')) return;
+    if (!confirm('Are you sure you want to disconnect your wallet?\n\nYou will need to reconnect to withdraw rewards.')) return;
     
     try {
+      disconnectWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+      
       // Call backend API
       const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
         method: 'POST',
@@ -1926,26 +1924,31 @@ document.addEventListener('DOMContentLoaded', function() {
       updateWalletUI();
       walletInput.value = '';
       
-      alert('Wallet disconnected');
+      alert('Wallet successfully disconnected');
       
     } catch (error) {
-      alert('Error disconnecting: ' + error.message);
+      console.error('Disconnection error:', error);
+      alert('Error disconnecting wallet: ' + error.message);
+    } finally {
+      disconnectWalletBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect Wallet';
     }
   });
   
   // Initialize wallet connection
   async function initWalletConnection() {
     try {
-      const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}`);
+      const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/wallet`);
       if (response.ok) {
-        const user = await response.json();
-        if (user?.tonWallet?.address) {
+        const data = await response.json();
+        if (data?.walletAddress) {
           isWalletConnected = true;
-          walletAddress = user.tonWallet.address;
+          walletAddress = data.walletAddress;
         }
       }
     } catch (error) {
       console.log('Wallet check error:', error);
+      // Fallback to localStorage if API fails
+      checkLocalStorage();
     } finally {
       updateWalletUI();
     }
@@ -1958,15 +1961,21 @@ document.addEventListener('DOMContentLoaded', function() {
       connectedView.style.display = 'block';
       connectedAddress.textContent = walletAddress;
       
-      // Also store in localStorage as fallback
+      // Store in localStorage as fallback
       localStorage.setItem('vifa_wallet_address', walletAddress);
+      
+      // Update any wallet indicators in the app
+      updateWalletIndicators(true);
     } else {
       connectFlow.style.display = 'block';
       connectedView.style.display = 'none';
       connectedAddress.textContent = '';
       
-      // Clear localStorage if disconnected
+      // Clear localStorage
       localStorage.removeItem('vifa_wallet_address');
+      
+      // Update any wallet indicators in the app
+      updateWalletIndicators(false);
     }
   }
 
@@ -1976,8 +1985,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savedAddress && savedAddress.match(/^(EQ|UQ)[a-zA-Z0-9_-]{43,}$/)) {
       walletAddress = savedAddress;
       isWalletConnected = true;
-      updateWalletUI();
     }
+  }
+
+  // Update wallet indicators throughout the app
+  function updateWalletIndicators(connected) {
+    const walletIcons = document.querySelectorAll('.wallet-icon');
+    walletIcons.forEach(icon => {
+      if (connected) {
+        icon.classList.add('connected');
+        icon.title = 'Wallet connected';
+      } else {
+        icon.classList.remove('connected');
+        icon.title = 'Connect wallet';
+      }
+    });
   }
 
   // Initialize with localStorage check

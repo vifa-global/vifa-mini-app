@@ -1115,17 +1115,18 @@
   <div class="wallet-container">
     <h2 class="wallet-title">Connect TON Wallet</h2>
     
-    <div class="wallet-card" id="wallet-connect-flow">
-      <div id="wallet-not-connected">
-        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
-        <h3>Connect Your Wallet</h3>
-        <p class="wallet-info">Connect with Tonkeeper, OpenMask, or other TON wallets</p>
-        
+   <div class="wallet-card" id="wallet-connect-flow">
+    <div id="wallet-not-connected">
+        <!-- Your connect button here -->
         <button class="wallet-button" id="connect-wallet-btn">
-          <i class="fas fa-link"></i> Connect Wallet
+            <i class="fas fa-link"></i> Connect Wallet
         </button>
-      </div>
     </div>
+    
+    <div id="wallet-connected-view" style="display: none;">
+        <!-- Your connected view here -->
+    </div>
+</div>
     
     <div class="wallet-card" id="wallet-connected-view" style="display: none;">
       <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>

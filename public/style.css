@@ -31,7 +31,7 @@ header {
   background: rgba(0,0,0,0.3);
   padding: 8px 15px;
   border-radius: 20px;
-  color: #FF007F; /* Pink color for points */
+  color: #FF007F;
   font-weight: bold;
 }
 
@@ -39,12 +39,12 @@ header {
 .cta-button {
   width: 80%;
   padding: 15px;
-  background: #FF007F; /* Pink buttons */
+  background: #FF007F;
   border: none;
   border-radius: 12px;
   color: white;
   font-weight: bold;
-  margin: 10px auto; /* Centered */
+  margin: 10px auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,7 +62,7 @@ main {
 
 .streak-counter {
   text-align: center;
-  color: #FFD700; /* Gold */
+  color: #FFD700;
   font-size: 16px;
   margin: 15px 0;
 }
@@ -77,7 +77,7 @@ main {
   justify-content: space-around;
   background: #0A003E;
   padding: 10px 0;
-  border-top: 1px solid #8000FF; /* Changed from #00FFFF to #8000FF */
+  border-top: 1px solid #8000FF;
 }
 
 .nav-btn {
@@ -86,7 +86,7 @@ main {
 }
 
 .nav-btn.active img {
-  filter: drop-shadow(0 0 10px #FF007F); /* Pink glow for active nav */
+  filter: drop-shadow(0 0 10px #FF007F);
 }
 
 .home-button:disabled {
@@ -122,34 +122,43 @@ main {
     font-weight: bold;
 }
 
-/* Telegram Wallet styles */
-.wallet-container {
+/* Updated Wallet Page Styles */
+.wallet-page {
   padding: 80px 20px 70px;
+  text-align: center;
   height: 100%;
   overflow-y: auto;
-  text-align: center;
+}
+
+.wallet-header {
+  margin-bottom: 30px;
 }
 
 .wallet-title {
   color: #FFD700;
-  font-size: 20px;
-  margin-bottom: 30px;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.wallet-subtitle {
+  color: #7fdbff;
+  font-size: 16px;
 }
 
 .wallet-card {
   background: rgba(0, 136, 204, 0.1);
   border-radius: 15px;
-  padding: 20px;
-  margin: 0 auto 25px;
+  padding: 25px;
+  margin: 0 auto 20px;
   border: 1px solid rgba(0, 136, 204, 0.3);
-  max-width: 300px;
+  max-width: 350px;
 }
 
 .wallet-button {
   background: #FFD700;
   color: #0A003E;
   border: none;
-  padding: 12px;
+  padding: 15px;
   border-radius: 15px;
   font-weight: bold;
   cursor: pointer;
@@ -158,13 +167,109 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  transition: all 0.3s;
+}
+
+.wallet-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .wallet-button.secondary {
   background: rgba(0, 136, 204, 0.2);
   color: white;
   border: 1px solid rgba(0, 136, 204, 0.5);
+}
+
+.wallet-qr-container {
+  margin: 20px 0;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.wallet-connected-view {
+  text-align: center;
+  padding: 20px;
+}
+
+.wallet-address {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 10px;
+  margin: 20px 0;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 14px;
+  color: #7fdbff;
+}
+
+.connection-steps {
+  text-align: left;
+  margin: 25px 0;
+  padding-left: 20px;
+}
+
+.connection-step {
+  margin-bottom: 15px;
+  position: relative;
+  padding-left: 30px;
+}
+
+.connection-step-number {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #FFD700;
+  color: #0A003E;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.wallet-providers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.wallet-provider {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+}
+
+.wallet-provider:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.wallet-provider img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.success-icon {
+  color: #2ecc40;
+  font-size: 50px;
+  margin-bottom: 15px;
 }
 
 .wallet-connected-info {

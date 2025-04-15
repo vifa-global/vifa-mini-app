@@ -1109,69 +1109,21 @@
         </div>
         
         <!-- Wallet Page -->
-    <!-- Updated Wallet Page -->
+<!-- Wallet Page (replace existing wallet-page div) -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
     <h2 class="wallet-title">Connect TON Wallet</h2>
     
-    <!-- Wallet Connection Flow -->
-    <div class="wallet-card" id="wallet-connect-flow" style="display: block;">
-      <div id="wallet-not-connected">
-        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
-        <h3>Connect Your Wallet</h3>
-        <p class="wallet-info">To withdraw your VIFA Points, you'll need to connect a <strong>TON wallet</strong> (TON Space from @wallet or TonKeeper)</p>
-        
-        <button class="wallet-button" id="start-connect-wallet">
-          <i class="fas fa-link"></i> Connect Wallet
-        </button>
-        
-        <div class="wallet-instructions" style="margin-top: 20px; display: none;" id="wallet-instructions">
-          <div style="background: rgba(0,136,204,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(0,136,204,0.3);">
-            <h4 style="color: #7fdbff; margin-bottom: 10px;">How to get your wallet address:</h4>
-            <p style="text-align: left; margin-bottom: 15px;">1. Open your TON wallet app (@wallet or TonKeeper)</p>
-            <p style="text-align: left; margin-bottom: 15px;">2. Find your wallet address (usually in Receive or Wallet section)</p>
-            <p style="text-align: left; margin-bottom: 0;">3. Copy the full address starting with "EQ..." or "UQ..."</p>
-          </div>
-          
-          <div style="position: relative; margin: 20px 0;">
-            <input type="text" id="wallet-address-input" placeholder="Paste your TON wallet address here" 
-                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
-                          background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
-                   onclick="this.focus();">
-            <button class="wallet-button" id="submit-wallet-address" style="margin-top: 10px;">
-              <i class="fas fa-check-circle"></i> Confirm Address
-            </button>
-          </div>
-        </div>
-        
-        <div class="wallet-requirements" style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid rgba(255,215,0,0.3);">
-          <h4 style="color: #FFD700; margin-bottom: 10px;">Supported Wallets:</h4>
-          <ul style="text-align: left; padding-left: 20px;">
-            <li><strong>@wallet</strong> (TON Space in Telegram)</li>
-            <li><strong>TonKeeper</strong> (Mobile app)</li>
-            <li>Other TON-compatible wallets</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <!-- This div will automatically become the connect button -->
+    <div id="ton-connect-button" style="margin: 20px auto; max-width: 300px;"></div>
     
-    <!-- Connected Wallet View -->
-    <div class="wallet-card" id="wallet-connected-view" style="display: none;">
-      <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
-      <h3>Wallet Connected</h3>
-      
-      <div class="wallet-connected-info">
-        <p>Your TON wallet is successfully connected</p>
-        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 15px 0; word-break: break-all; font-size: 12px;" id="connected-wallet-address"></div>
-      </div>
-      
+    <!-- Connection status will appear here -->
+    <div id="wallet-status" class="wallet-connected-info" style="display: none;">
+      <p>✅ Wallet Connected</p>
+      <div id="wallet-address" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 15px 0; word-break: break-all;"></div>
       <button class="wallet-button secondary" id="disconnect-wallet-btn">
         <i class="fas fa-unlink"></i> Disconnect Wallet
       </button>
-    </div>
-    
-    <div class="wallet-info">
-      <p>Securely connect your TON wallet to receive rewards</p>
     </div>
   </div>
 </div>
@@ -1218,7 +1170,42 @@ const userData = {
         telegramEngage: false
     }
 };
+}; // End of userData
 
+// ======== PASTE TON CONNECT LOGIC HERE ======== //
+// TON Connect Setup
+const connector = new TonConnect.TonConnect({
+    manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json' 
+});
+
+const tonConnectUI = new TonConnectUI.TonConnectUI({
+    connector: connector,
+    uiPreferences: {
+        theme: 'DARK',
+        colorsSet: {
+            tonconnect: '#FFD700' 
+        }
+    }
+});
+
+tonConnectUI.onStatusChange((wallet) => {
+    const statusDiv = document.getElementById('wallet-status');
+    const addressDiv = document.getElementById('wallet-address');
+    
+    if (wallet) {
+        statusDiv.style.display = 'block';
+        addressDiv.textContent = wallet.account.address;
+        console.log('Connected wallet:', wallet);
+    } else {
+        statusDiv.style.display = 'none';
+    }
+});
+
+document.getElementById('disconnect-wallet-btn')?.addEventListener('click', () => {
+    connector.disconnect();
+});
+// ======== END OF TON CONNECT CODE ======== //
+    
 // Show specific page and hide others
 function showPage(pageId) {
     // Hide all pages

@@ -649,7 +649,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 </head>
 <body>
     <div class="background-gif"></div>
@@ -1809,165 +1808,75 @@ document.addEventListener('DOMContentLoaded', () => {
 showPage('home-page');
     </script>
 <script>
+// Add this at the beginning of your wallet script section
+let isWalletConnected = false;
+let walletAddress = '';
+
 // Initialize TON Connect
 const connector = new TonConnect.TonConnect({
     manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
 });
+
 document.addEventListener('DOMContentLoaded', function() {
-  const startConnectBtn = document.getElementById('start-connect-wallet');
-  const disconnectWalletBtn = document.getElementById('disconnect-wallet-btn');
-  const connectFlow = document.getElementById('wallet-connect-flow');
-  const connectedView = document.getElementById('wallet-connected-view');
-  const connectedAddress = document.getElementById('connected-wallet-address');
-  
-  // Check initial connection status
-  checkConnection();
-
-  // Subscribe to connection status changes
-  connector.onStatusChange((wallet) => {
-    if (wallet) {
-      // Wallet connected
-      isWalletConnected = true;
-      walletAddress = wallet.account.address;
-      updateWalletUI();
-      
-      // Save wallet info to your backend
-      saveWalletToBackend(wallet.account.address);
-    } else {
-      // Wallet disconnected
-      isWalletConnected = false;
-      walletAddress = '';
-      updateWalletUI();
-      
-      // Remove wallet info from your backend
-      removeWalletFromBackend();
-    }
-  });
-
-  // Connect wallet button
-  startConnectBtn.addEventListener('click', async function() {
-    try {
-      startConnectBtn.disabled = true;
-      startConnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening Wallet...';
-      
-      // Get connection source (Tonkeeper, etc.)
-      const wallets = await connector.getWallets();
-      const walletConnectionSource = {
-        jsBridgeKey: wallets[0].jsBridgeKey // Use first available wallet (Tonkeeper)
-      };
-      
-      // Open wallet connection
-      await connector.connect(walletConnectionSource);
-      
-    } catch (error) {
-      console.error('Connection error:', error);
-      alert('Error connecting wallet: ' + error.message);
-    } finally {
-      startConnectBtn.disabled = false;
-      startConnectBtn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
-    }
-  });
-  
-  // Disconnect wallet
-  disconnectWalletBtn.addEventListener('click', async function() {
-    if (!confirm('Are you sure you want to disconnect your wallet?\n\nYou will need to reconnect to withdraw rewards.')) return;
+    const startConnectBtn = document.getElementById('start-connect-wallet');
+    const disconnectWalletBtn = document.getElementById('disconnect-wallet-btn');
+    const connectFlow = document.getElementById('wallet-connect-flow');
+    const connectedView = document.getElementById('wallet-connected-view');
+    const connectedAddress = document.getElementById('connected-wallet-address');
     
-    try {
-      disconnectWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
-      
-      // Disconnect wallet
-      await connector.disconnect();
-      
-    } catch (error) {
-      console.error('Disconnection error:', error);
-      alert('Error disconnecting wallet: ' + error.message);
-    } finally {
-      disconnectWalletBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect Wallet';
-    }
-  });
-  
-  // Check current connection status
-  async function checkConnection() {
-    const wallet = await connector.getWallet();
-    if (wallet) {
-      isWalletConnected = true;
-      walletAddress = wallet.account.address;
-    } else {
-      isWalletConnected = false;
-      walletAddress = '';
-    }
-    updateWalletUI();
-  }
-  
-  // Update UI based on connection state
-  function updateWalletUI() {
-    if (isWalletConnected && walletAddress) {
-      connectFlow.style.display = 'none';
-      connectedView.style.display = 'block';
-      connectedAddress.textContent = walletAddress;
-      
-      // Update any wallet indicators in the app
-      updateWalletIndicators(true);
-    } else {
-      connectFlow.style.display = 'block';
-      connectedView.style.display = 'none';
-      connectedAddress.textContent = '';
-      
-      // Update any wallet indicators in the app
-      updateWalletIndicators(false);
-    }
-  }
+    // Check initial connection status
+    checkConnection();
 
-  // Update wallet indicators throughout the app
-  function updateWalletIndicators(connected) {
-    const walletIcons = document.querySelectorAll('.wallet-icon');
-    walletIcons.forEach(icon => {
-      if (connected) {
-        icon.classList.add('connected');
-        icon.title = 'Wallet connected';
-      } else {
-        icon.classList.remove('connected');
-        icon.title = 'Connect wallet';
-      }
+    // Subscribe to connection status changes
+    connector.onStatusChange((wallet) => {
+        if (wallet) {
+            // Wallet connected
+            isWalletConnected = true;
+            walletAddress = wallet.account.address;
+            updateWalletUI();
+            
+            // Save wallet info to your backend
+            saveWalletToBackend(wallet.account.address);
+        } else {
+            // Wallet disconnected
+            isWalletConnected = false;
+            walletAddress = '';
+            updateWalletUI();
+        }
     });
-  }
 
-  // Save wallet to your backend
-  async function saveWalletToBackend(address) {
-    try {
-      const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: userData.id,
-          walletAddress: address
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save wallet to backend');
-      }
-    } catch (error) {
-      console.error('Backend save error:', error);
-    }
-  }
-
-  // Remove wallet from your backend
-  async function removeWalletFromBackend() {
-    try {
-      const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userData.id })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to remove wallet from backend');
-      }
-    } catch (error) {
-      console.error('Backend remove error:', error);
-    }
-  }
+    // Connect wallet button
+    startConnectBtn.addEventListener('click', async function() {
+        try {
+            startConnectBtn.disabled = true;
+            startConnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening Wallet...';
+            
+            // Get available wallets
+            const wallets = await connector.getWallets();
+            
+            // For mobile, prefer Tonkeeper
+            const tonkeeperWallet = wallets.find(w => w.name === 'Tonkeeper');
+            const walletToConnect = tonkeeperWallet || wallets[0];
+            
+            if (!walletToConnect) {
+                throw new Error('No wallets available');
+            }
+            
+            // Open wallet connection
+            await connector.connect({
+                jsBridgeKey: walletToConnect.jsBridgeKey
+            });
+            
+        } catch (error) {
+            console.error('Connection error:', error);
+            alert('Error connecting wallet: ' + error.message);
+        } finally {
+            startConnectBtn.disabled = false;
+            startConnectBtn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
+        }
+    });
+    
+    // Rest of your wallet code...
 });
 </script>
 

@@ -1110,72 +1110,246 @@
         </div>
         
         <!-- Wallet Page -->
-    <!-- Updated Wallet Page -->
+<!-- Wallet Connection Page - Redesigned for TON Connect -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
-    <h2 class="wallet-title">Connect TON Wallet</h2>
+    <h2 class="wallet-title">
+      <i class="fas fa-wallet"></i> Connect Wallet
+    </h2>
     
-    <!-- Wallet Connection Flow -->
-    <div class="wallet-card" id="wallet-connect-flow" style="display: block;">
-      <div id="wallet-not-connected">
-        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
-        <h3>Connect Your Wallet</h3>
-        <p class="wallet-info">To withdraw your VIFA Points, you'll need to connect a <strong>TON wallet</strong> (TON Space from @wallet or TonKeeper)</p>
-        
-        <button class="wallet-button" id="start-connect-wallet">
-          <i class="fas fa-link"></i> Connect Wallet
-        </button>
-        
-        <div class="wallet-instructions" style="margin-top: 20px; display: none;" id="wallet-instructions">
-          <div style="background: rgba(0,136,204,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(0,136,204,0.3);">
-            <h4 style="color: #7fdbff; margin-bottom: 10px;">How to get your wallet address:</h4>
-            <p style="text-align: left; margin-bottom: 15px;">1. Open your TON wallet app (@wallet or TonKeeper)</p>
-            <p style="text-align: left; margin-bottom: 15px;">2. Find your wallet address (usually in Receive or Wallet section)</p>
-            <p style="text-align: left; margin-bottom: 0;">3. Copy the full address starting with "EQ..." or "UQ..."</p>
-          </div>
-          
-          <div style="position: relative; margin: 20px 0;">
-            <input type="text" id="wallet-address-input" placeholder="Paste your TON wallet address here" 
-                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
-                          background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
-                   onclick="this.focus();">
-            <button class="wallet-button" id="submit-wallet-address" style="margin-top: 10px;">
-              <i class="fas fa-check-circle"></i> Confirm Address
-            </button>
-          </div>
-        </div>
-        
-        <div class="wallet-requirements" style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid rgba(255,215,0,0.3);">
-          <h4 style="color: #FFD700; margin-bottom: 10px;">Supported Wallets:</h4>
-          <ul style="text-align: left; padding-left: 20px;">
-            <li><strong>@wallet</strong> (TON Space in Telegram)</li>
-            <li><strong>TonKeeper</strong> (Mobile app)</li>
-            <li>Other TON-compatible wallets</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Connected Wallet View -->
-    <div class="wallet-card" id="wallet-connected-view" style="display: none;">
-      <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
-      <h3>Wallet Connected</h3>
-      
-      <div class="wallet-connected-info">
-        <p>Your TON wallet is successfully connected</p>
-        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 15px 0; word-break: break-all; font-size: 12px;" id="connected-wallet-address"></div>
+    <!-- Connection Flow -->
+    <div class="wallet-card" id="wallet-connect-flow">
+      <div class="wallet-illustration">
+        <i class="fas fa-coins" style="font-size: 64px; color: #FFD700;"></i>
       </div>
       
-      <button class="wallet-button secondary" id="disconnect-wallet-btn">
-        <i class="fas fa-unlink"></i> Disconnect Wallet
+      <h3>Connect to Withdraw Rewards</h3>
+      <p class="wallet-description">
+        Connect your TON wallet to receive VIFA Points and withdraw to your crypto wallet
+      </p>
+      
+      <button class="wallet-connect-btn" id="start-connect-wallet">
+        <i class="fas fa-plug"></i> Connect Wallet
       </button>
+      
+      <div class="wallet-features">
+        <div class="feature-item">
+          <i class="fas fa-shield-alt"></i>
+          <span>Secure connection using TON Connect</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-bolt"></i>
+          <span>Instant verification</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-hand-holding-usd"></i>
+          <span>Withdraw rewards anytime</span>
+        </div>
+      </div>
     </div>
     
-    <div class="wallet-info">
-      <p>Securely connect your TON wallet to receive rewards</p>
+    <!-- Connected State (Initially Hidden) -->
+    <div class="wallet-card" id="wallet-connected-view" style="display: none;">
+      <div class="wallet-status">
+        <i class="fas fa-check-circle" style="color: #2ecc40; font-size: 48px;"></i>
+        <h3>Wallet Connected</h3>
+        
+        <div class="wallet-provider">
+          <span>Connected with:</span>
+          <span class="wallet-provider-badge" id="wallet-provider-name">
+            <i class="fab fa-telegram"></i> TON Wallet
+          </span>
+        </div>
+        
+        <div class="wallet-address" id="connected-wallet-address">
+          EQ...ABC123
+        </div>
+        
+        <p class="wallet-info">
+          You can now receive VIFA Points directly to this wallet
+        </p>
+        
+        <button class="disconnect-btn" id="disconnect-wallet-btn">
+          <i class="fas fa-unlink"></i> Disconnect Wallet
+        </button>
+      </div>
+      
+      <div class="next-steps">
+        <h4><i class="fas fa-arrow-right"></i> Next Steps</h4>
+        <ol>
+          <li>Complete tasks to earn VIFA Points</li>
+          <li>Accumulate minimum withdrawal amount</li>
+          <li>Withdraw to your connected wallet</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Supported Wallets Info -->
+    <div class="supported-wallets">
+      <h4><i class="fas fa-mobile-alt"></i> Supported Wallets</h4>
+      <div class="wallet-grid">
+        <div class="wallet-option">
+          <i class="fab fa-telegram"></i>
+          <span>TON Space</span>
+        </div>
+        <div class="wallet-option">
+          <i class="fas fa-mobile"></i>
+          <span>Tonkeeper</span>
+        </div>
+        <div class="wallet-option">
+          <i class="fas fa-globe"></i>
+          <span>OpenMask</span>
+        </div>
+        <div class="wallet-option">
+          <i class="fas fa-wallet"></i>
+          <span>Others</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Wallet Page Specific Styles */
+  .wallet-container {
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .wallet-title {
+    color: #FFD700;
+    font-size: 24px;
+    margin-bottom: 25px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .wallet-card {
+    background: rgba(10, 0, 62, 0.8);
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .wallet-illustration {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .wallet-description {
+    color: #b3d9ff;
+    text-align: center;
+    margin: 15px 0 25px;
+    font-size: 15px;
+  }
+  
+  .wallet-connect-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #0A003E;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 16px;
+    width: 100%;
+    margin: 20px 0;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .wallet-connect-btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .wallet-status {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .wallet-address {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    word-break: break-all;
+    margin: 15px 0;
+    font-size: 14px;
+  }
+  
+  .wallet-provider-badge {
+    background: rgba(255, 215, 0, 0.1);
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .disconnect-btn {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    padding: 12px;
+    border-radius: 12px;
+    width: 100%;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .disconnect-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+  }
+  
+  .next-steps {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 215, 0, 0.1);
+  }
+  
+  .next-steps ol {
+    padding-left: 20px;
+    margin-top: 10px;
+  }
+  
+  .next-steps li {
+    margin: 8px 0;
+    color: #b3d9ff;
+  }
+  
+  .supported-wallets {
+    margin-top: 30px;
+  }
+  
+  .wallet-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+  }
+  
+  .wallet-option {
+    background: rgba(0, 136, 204, 0.1);
+    border: 1px solid rgba(0, 136, 204, 0.2);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .wallet-option i {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 5px;
+    color: #FFD700;
+  }
+</style>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
@@ -1827,7 +2001,10 @@ document.addEventListener('DOMContentLoaded', () => {
 showPage('home-page');
     </script>
 <script>
-// TON Connect Wallet Integration
+
+    document.getElementById('start-connect-wallet').addEventListener('click', function() {
+    tonConnectUI.openModal();
+    // TON Connect Wallet Integration
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize TON Connect
     const connector = new TonConnect.TonConnect({

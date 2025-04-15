@@ -1794,9 +1794,15 @@ showPage('home-page');
     </script>
 // Add this near your other script tags
 <script>
-// Initialize TonConnect with proper manifest URL
+// Initialize TonConnect
 const connector = new TonConnect.TonConnect({
-    manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+    manifestUrl: 'https://raw.githubusercontent.com/ton-connect/sdk/main/packages/ui/demo/src/tonconnect-manifest.json'
+});
+
+// Initialize the UI
+const tonConnectUI = new TonConnectUI.TonConnectUI({
+    connector: connector,
+    buttonRootId: 'connect-wallet-btn'
 });
 
 // Initialize wallet connection when page loads
@@ -1808,49 +1814,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateWalletUI(true);
         }
         
-        // Setup button listeners
-        setupWalletButtons();
+        // Setup disconnect button
+        setupDisconnectButton();
     } catch (error) {
         console.error('Initialization error:', error);
     }
 });
 
-// Setup wallet connection button
-function setupWalletButtons() {
-    const connectBtn = document.getElementById('connect-wallet-btn');
+// Setup disconnect button
+function setupDisconnectButton() {
     const disconnectBtn = document.getElementById('disconnect-wallet-btn');
-    
-    // Connect Button
-    if (connectBtn) {
-        connectBtn.addEventListener('click', async () => {
-            try {
-                // Show loading state
-                connectBtn.disabled = true;
-                connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-                
-                // Get available wallets
-                const wallets = await connector.getWallets();
-                
-                // For simplicity, use the first wallet (you could show a selector)
-                const wallet = wallets[0];
-                
-                // Connect with the wallet
-                await connector.connect({ 
-                    jsBridgeKey: 'tonconnect' // For in-app connections
-                }, wallet);
-                
-            } catch (error) {
-                console.error('Connection error:', error);
-                alert('Failed to connect wallet: ' + error.message);
-                
-                // Reset button state
-                connectBtn.disabled = false;
-                connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
-            }
-        });
-    }
-    
-    // Disconnect Button
     if (disconnectBtn) {
         disconnectBtn.addEventListener('click', async () => {
             try {
@@ -1863,27 +1836,12 @@ function setupWalletButtons() {
             }
         });
     }
-    
-    // Listen for connection changes
-    connector.onStatusChange((wallet) => {
-        if (wallet) {
-            // Wallet connected
-            updateWalletUI(true);
-            
-            // Store wallet info in backend
-            storeWalletInfo(wallet);
-        } else {
-            // Wallet disconnected
-            updateWalletUI(false);
-        }
-    });
 }
 
 // Update UI based on connection state
 function updateWalletUI(connected) {
-    const connectFlow = document.getElementById('wallet-connect-flow');
+    const connectFlow = document.getElementById('wallet-not-connected');
     const connectedView = document.getElementById('wallet-connected-view');
-    const connectBtn = document.getElementById('connect-wallet-btn');
     
     if (connected) {
         // Show connected state
@@ -1891,16 +1849,14 @@ function updateWalletUI(connected) {
         connectedView.style.display = 'block';
         
         // Display wallet info
+        const account = connector.account;
         document.getElementById('connected-wallet-address').textContent = 
-            connector.account.address;
+            account.address;
         document.getElementById('wallet-name').textContent = 
-            connector.account.device?.appName || 'TON Wallet';
+            account.device?.appName || 'TON Wallet';
         
-        // Reset connect button if exists
-        if (connectBtn) {
-            connectBtn.disabled = false;
-            connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
-        }
+        // Store wallet info in backend
+        storeWalletInfo(account);
     } else {
         // Show disconnected state
         connectFlow.style.display = 'block';
@@ -1919,7 +1875,7 @@ async function storeWalletInfo(wallet) {
             body: JSON.stringify({
                 userId: userData.id,
                 address: wallet.address,
-                walletName: wallet.device.appName,
+                walletName: wallet.device?.appName || 'Unknown',
                 connectedAt: new Date().toISOString()
             }),
         });

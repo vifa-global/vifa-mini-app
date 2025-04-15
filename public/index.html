@@ -1110,7 +1110,8 @@
         </div>
         
         <!-- Wallet Page -->
-   <div class="page" id="wallet-page">
+  <!-- Updated Wallet Page -->
+<div class="page" id="wallet-page">
   <div class="wallet-container">
     <h2 class="wallet-title">Connect TON Wallet</h2>
     
@@ -1121,19 +1122,9 @@
         <h3>Connect Your Wallet</h3>
         <p class="wallet-info">Connect with Tonkeeper, OpenMask, or other TON wallets</p>
         
-        <button class="wallet-button" id="start-connect-wallet">
+        <button class="wallet-button" id="connect-wallet-btn">
           <i class="fas fa-link"></i> Connect Wallet
         </button>
-        
-        <div class="wallet-requirements">
-          <h4 style="color: #FFD700; margin-bottom: 10px;">Supported Wallets:</h4>
-          <ul style="text-align: left; padding-left: 20px;">
-            <li><strong>Tonkeeper</strong></li>
-            <li><strong>OpenMask</strong></li>
-            <li><strong>@wallet</strong> (TON Space in Telegram)</li>
-            <li>Other TON-compatible wallets</li>
-          </ul>
-        </div>
       </div>
     </div>
     
@@ -1149,11 +1140,6 @@
       
       <button class="wallet-button secondary" id="disconnect-wallet-btn">
         <i class="fas fa-unlink"></i> Disconnect Wallet
-      </button>
-      
-      <!-- Optional: Add a button to send test transaction -->
-      <button class="wallet-button" id="send-test-tx" style="margin-top: 15px;">
-        <i class="fas fa-paper-plane"></i> Send Test Transaction
       </button>
     </div>
     
@@ -1819,73 +1805,59 @@ const connector = new TonConnect.TonConnect({
     manifestUrl: 'https://your-render-app-url.com/tonconnect-manifest.json'
 });
 
-// Wallet connection state
-let walletConnection = null;
-
-// Initialize TonConnect when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', async function() {
-    await initTonConnect();
-    setupWalletEventListeners();
+    // Check if already connected
+    const connected = await connector.restoreConnection();
+    if (connected) {
+        updateWalletUI(true);
+    }
+    
+    // Setup button listeners
+    setupWalletButtons();
 });
 
-async function initTonConnect() {
-    try {
-        // Check if connection is already established
-        const connected = await connector.restoreConnection();
-        if (connected) {
-            walletConnection = connector.account;
-            updateWalletUI(true);
+function setupWalletButtons() {
+    // Connect Wallet Button
+    document.getElementById('connect-wallet-btn').addEventListener('click', async function() {
+        try {
+            // Get supported wallets
+            const wallets = await connector.getWallets();
+            
+            // Open connection modal (TON Connect will handle the wallet selection)
+            await connector.connect({
+                jsBridgeKey: 'tonconnect' // For in-app connections
+            });
+            
+        } catch (error) {
+            console.error('Connection error:', error);
+            alert('Failed to connect wallet: ' + error.message);
         }
-    } catch (error) {
-        console.error('TonConnect initialization error:', error);
-    }
-}
-
-function setupWalletEventListeners() {
-    const connectBtn = document.getElementById('start-connect-wallet');
-    const disconnectBtn = document.getElementById('disconnect-wallet-btn');
+    });
     
-    if (connectBtn) {
-        connectBtn.addEventListener('click', async () => {
-            try {
-                // Generate universal link for wallet connection
-                const wallets = await connector.getWallets();
-                const wallet = wallets[0]; // You can let user choose or use default
-                
-                const connectionSource = {
-                    jsBridgeKey: 'tonconnect' // This enables in-app connection for supported wallets
-                };
-                
-                await connector.connect(connectionSource, wallet);
-            } catch (error) {
-                console.error('Connection error:', error);
-                alert('Failed to connect wallet: ' + error.message);
-            }
-        });
-    }
+    // Disconnect Wallet Button
+    document.getElementById('disconnect-wallet-btn').addEventListener('click', async function() {
+        try {
+            await connector.disconnect();
+            updateWalletUI(false);
+            alert('Wallet disconnected successfully');
+        } catch (error) {
+            console.error('Disconnection error:', error);
+            alert('Failed to disconnect wallet: ' + error.message);
+        }
+    });
     
-    if (disconnectBtn) {
-        disconnectBtn.addEventListener('click', async () => {
-            try {
-                await connector.disconnect();
-                walletConnection = null;
-                updateWalletUI(false);
-                alert('Wallet disconnected successfully');
-            } catch (error) {
-                console.error('Disconnection error:', error);
-                alert('Failed to disconnect wallet: ' + error.message);
-            }
-        });
-    }
-    
-    // Subscribe to connection status changes
+    // Listen for connection changes
     connector.onStatusChange((wallet) => {
-        walletConnection = wallet;
-        updateWalletUI(!!wallet);
-        
         if (wallet) {
-            // Store wallet info in your MongoDB
+            // Wallet connected
+            updateWalletUI(true);
+            
+            // Store wallet info in your backend
             storeWalletInfo(wallet);
+        } else {
+            // Wallet disconnected
+            updateWalletUI(false);
         }
     });
 }
@@ -1898,17 +1870,11 @@ function updateWalletUI(connected) {
     if (connected) {
         connectFlow.style.display = 'none';
         connectedView.style.display = 'block';
-        connectedAddress.textContent = walletConnection.address;
-        
-        // Update wallet icon in navigation
-        document.querySelector('.wallet-icon').classList.add('active');
+        connectedAddress.textContent = connector.account.address;
     } else {
         connectFlow.style.display = 'block';
         connectedView.style.display = 'none';
         connectedAddress.textContent = '';
-        
-        // Update wallet icon in navigation
-        document.querySelector('.wallet-icon').classList.remove('active');
     }
 }
 
@@ -1922,80 +1888,17 @@ async function storeWalletInfo(wallet) {
             body: JSON.stringify({
                 userId: userData.id,
                 address: wallet.address,
-                chain: wallet.chain,
-                publicKey: wallet.publicKey,
                 walletName: wallet.device.appName,
                 connectedAt: new Date().toISOString()
             }),
         });
         
-        const data = await response.json();
-        console.log('Wallet info stored:', data);
+        console.log('Wallet info stored:', await response.json());
     } catch (error) {
         console.error('Error storing wallet info:', error);
     }
 }
-
-// Function to send transaction (example)
-async function sendTransaction(recipientAddress, amount, payload = null) {
-    if (!connector.connected) {
-        alert('Please connect your wallet first');
-        return;
-    }
-
-    const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 300, // 5 minutes
-        messages: [
-            {
-                address: recipientAddress,
-                amount: amount.toString(),
-                payload: payload
-            }
-        ]
-    };
-
-    try {
-        const result = await connector.sendTransaction(transaction);
-        console.log('Transaction sent:', result);
-        
-        // Store transaction in MongoDB
-        await storeTransaction(result);
-        return result;
-    } catch (error) {
-        console.error('Transaction error:', error);
-        throw error;
-    }
-}
-
-async function storeTransaction(txData) {
-    try {
-        const response = await fetch('/api/store-transaction', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: userData.id,
-                txHash: txData.boc,
-                from: walletConnection.address,
-                ...txData
-            }),
-        });
-        
-        const data = await response.json();
-        console.log('Transaction stored:', data);
-    } catch (error) {
-        console.error('Error storing transaction:', error);
-    }
-}
 </script>
-
-    <script 
-    async 
-    src="https://tganalytics.xyz/index.js" 
-    onload="initAnalytics()" 
-    type="text/javascript"
-></script>
 
 <script>
     function initAnalytics() {

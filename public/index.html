@@ -375,59 +375,24 @@
 
 
 /* Wallet Page Styles */
-.wallet-container {
-  padding: 80px 20px 70px;
-  height: 100%;
-  overflow-y: auto;
-  text-align: center;
-}
-
-.wallet-title {
-  color: #FFD700;
-  font-size: 20px;
-  margin-bottom: 30px;
-}
-
-.wallet-card {
-  background: rgba(0, 136, 204, 0.1);
-  border-radius: 15px;
-  padding: 25px;
-  margin: 0 auto;
-  border: 1px solid rgba(0, 136, 204, 0.3);
-  max-width: 320px;
-}
-
 .wallet-button {
   background: #FFD700;
   color: #0A003E;
   border: none;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 12px 24px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  width: 100%;
-  margin: 10px 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all 0.3s;
-  font-size: 16px;
+  margin: 10px 0;
 }
 
 .wallet-button:hover {
   opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-.wallet-button.secondary {
-  background: rgba(255, 215, 0, 0.1);
-  color: #FFD700;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-}
-
-.wallet-button.secondary:hover {
-  background: rgba(255, 215, 0, 0.2);
 }
 
 .wallet-button:disabled {
@@ -435,62 +400,13 @@
   cursor: not-allowed;
 }
 
-.wallet-requirements {
-  background: rgba(255, 215, 0, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  margin-top: 25px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.wallet-requirements h4 {
-  color: #FFD700;
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.wallet-badges {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-
-.wallet-badge {
-  background: rgba(0, 136, 204, 0.2);
-  color: #7fdbff;
-  padding: 5px 10px;
+#wallet-status {
+  background: rgba(0, 136, 204, 0.1);
+  padding: 10px;
   border-radius: 8px;
-  font-size: 12px;
   border: 1px solid rgba(0, 136, 204, 0.3);
 }
 
-.wallet-address-box {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-  padding: 12px 35px 12px 12px;
-  margin: 15px 0;
-  word-break: break-all;
-  font-size: 13px;
-  position: relative;
-  border: 1px solid rgba(0, 136, 204, 0.2);
-  text-align: center;
-}
-
-.copy-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #FFD700;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.copy-icon:hover {
-  color: #ffffff;
-}
         /* FRIENDS PAGE STYLES */
         .friends-container {
             padding: 80px 20px 70px;
@@ -1162,53 +1078,13 @@
         </div>
         
         <!-- Wallet Page -->
-<div class="page" id="wallet-page">
-  <div class="wallet-container">
-    <h2 class="wallet-title">Connect TON Wallet</h2>
-    
-    <!-- Connection Card -->
-    <div class="wallet-card">
-      <div id="connection-flow">
-        <!-- QR Code Container -->
-        <div id="wallet-qr-container" style="margin: 20px auto; display: none;">
-          <div id="wallet-qr-code" style="width: 200px; height: 200px; margin: 0 auto; background: white; padding: 10px;"></div>
-          <p style="color: #7fdbff; margin-top: 10px;">Scan with your wallet app</p>
-        </div>
-        
-        <!-- Connection Buttons -->
-        <div id="wallet-options" style="margin-top: 20px;">
-          <button class="wallet-button" id="connect-tonkeeper">
-            <i class="fas fa-mobile-alt"></i> TonKeeper App
-          </button>
-          <button class="wallet-button secondary" id="connect-qr">
-            <i class="fas fa-qrcode"></i> Show QR Code
-          </button>
-        </div>
-      </div>
-      
-      <!-- Connected State -->
-      <div id="connected-state" style="display: none;">
-        <i class="fas fa-check-circle" style="font-size: 40px; color: #2ecc40; margin-bottom: 15px;"></i>
-        <h3>Wallet Connected</h3>
-        <div class="wallet-address-box" id="wallet-address">
-          <i class="fas fa-copy copy-icon" id="copy-address"></i>
-        </div>
-        <button class="wallet-button secondary" id="disconnect-wallet">
-          <i class="fas fa-unlink"></i> Disconnect Wallet
-        </button>
-      </div>
-    </div>
-    
-    <!-- Supported Wallets -->
-    <div class="wallet-requirements">
-      <h4>Supported Wallets</h4>
-      <div class="wallet-badges">
-        <span class="wallet-badge">Tonkeeper</span>
-        <span class="wallet-badge">TON Space</span>
-        <span class="wallet-badge">OpenMask</span>
-      </div>
-    </div>
-  </div>
+<button id="connect-wallet-btn" class="wallet-button">
+  <i class="fas fa-wallet"></i> Connect Wallet
+</button>
+
+<!-- Add this div to display connection status -->
+<div id="wallet-status" style="display: none; margin-top: 15px;">
+  <p id="wallet-address-display"></p>
 </div>
         
         <!-- Bottom Navigation -->
@@ -1860,12 +1736,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
-
-<!-- QR Code Library -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     
 <script>
-// Initialize TonConnect with error handling
+// Initialize with proper error handling
 let connector;
 
 try {
@@ -1873,155 +1746,103 @@ try {
     manifestUrl: "https://vifa-mini-app-frontend.onrender.com/public/tonconnect-manifest.json"
   });
 } catch (error) {
-  console.error("TonConnect initialization failed:", error);
+  console.error("Failed to initialize with main manifest, using fallback:", error);
   // Fallback manifest URL
   connector = new TonConnectSDK.TonConnect({
-    manifestUrl: "https://raw.githubusercontent.com/ton-connect/sdk/main/packages/sdk/demo/src/tonconnect-manifest.json"
+    manifestUrl: "https://ton-connect.github.io/demo-dapp-with-react/tonconnect-manifest.json"
   });
 }
 
-// DOM Elements
-const tonkeeperBtn = document.getElementById('connect-tonkeeper');
-const qrBtn = document.getElementById('connect-qr');
-const qrContainer = document.getElementById('wallet-qr-container');
-const connectionFlow = document.getElementById('connection-flow');
-const connectedState = document.getElementById('connected-state');
-const walletAddress = document.getElementById('wallet-address');
-const disconnectBtn = document.getElementById('disconnect-wallet');
-const copyBtn = document.getElementById('copy-address');
-
-// Connection State
-let connectionPromise = null;
-
-// Connect with TonKeeper
-tonkeeperBtn.addEventListener('click', () => {
-  connectWallet('tonkeeper');
-});
-
-// Show QR Code
-qrBtn.addEventListener('click', () => {
-  connectWallet('qr');
-});
-
-// Disconnect Wallet
-disconnectBtn.addEventListener('click', () => {
-  connector.disconnect();
-  connectionFlow.style.display = 'block';
-  connectedState.style.display = 'none';
-});
-
-// Copy Address
-copyBtn.addEventListener('click', () => {
-  const address = walletAddress.textContent.trim();
-  navigator.clipboard.writeText(address).then(() => {
-    alert('Wallet address copied!');
-  });
-});
-
-// Main Connection Function
-async function connectWallet(method) {
+// Connection function
+async function connectWallet() {
+  const btn = document.getElementById('connect-wallet-btn');
   try {
-    // Disable buttons during connection
-    tonkeeperBtn.disabled = true;
-    qrBtn.disabled = true;
-    
-    // Generate connection URL
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+    btn.disabled = true;
+
     const connectionSource = {
       universalLink: "https://app.tonkeeper.com/ton-connect",
       bridgeUrl: "https://bridge.tonapi.io/bridge"
     };
-    
-    if (method === 'qr') {
-      // Generate and show QR code
-      const universalLink = connector.connect(connectionSource);
-      QRCode.toCanvas(document.getElementById('wallet-qr-code'), universalLink, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
-      });
-      qrContainer.style.display = 'block';
-    } else {
-      // Open directly in TonKeeper
-      const universalLink = connector.connect(connectionSource);
-      window.open(universalLink, '_blank');
-    }
-    
-    // Wait for connection
-    connectionPromise = new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (connector.connected) {
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, 500);
-    });
-    
-    await connectionPromise;
+
+    const universalLink = connector.connect(connectionSource);
+    window.open(universalLink, "_blank");
     
   } catch (error) {
     console.error("Connection error:", error);
-    alert("Connection failed. Please try again.");
-    tonkeeperBtn.disabled = false;
-    qrBtn.disabled = false;
-    qrContainer.style.display = 'none';
+    btn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+    btn.disabled = false;
+    alert("Failed to connect. Please try again.");
   }
 }
 
-// Handle Connection Status Changes
+// Handle connection status changes
 connector.onStatusChange(async (wallet) => {
+  const btn = document.getElementById('connect-wallet-btn');
+  const statusDiv = document.getElementById('wallet-status');
+  
   if (wallet) {
-    // Format address
-    const rawAddress = wallet.account.address;
-    let formattedAddress;
-    
     try {
-      const response = await fetch(`https://toncenter.com/api/v2/packAddress?address=${encodeURIComponent(rawAddress)}`);
-      const data = await response.json();
-      formattedAddress = data.ok ? data.result : `${rawAddress.slice(0, 6)}...${rawAddress.slice(-4)}`;
-    } catch {
-      formattedAddress = `${rawAddress.slice(0, 6)}...${rawAddress.slice(-4)}`;
-    }
-    
-    // Update UI
-    connectionFlow.style.display = 'none';
-    connectedState.style.display = 'block';
-    walletAddress.textContent = formattedAddress;
-    
-    // Save to backend
-    try {
-      await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: userData.id,
-          walletAddress: rawAddress
-        })
-      });
+      const rawAddress = wallet.account.address;
+      
+      // Try to get friendly address format
+      let displayAddress = rawAddress;
+      try {
+        const response = await fetch(`https://toncenter.com/api/v2/packAddress?address=${encodeURIComponent(rawAddress)}`);
+        const data = await response.json();
+        if (data.ok) {
+          displayAddress = data.result;
+        }
+      } catch (e) {
+        console.log("Using raw address, couldn't format:", e);
+      }
+      
+      // Update UI
+      btn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
+      btn.style.backgroundColor = '#4CAF50';
+      statusDiv.style.display = 'block';
+      document.getElementById('wallet-address-display').textContent = 
+        `Connected: ${displayAddress.substring(0, 6)}...${displayAddress.substring(displayAddress.length - 4)}`;
+      
+      // Save to your backend
+      try {
+        await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userData.id,
+            walletAddress: rawAddress
+          })
+        });
+      } catch (e) {
+        console.error("Backend save error:", e);
+      }
+      
     } catch (error) {
-      console.error("Backend save error:", error);
+      console.error("Address processing error:", error);
     }
-    
   } else {
-    // Reset connection UI
-    connectionFlow.style.display = 'block';
-    connectedState.style.display = 'none';
-    qrContainer.style.display = 'none';
-    tonkeeperBtn.disabled = false;
-    qrBtn.disabled = false;
+    // Disconnected state
+    btn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+    btn.style.backgroundColor = '';
+    btn.disabled = false;
+    statusDiv.style.display = 'none';
   }
+});
+
+// Handle connection restoring error silently
+connector.onStatusChange((wallet) => {}, {
+  errors: 'silent' // This will suppress the connection restoring error
 });
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Check existing connection
-  connector.restoreConnection().then(() => {
-    if (connector.connected) {
-      connectionFlow.style.display = 'none';
-      connectedState.style.display = 'block';
-    }
+  // Set up button
+  document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
+  
+  // Try to restore connection quietly
+  connector.restoreConnection().catch(e => {
+    console.log("Connection restoring failed silently");
   });
 });
 </script>

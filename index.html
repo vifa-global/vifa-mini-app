@@ -1990,7 +1990,7 @@ document.addEventListener('DOMContentLoaded', function() {
         connectBtn.disabled = true;
 
         try {
-            // A. First get approval from backend BEFORE connecting
+            // First check if user can connect a wallet
             const preCheck = await fetch('https://vifa-backend.onrender.com/api/can-connect-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2001,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(await preCheck.text());
             }
 
-            // B. Only proceed with TonConnect if backend approves
+            // Proceed with TonConnect
             const universalLink = connector.connect({
                 universalLink: "https://app.tonkeeper.com/ton-connect",
                 bridgeUrl: "https://bridge.tonapi.io/bridge"
@@ -2012,8 +2012,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Connection error:", error);
             resetConnectButton();
             showErrorModal(`❌ Connection Failed: ${error.message}`);
-        } finally {
-            walletConnectionInProgress = false;
         }
     }
 
@@ -2027,12 +2025,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const rawAddress = wallet.account.address;
         currentWalletAddress = rawAddress;
 
-        // A. Show temporary "verifying" state
+        // Show verifying state
         connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
         connectBtn.disabled = true;
 
         try {
-            // B. Verify with backend BEFORE showing connected
+            // Verify with backend
             const verification = await fetch('https://vifa-backend.onrender.com/api/confirm-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2045,40 +2043,51 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!verification.ok) {
                 const error = await verification.json();
                 if (verification.status === 409) {
-                    // Wallet belongs to another user - force disconnect
+                    // Wallet belongs to another user
                     await connector.disconnect();
                     showErrorModal(`
-                        ⚠️ Wallet Conflict
-                        This wallet belongs to user: ${error.existingUserId}
-                        Connected on: ${new Date(error.connectedAt).toLocaleDateString()}
+                        ⚠️ Wallet Already Connected
+                        ---------------------------------
+                        This wallet is already connected to another account:
+                        
+                        User ID: ${error.existingUserId}
+                        Connected: ${new Date(error.connectedAt).toLocaleString()}
+                        
+                        Please use a different wallet address.
                     `);
+                    resetConnectButton();
                     return;
                 }
                 throw new Error(error.message || "Verification failed");
             }
 
-            // C. Only show connected after successful verification
+            // Successfully connected
             updateUIConnected(rawAddress);
             startHealthChecks(rawAddress);
-
+            
         } catch (error) {
             console.error("Verification failed:", error);
             await connector.disconnect();
             showErrorModal(`❌ Verification Failed: ${error.message}`);
+            resetConnectButton();
         }
     });
 
     // 3. DISCONNECT HANDLING
     async function handleDisconnect() {
         if (currentWalletAddress) {
-            await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: currentUserId,
-                    walletAddress: currentWalletAddress
-                })
-            });
+            try {
+                await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        walletAddress: currentWalletAddress
+                    })
+                });
+            } catch (error) {
+                console.error("Disconnect error:", error);
+            }
         }
         resetUI();
         currentWalletAddress = null;
@@ -2089,11 +2098,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function startHealthChecks(walletAddress) {
         clearInterval(healthCheckInterval);
         healthCheckInterval = setInterval(async () => {
-            const check = await fetch(`https://vifa-backend.onrender.com/api/wallet-health?userId=${currentUserId}&walletAddress=${walletAddress}`);
-            if (!check.ok) {
-                clearInterval(healthCheckInterval);
-                await connector.disconnect();
-                showErrorModal("⚠️ Wallet connection lost. Please reconnect.");
+            try {
+                const check = await fetch(`https://vifa-backend.onrender.com/api/wallet-health?userId=${currentUserId}&walletAddress=${walletAddress}`);
+                if (!check.ok) {
+                    clearInterval(healthCheckInterval);
+                    await connector.disconnect();
+                    showErrorModal("⚠️ Wallet connection lost. Please reconnect.");
+                    resetConnectButton();
+                }
+            } catch (error) {
+                console.error("Health check failed:", error);
             }
         }, 300000); // 5 minutes
     }
@@ -2107,6 +2121,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addressSpan.textContent = shortAddress;
         addressSpan.setAttribute('title', rawAddress);
         disconnectBtn.disabled = false;
+        walletConnectionInProgress = false;
     }
 
     function resetUI() {
@@ -2115,6 +2130,14 @@ document.addEventListener('DOMContentLoaded', function() {
         connectBtn.disabled = false;
         statusDiv.style.display = 'none';
         disconnectBtn.disabled = true;
+        walletConnectionInProgress = false;
+    }
+
+    function resetConnectButton() {
+        connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+        connectBtn.style.background = '';
+        connectBtn.disabled = false;
+        walletConnectionInProgress = false;
     }
 
     function showErrorModal(message) {
@@ -2126,7 +2149,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button class="wallet-error-button">OK</button>
             </div>
         `;
-        modal.querySelector('button').onclick = () => modal.remove();
+        modal.querySelector('button').onclick = () => {
+            modal.remove();
+            resetConnectButton();
+        };
         document.body.appendChild(modal);
     }
 

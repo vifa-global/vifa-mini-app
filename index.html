@@ -377,56 +377,250 @@
 /* Wallet Page Styles */
 .wallet-container {
   padding: 80px 20px 70px;
-  height: 100%;
+  height: calc(100vh - 150px);
   overflow-y: auto;
   text-align: center;
+  background: linear-gradient(180deg, rgba(10, 0, 62, 0.9) 0%, rgba(5, 0, 31, 0.95) 100%);
 }
 
 .wallet-title {
   color: #FFD700;
-  font-size: 20px;
+  font-size: 24px;
   margin-bottom: 30px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+  position: relative;
+  display: inline-block;
+}
+
+.wallet-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  border-radius: 3px;
 }
 
 .wallet-card {
   background: rgba(0, 136, 204, 0.1);
-  border-radius: 15px;
-  padding: 25px;
+  border-radius: 20px;
+  padding: 30px 25px;
   margin: 0 auto;
   border: 1px solid rgba(0, 136, 204, 0.3);
-  max-width: 320px;
+  max-width: 350px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.wallet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 136, 204, 0.25);
 }
 
 .wallet-button {
-  background: #FFD700;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
   color: #0A003E;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: bold;
+  padding: 15px 24px;
+  border-radius: 12px;
+  font-weight: 700;
   cursor: pointer;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: all 0.3s;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  margin-bottom: 20px;
 }
 
 .wallet-button:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  opacity: 0.95;
+}
+
+.wallet-button:active {
+  transform: translateY(0);
 }
 
 .wallet-button:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .wallet-button.secondary {
   background: rgba(255, 215, 0, 0.1);
   color: #FFD700;
   border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: none;
+  backdrop-filter: blur(5px);
 }
+
+.wallet-button.secondary:hover {
+  background: rgba(255, 215, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+
+.wallet-status {
+  margin-top: 25px;
+  padding: 15px;
+  border-radius: 12px;
+  background: rgba(0, 136, 204, 0.05);
+  border: 1px dashed rgba(0, 136, 204, 0.3);
+}
+
+.wallet-address {
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-size: 14px;
+  position: relative;
+}
+
+.wallet-address::before {
+  content: 'TON Wallet:';
+  display: block;
+  font-size: 12px;
+  color: #7fdbff;
+  margin-bottom: 5px;
+}
+
+.copy-icon {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+  color: #FFD700;
+  transition: all 0.2s;
+}
+
+.copy-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Wallet Error Modal Styles */
+.wallet-error-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.wallet-error-content {
+  background: linear-gradient(145deg, #0A003E 0%, #070025 100%);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-error-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+}
+
+.wallet-error-message {
+  color: white;
+  white-space: pre-wrap;
+  font-family: 'Exo 2', sans-serif;
+  margin: 20px 0;
+  line-height: 1.6;
+  text-align: center;
+  font-size: 15px;
+}
+
+.wallet-error-button {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #0A003E;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.3s;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  display: inline-block;
+}
+
+.wallet-error-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .wallet-card {
+    padding: 25px 15px;
+    border-radius: 15px;
+  }
+  
+  .wallet-button {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+  
+  .wallet-error-content {
+    padding: 25px 15px;
+    border-radius: 15px;
+  }
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.wallet-loading-spinner {
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #FFD700;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+        
         /* FRIENDS PAGE STYLES */
         .friends-container {
             padding: 80px 20px 70px;
@@ -1800,11 +1994,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Connection error:", error);
             resetConnectButton();
-            alert("Failed to connect. Please try again.");
+            showWalletErrorModal(`
+                ❌ Connection Failed
+                
+                Could not initiate wallet connection.
+                Please try again or contact support.
+            `);
         }
     }
 
-    // Disconnect Wallet Function (now updates backend)
+    // Disconnect Wallet Function
     async function disconnectWallet() {
         try {
             disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
@@ -1831,7 +2030,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Disconnection error:", error);
-            alert("Disconnected from app but failed to update server. Use /disconnect in bot.");
+            showWalletErrorModal(`
+                ⚠️ Partial Disconnection
+                
+                Wallet was disconnected from this app but we couldn't update our records.
+                Please use /disconnect in the bot to complete the process.
+            `);
             resetConnectButton();
         }
     }
@@ -1850,18 +2054,15 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Connection status changed:", wallet);
         
         if (wallet) {
-            // Connected - Update UI immediately
-            const rawAddress = wallet.account.address;
-            const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
-            
-            connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
-            connectBtn.style.background = '#4CAF50';
-            statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
-            disconnectBtn.disabled = false;
-            
-            // Save to backend
             try {
+                const rawAddress = wallet.account.address;
+                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                
+                // Show connecting state
+                connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                connectBtn.disabled = true;
+                
+                // Save to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1871,18 +2072,88 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 });
 
+                const result = await response.json();
+
                 if (!response.ok) {
-                    console.error("Backend save failed");
+                    if (result.error === "WALLET_ALREADY_LINKED") {
+                        // Show detailed error message
+                        const connectedDate = new Date(result.connectedAt).toLocaleDateString();
+                        showWalletErrorModal(`
+                            ⚠️ Wallet Already Connected
+                            
+                            This wallet is already linked to another VIFA account.
+                            
+                            Connected on: ${connectedDate}
+                            
+                            Please use a different wallet or contact support if you believe this is an error.
+                        `);
+                        // Disconnect the wallet since it can't be used
+                        connector.disconnect();
+                        return;
+                    }
+                    throw new Error(result.message || "Failed to save wallet");
                 }
-            } catch (e) {
-                console.error("Backend save error:", e);
+
+                // Success - update UI
+                connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
+                connectBtn.style.background = '#4CAF50';
+                connectBtn.disabled = false;
+                statusDiv.style.display = 'block';
+                addressSpan.textContent = shortAddress;
+                addressSpan.setAttribute('title', rawAddress); // Show full address on hover
+                disconnectBtn.disabled = false;
+                
+            } catch (error) {
+                console.error("Backend save error:", error);
+                showWalletErrorModal(`
+                    ❌ Connection Failed
+                    
+                    ${error.message}
+                    
+                    Please try again or contact support.
+                `);
+                connector.disconnect();
             }
         } else {
-            // Disconnected - Only update UI, backend handled in disconnectWallet()
+            // Disconnected
             resetConnectButton();
             statusDiv.style.display = 'none';
         }
     });
+
+    // Show wallet error modal
+    function showWalletErrorModal(message) {
+        // Create modal elements
+        const modal = document.createElement('div');
+        modal.className = 'wallet-error-modal';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'wallet-error-content';
+        
+        const messageText = document.createElement('pre');
+        messageText.className = 'wallet-error-message';
+        messageText.textContent = message;
+        
+        const closeButton = document.createElement('button');
+        closeButton.className = 'wallet-error-button';
+        closeButton.textContent = 'OK';
+        
+        closeButton.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        modalContent.appendChild(messageText);
+        modalContent.appendChild(closeButton);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Also close when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+    }
 
     // Event Listeners
     connectBtn.addEventListener('click', connectWallet);
@@ -1892,8 +2163,15 @@ document.addEventListener('DOMContentLoaded', function() {
     (async function() {
         try {
             await connector.restoreConnection();
+            
+            // If restored but no wallet, reset UI
+            if (!connector.connected) {
+                resetConnectButton();
+                statusDiv.style.display = 'none';
+            }
         } catch (error) {
             console.log("No existing connection to restore");
+            resetConnectButton();
         }
     })();
 });

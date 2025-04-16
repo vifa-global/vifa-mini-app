@@ -1981,7 +1981,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let walletConnectionInProgress = false;
     let currentWalletAddress = null;
 
-    // 1. CONNECT WALLET
+    // 1. CONNECT WALLET - WITH PRE-VALIDATION
     async function connectWallet() {
         if (walletConnectionInProgress) return;
         
@@ -1990,7 +1990,7 @@ document.addEventListener('DOMContentLoaded', function() {
         connectBtn.disabled = true;
 
         try {
-            // First check if user can connect a wallet
+            // FIRST verify backend allows this connection
             const preCheck = await fetch('https://vifa-backend.onrender.com/api/can-connect-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1998,10 +1998,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (!preCheck.ok) {
-                throw new Error(await preCheck.text());
+                const error = await preCheck.json();
+                throw new Error(error.message || "Cannot connect wallet");
             }
 
-            // Proceed with TonConnect
+            // Only proceed if backend approves
             const universalLink = connector.connect({
                 universalLink: "https://app.tonkeeper.com/ton-connect",
                 bridgeUrl: "https://bridge.tonapi.io/bridge"
@@ -2015,7 +2016,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 2. HANDLE CONNECTION STATUS
+    // 2. STRICT CONNECTION HANDLING
     connector.onStatusChange(async (wallet) => {
         if (!wallet) {
             handleDisconnect();
@@ -2023,14 +2024,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const rawAddress = wallet.account.address;
-        currentWalletAddress = rawAddress;
-
-        // Show verifying state
-        connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        
+        // IMMEDIATELY show verifying state
+        connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying Ownership...';
         connectBtn.disabled = true;
 
         try {
-            // Verify with backend
+            // STRICT VERIFICATION with backend
             const verification = await fetch('https://vifa-backend.onrender.com/api/confirm-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2042,33 +2042,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!verification.ok) {
                 const error = await verification.json();
+                // FORCE DISCONNECT if wallet belongs to another user
+                await connector.disconnect();
+                
                 if (verification.status === 409) {
-                    // Wallet belongs to another user
-                    await connector.disconnect();
                     showErrorModal(`
-                        ⚠️ Wallet Already Connected
-                        ---------------------------------
-                        This wallet is already connected to another account:
+                        🚫 WALLET CONFLICT
+                        --------------------------
+                        This wallet is already connected to:
                         
                         User ID: ${error.existingUserId}
-                        Connected: ${new Date(error.connectedAt).toLocaleString()}
+                        Connected since: ${new Date(error.connectedAt).toLocaleString()}
                         
-                        Please use a different wallet address.
+                        You MUST use a different wallet address.
                     `);
-                    resetConnectButton();
-                    return;
+                } else {
+                    showErrorModal(`❌ Verification Failed: ${error.message}`);
                 }
-                throw new Error(error.message || "Verification failed");
+                resetConnectButton();
+                return;
             }
 
-            // Successfully connected
+            // Only update UI if verification succeeds
+            currentWalletAddress = rawAddress;
             updateUIConnected(rawAddress);
             startHealthChecks(rawAddress);
-            
+
         } catch (error) {
             console.error("Verification failed:", error);
             await connector.disconnect();
-            showErrorModal(`❌ Verification Failed: ${error.message}`);
+            showErrorModal(`❌ Critical Error: ${error.message}`);
             resetConnectButton();
         }
     });
@@ -2091,25 +2094,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         resetUI();
         currentWalletAddress = null;
-    }
-
-    // 4. PERIODIC HEALTH CHECKS
-    let healthCheckInterval;
-    function startHealthChecks(walletAddress) {
-        clearInterval(healthCheckInterval);
-        healthCheckInterval = setInterval(async () => {
-            try {
-                const check = await fetch(`https://vifa-backend.onrender.com/api/wallet-health?userId=${currentUserId}&walletAddress=${walletAddress}`);
-                if (!check.ok) {
-                    clearInterval(healthCheckInterval);
-                    await connector.disconnect();
-                    showErrorModal("⚠️ Wallet connection lost. Please reconnect.");
-                    resetConnectButton();
-                }
-            } catch (error) {
-                console.error("Health check failed:", error);
-            }
-        }, 300000); // 5 minutes
     }
 
     // UI HELPERS
@@ -2165,7 +2149,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await connector.restoreConnection();
             if (connector.connected) {
-                connector.onStatusChange(connector.account);
+                const wallet = connector.account;
+                if (wallet) {
+                    connector.onStatusChange(wallet);
+                }
             }
         } catch (error) {
             console.error("Initialization error:", error);

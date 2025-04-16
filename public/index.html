@@ -1804,67 +1804,92 @@ showPage('home-page');
     </script>
     
 <script>
-// Initialize TonConnect with YOUR manifest URL
+// TonConnect Initialization
 const connector = new TonConnectSDK.TonConnect({
   manifestUrl: "https://vifa-mini-app-frontend.onrender.com/public/tonconnect-manifest.json"
 });
 
-// Simplified one-click wallet connection
+// DOM Elements
+const connectBtn = document.getElementById('connect-wallet-btn');
+const disconnectBtn = document.getElementById('disconnect-wallet-btn');
+const walletStatusTitle = document.getElementById('wallet-status-title');
+const walletStatusDesc = document.getElementById('wallet-status-desc');
+const walletConnectedInfo = document.getElementById('wallet-connected-info');
+const walletAddressDisplay = document.getElementById('wallet-address-display');
+const copyAddressBtn = document.getElementById('copy-wallet-address');
+
+// Connect Wallet Function
 async function connectWallet() {
   try {
-    // Set connecting state
-    const btn = document.getElementById('connect-wallet-btn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-    btn.disabled = true;
+    // Update UI to connecting state
+    connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+    connectBtn.disabled = true;
+    connectBtn.classList.add('connecting');
+    
+    walletStatusTitle.textContent = "Connecting...";
+    walletStatusDesc.textContent = "Please approve the connection in your wallet app";
 
-    // Connect with TonKeeper as default
-    await connector.connect({
+    // Initiate connection
+    const universalLink = connector.connect({
       universalLink: "https://app.tonkeeper.com/ton-connect",
       bridgeUrl: "https://bridge.tonapi.io/bridge"
     });
+    
+    // Open wallet app
+    window.open(universalLink, "_blank");
 
   } catch (error) {
     console.error("Connection error:", error);
-    alert("Failed to connect wallet. Please try again.");
-    resetConnectButton();
+    resetConnectionUI();
+    alert("Connection failed. Please try again.");
   }
 }
 
-// Handle connection status changes
+// Disconnect Wallet Function
+function disconnectWallet() {
+  connector.disconnect();
+  resetConnectionUI();
+  alert("Wallet disconnected successfully");
+}
+
+// Handle Connection Status Changes
 connector.onStatusChange(async (wallet) => {
-  const btn = document.getElementById('connect-wallet-btn');
-  
   if (wallet) {
     // Successfully connected
-    btn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
-    btn.style.background = '#4CAF50';
-    btn.onclick = null; // Remove click handler
+    const rawAddress = wallet.account.address;
+    const formattedAddress = await formatAddress(rawAddress);
     
-    // Display wallet address
-    const address = await formatAddress(wallet.account.address);
-    alert(`Wallet connected!\n\nAddress: ${address}`);
+    // Update UI
+    connectBtn.style.display = 'none';
+    walletConnectedInfo.style.display = 'block';
+    walletStatusTitle.textContent = "Wallet Connected";
+    walletStatusDesc.textContent = "You can now withdraw your VIFA Points";
+    walletAddressDisplay.innerHTML = formattedAddress + 
+      '<i class="fas fa-copy copy-icon" id="copy-wallet-address"></i>';
+    
+    // Rebind copy button
+    document.getElementById('copy-wallet-address').onclick = () => copyAddress(formattedAddress);
     
     // Save to backend
-    await saveWalletAddress(address);
+    await saveWalletAddress(rawAddress);
     
   } else {
     // Disconnected
-    resetConnectButton();
+    resetConnectionUI();
   }
 });
 
-// Helper to format address
+// Helper Functions
 async function formatAddress(rawAddress) {
   try {
     const response = await fetch(`https://toncenter.com/api/v2/packAddress?address=${encodeURIComponent(rawAddress)}`);
     const data = await response.json();
-    return data.ok ? data.result : rawAddress;
+    return data.ok ? data.result : rawAddress.slice(0, 6) + '...' + rawAddress.slice(-4);
   } catch {
-    return rawAddress;
+    return rawAddress.slice(0, 6) + '...' + rawAddress.slice(-4);
   }
 }
 
-// Save to your backend
 async function saveWalletAddress(address) {
   try {
     await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
@@ -1880,21 +1905,36 @@ async function saveWalletAddress(address) {
   }
 }
 
-function resetConnectButton() {
-  const btn = document.getElementById('connect-wallet-btn');
-  btn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
-  btn.style.background = '';
-  btn.disabled = false;
-  btn.onclick = connectWallet;
+function copyAddress(address) {
+  navigator.clipboard.writeText(address).then(() => {
+    alert("Wallet address copied to clipboard!");
+  }).catch(err => {
+    console.error("Failed to copy:", err);
+  });
+}
+
+function resetConnectionUI() {
+  connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+  connectBtn.disabled = false;
+  connectBtn.style.display = 'flex';
+  connectBtn.classList.remove('connecting');
+  walletConnectedInfo.style.display = 'none';
+  walletStatusTitle.textContent = "Connect Your Wallet";
+  walletStatusDesc.textContent = "One-click connection to withdraw your VIFA Points";
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Check existing connection
-  connector.restoreConnection();
+  // Set up event listeners
+  connectBtn.addEventListener('click', connectWallet);
+  disconnectBtn.addEventListener('click', disconnectWallet);
   
-  // Setup button
-  document.getElementById('connect-wallet-btn')?.addEventListener('click', connectWallet);
+  // Check existing connection
+  connector.restoreConnection().then(() => {
+    if (!connector.connected) {
+      resetConnectionUI();
+    }
+  });
 });
 </script>
 

@@ -1109,7 +1109,49 @@
         </div>
         
         <!-- Wallet Page -->
-    <button onclick="connectWallet()">CONNECT WALLET</button>
+    <div class="page" id="wallet-page">
+  <div class="wallet-container">
+    <h2 class="wallet-title">TON Wallet Connection</h2>
+    
+    <!-- Connection Card -->
+    <div class="wallet-card">
+      <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
+      
+      <!-- Connection Status -->
+      <div id="wallet-status">
+        <h3 id="wallet-status-title">Connect Your Wallet</h3>
+        <p class="wallet-info" id="wallet-status-desc">
+          One-click connection to withdraw your VIFA Points
+        </p>
+      </div>
+      
+      <!-- Main Connect Button -->
+      <button class="wallet-button" id="connect-wallet-btn">
+        <i class="fas fa-wallet"></i> Connect Wallet
+      </button>
+      
+      <!-- Connected Wallet Info (hidden by default) -->
+      <div id="wallet-connected-info" style="display: none; margin-top: 20px;">
+        <div class="wallet-address-box" id="wallet-address-display">
+          <i class="fas fa-copy copy-icon" id="copy-wallet-address"></i>
+        </div>
+        <button class="wallet-button secondary" id="disconnect-wallet-btn">
+          <i class="fas fa-unlink"></i> Disconnect
+        </button>
+      </div>
+      
+      <!-- Supported Wallets Info -->
+      <div class="wallet-requirements">
+        <h4>Supported Wallets:</h4>
+        <div class="wallet-badges">
+          <span class="wallet-badge">Tonkeeper</span>
+          <span class="wallet-badge">TON Space</span>
+          <span class="wallet-badge">OpenMask</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">

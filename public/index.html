@@ -1841,24 +1841,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Disconnect Function
-    function disconnectWallet() {
-        connector.disconnect();
-    }
-
-    // Event Listeners
-    connectBtn.addEventListener('click', connectWallet);
-    disconnectBtn.addEventListener('click', disconnectWallet);
-
-    // Try to restore existing connection
-    (async function() {
-        try {
-            await connector.restoreConnection();
-        } catch (error) {
-            console.log("No existing connection to restore");
+   // In your wallet connection code, modify the disconnect function:
+function disconnectWallet() {
+    // Show loading state
+    disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+    disconnectBtn.disabled = true;
+    
+    // First disconnect from TonConnect
+    connector.disconnect();
+    
+    // Then call backend to remove wallet from MongoDB
+    fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            userId: userData.id,
+            fromMiniApp: true // Flag this as coming from mini-app
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
+            connectBtn.style.background = '';
+            connectBtn.disabled = false;
+            statusDiv.style.display = 'none';
+        } else {
+            throw new Error(data.error || "Disconnection failed");
         }
-    })();
-});
+    })
+    .catch(error => {
+        console.error("Disconnection error:", error);
+        alert("Failed to fully disconnect. Please try again.");
+    })
+    .finally(() => {
+        disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+        disconnectBtn.disabled = false;
+    });
 </script>
 
     <script 

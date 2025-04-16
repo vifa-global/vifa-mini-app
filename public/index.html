@@ -427,7 +427,6 @@
   color: #FFD700;
   border: 1px solid rgba(255, 215, 0, 0.5);
 }
-
         /* FRIENDS PAGE STYLES */
         .friends-container {
             padding: 80px 20px 70px;
@@ -1119,6 +1118,7 @@
     </div>
   </div>
 </div>
+
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
@@ -1771,12 +1771,39 @@ showPage('home-page');
     </script>
     
 <script>
-// Fixed Wallet Connection Implementation
+// Fixed Wallet Connection with Manifest Fallback
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize with proper error handling
-  const connector = new TonConnectSDK.TonConnect({
-    manifestUrl: "https://vifa-mini-app-frontend.onrender.com/public/tonconnect-manifest.json"
-  });
+  // Initialize with multiple fallback options
+  const manifestUrls = [
+    "https://vifa-mini-app-frontend.onrender.com/public/tonconnect-manifest.json",
+    "https://raw.githubusercontent.com/ton-connect/sdk/main/packages/sdk/demo/src/tonconnect-manifest.json",
+    "https://ton-connect.github.io/demo-dapp-with-react/tonconnect-manifest.json"
+  ];
+  
+  let connector;
+  let currentManifestIndex = 0;
+  
+  // Initialize connector with fallback support
+  function initializeConnector() {
+    try {
+      connector = new TonConnectSDK.TonConnect({
+        manifestUrl: manifestUrls[currentManifestIndex]
+      });
+      console.log("Using manifest:", manifestUrls[currentManifestIndex]);
+    } catch (error) {
+      console.error("Manifest error, trying fallback:", error);
+      currentManifestIndex++;
+      if (currentManifestIndex < manifestUrls.length) {
+        initializeConnector();
+      } else {
+        console.error("All manifest fallbacks failed");
+        alert("Connection configuration error. Please try again later.");
+      }
+    }
+  }
+  
+  // Initial initialization
+  initializeConnector();
   
   // Elements
   const connectBtn = document.getElementById('connect-wallet-btn');
@@ -1784,11 +1811,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const addressSpan = document.getElementById('wallet-address');
   const disconnectBtn = document.getElementById('disconnect-btn');
   
-  // Silent error handling (fixes the connection restoring error)
-  connector.onStatusChange((wallet) => {}, { errors: 'silent' });
-  
+  // Silent error handling
+  if (connector) {
+    connector.onStatusChange((wallet) => {}, { errors: 'silent' });
+  }
+
   // Connect Wallet Function
   async function connectWallet() {
+    if (!connector) {
+      alert("Wallet service is not properly configured. Please refresh the page.");
+      return;
+    }
+    
     try {
       connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
       connectBtn.disabled = true;
@@ -1802,44 +1836,56 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       console.error("Connection error:", error);
       resetConnectionUI();
-      alert("Failed to connect. Please try again.");
+      
+      // Try next manifest if connection fails
+      if (error.message.includes('Manifest') && currentManifestIndex < manifestUrls.length - 1) {
+        currentManifestIndex++;
+        initializeConnector();
+        connectWallet(); // Retry with new manifest
+      } else {
+        alert("Failed to connect. Please try again.");
+      }
     }
   }
   
   // Handle Connection Status
-  connector.onStatusChange(async (wallet) => {
-    if (wallet) {
-      // Successfully connected
-      const rawAddress = wallet.account.address;
-      const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
-      
-      connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
-      connectBtn.style.background = '#4CAF50';
-      statusDiv.style.display = 'block';
-      addressSpan.textContent = shortAddress;
-      
-      // Save to backend
-      try {
-        await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userData.id,
-            walletAddress: rawAddress
-          })
-        });
-      } catch (e) {
-        console.error("Backend save error:", e);
+  if (connector) {
+    connector.onStatusChange(async (wallet) => {
+      if (wallet) {
+        // Successfully connected
+        const rawAddress = wallet.account.address;
+        const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+        
+        connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
+        connectBtn.style.background = '#4CAF50';
+        statusDiv.style.display = 'block';
+        addressSpan.textContent = shortAddress;
+        
+        // Save to backend
+        try {
+          await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: userData.id,
+              walletAddress: rawAddress
+            })
+          });
+        } catch (e) {
+          console.error("Backend save error:", e);
+        }
+      } else {
+        // Disconnected
+        resetConnectionUI();
       }
-    } else {
-      // Disconnected
-      resetConnectionUI();
-    }
-  });
+    });
+  }
   
   // Disconnect Function
   function disconnectWallet() {
-    connector.disconnect();
+    if (connector) {
+      connector.disconnect();
+    }
     resetConnectionUI();
   }
   
@@ -1856,7 +1902,9 @@ document.addEventListener('DOMContentLoaded', function() {
   disconnectBtn.addEventListener('click', disconnectWallet);
   
   // Check existing connection
-  connector.restoreConnection().catch(() => {});
+  if (connector) {
+    connector.restoreConnection().catch(() => {});
+  }
 });
 </script>
 

@@ -1841,14 +1841,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-   // In your wallet connection code, modify the disconnect function:
-function disconnectWallet() {
-    // Show loading state
-    disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
-    disconnectBtn.disabled = true;
-    
-    // First disconnect from TonConnect
-      // Disconnect Function
+    // Disconnect Function
     function disconnectWallet() {
         connector.disconnect();
     }
@@ -1866,7 +1859,6 @@ function disconnectWallet() {
         }
     })();
 });
-
 </script>
 
     <script 

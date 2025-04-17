@@ -373,254 +373,71 @@
             background: #FFD700;
         }
 
+        /* WALLET PAGE STYLES */
+        .wallet-container {
+            padding: 80px 20px 70px;
+            height: 100%;
+            overflow-y: auto;
+            text-align: center;
+        }
 
-/* Wallet Page Styles */
-.wallet-container {
-  padding: 80px 20px 70px;
-  height: calc(100vh - 150px);
-  overflow-y: auto;
-  text-align: center;
-  background: linear-gradient(180deg, rgba(10, 0, 62, 0.9) 0%, rgba(5, 0, 31, 0.95) 100%);
-}
+        .wallet-title {
+            color: #FFD700;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
 
-.wallet-title {
-  color: #FFD700;
-  font-size: 24px;
-  margin-bottom: 30px;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
-  position: relative;
-  display: inline-block;
-}
+        .wallet-card {
+            background: rgba(0, 136, 204, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto 25px;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            max-width: 300px;
+        }
 
-.wallet-title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, #FFD700, #FFA500);
-  border-radius: 3px;
-}
+        .wallet-button {
+            background: #FFD700;
+            color: #0A003E;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.3s;
+        }
 
-.wallet-card {
-  background: rgba(0, 136, 204, 0.1);
-  border-radius: 20px;
-  padding: 30px 25px;
-  margin: 0 auto;
-  border: 1px solid rgba(0, 136, 204, 0.3);
-  max-width: 350px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
-}
+        .wallet-button:hover {
+            opacity: 0.9;
+        }
 
-.wallet-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 136, 204, 0.25);
-}
+        .wallet-button.secondary {
+            background: rgba(0, 136, 204, 0.2);
+            color: white;
+            border: 1px solid rgba(0, 136, 204, 0.5);
+        }
 
-.wallet-button {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #0A003E;
-  border: none;
-  padding: 15px 24px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  font-size: 16px;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-  margin-bottom: 20px;
-}
+        .wallet-qr {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
 
-.wallet-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-  opacity: 0.95;
-}
+        .wallet-info {
+            color: #7fdbff;
+            font-size: 14px;
+            margin: 20px 0;
+        }
 
-.wallet-button:active {
-  transform: translateY(0);
-}
-
-.wallet-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.wallet-button.secondary {
-  background: rgba(255, 215, 0, 0.1);
-  color: #FFD700;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  box-shadow: none;
-  backdrop-filter: blur(5px);
-}
-
-.wallet-button.secondary:hover {
-  background: rgba(255, 215, 0, 0.2);
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
-}
-
-.wallet-status {
-  margin-top: 25px;
-  padding: 15px;
-  border-radius: 12px;
-  background: rgba(0, 136, 204, 0.05);
-  border: 1px dashed rgba(0, 136, 204, 0.3);
-}
-
-.wallet-address {
-  font-family: 'Courier New', monospace;
-  word-break: break-all;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 10px;
-  border-radius: 8px;
-  margin: 15px 0;
-  font-size: 14px;
-  position: relative;
-}
-
-.wallet-address::before {
-  content: 'TON Wallet:';
-  display: block;
-  font-size: 12px;
-  color: #7fdbff;
-  margin-bottom: 5px;
-}
-
-.copy-icon {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  cursor: pointer;
-  color: #FFD700;
-  transition: all 0.2s;
-}
-
-.copy-icon:hover {
-  transform: scale(1.1);
-}
-
-/* Wallet Error Modal Styles */
-.wallet-error-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  backdrop-filter: blur(5px);
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.wallet-error-content {
-  background: linear-gradient(145deg, #0A003E 0%, #070025 100%);
-  padding: 30px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  max-width: 90%;
-  width: 400px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  position: relative;
-  overflow: hidden;
-}
-
-.wallet-error-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #FFD700, #FFA500);
-}
-
-.wallet-error-message {
-  color: white;
-  white-space: pre-wrap;
-  font-family: 'Exo 2', sans-serif;
-  margin: 20px 0;
-  line-height: 1.6;
-  text-align: center;
-  font-size: 15px;
-}
-
-.wallet-error-button {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #0A003E;
-  border: none;
-  padding: 12px 30px;
-  border-radius: 50px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: all 0.3s;
-  font-size: 16px;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-  display: inline-block;
-}
-
-.wallet-error-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .wallet-card {
-    padding: 25px 15px;
-    border-radius: 15px;
-  }
-  
-  .wallet-button {
-    padding: 12px 20px;
-    font-size: 15px;
-  }
-  
-  .wallet-error-content {
-    padding: 25px 15px;
-    border-radius: 15px;
-  }
-}
-
-/* Loading spinner animation */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.wallet-loading-spinner {
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #FFD700;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 8px;
-}
-        
         /* FRIENDS PAGE STYLES */
         .friends-container {
             padding: 80px 20px 70px;
@@ -830,7 +647,8 @@
         }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
     <div class="background-gif"></div>
@@ -1292,73 +1110,72 @@
         </div>
         
         <!-- Wallet Page -->
-<!-- Wallet Page -->
+    <!-- Updated Wallet Page -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
-    <h2 class="wallet-title">TON Wallet Connection</h2>
+    <h2 class="wallet-title">Connect TON Wallet</h2>
     
-    <div class="wallet-card">
-      <!-- Connection Steps -->
-      <div class="connection-steps">
-        <div class="step active" id="step1">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3>Verify Ownership</h3>
-            <p>We'll check if you're the legitimate owner of this wallet</p>
-          </div>
-        </div>
+    <!-- Wallet Connection Flow -->
+    <div class="wallet-card" id="wallet-connect-flow" style="display: block;">
+      <div id="wallet-not-connected">
+        <i class="fas fa-wallet" style="font-size: 40px; margin-bottom: 15px; color: #FFD700;"></i>
+        <h3>Connect Your Wallet</h3>
+        <p class="wallet-info">To withdraw your VIFA Points, you'll need to connect a <strong>TON wallet</strong> (TON Space from @wallet or TonKeeper)</p>
         
-        <div class="step" id="step2">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3>Connect Wallet</h3>
-            <p>Link your TON wallet securely</p>
-          </div>
-        </div>
-        
-        <div class="step" id="step3">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3>Confirmation</h3>
-            <p>Finalizing your secure connection</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Main Connect Button -->
-      <button id="connect-wallet-btn" class="wallet-button">
-        <i class="fas fa-wallet"></i> Connect Wallet
-      </button>
-      
-      <!-- Connection Status -->
-      <div id="wallet-status" class="wallet-status" style="display: none;">
-        <div class="wallet-connected-info">
-          <i class="fas fa-check-circle"></i>
-          <span>Wallet Connected</span>
-        </div>
-        <div class="wallet-address" id="wallet-address">
-          <span id="wallet-address-text"></span>
-          <i class="fas fa-copy copy-icon" onclick="copyWalletAddress()"></i>
-        </div>
-        <button id="disconnect-btn" class="wallet-button secondary">
-          <i class="fas fa-unlink"></i> Disconnect Wallet
+        <button class="wallet-button" id="start-connect-wallet">
+          <i class="fas fa-link"></i> Connect Wallet
         </button>
-      </div>
-      
-      <!-- Error Modal (hidden by default) -->
-      <div id="wallet-error-modal" class="wallet-error-modal" style="display: none;">
-        <div class="wallet-error-content">
-          <h3><i class="fas fa-exclamation-triangle"></i> Wallet Conflict</h3>
-          <div class="wallet-error-message" id="wallet-error-message"></div>
-          <button class="wallet-error-button" id="wallet-error-ok">
-            OK, I Understand
-          </button>
+        
+        <div class="wallet-instructions" style="margin-top: 20px; display: none;" id="wallet-instructions">
+          <div style="background: rgba(0,136,204,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(0,136,204,0.3);">
+            <h4 style="color: #7fdbff; margin-bottom: 10px;">How to get your wallet address:</h4>
+            <p style="text-align: left; margin-bottom: 15px;">1. Open your TON wallet app (@wallet or TonKeeper)</p>
+            <p style="text-align: left; margin-bottom: 15px;">2. Find your wallet address (usually in Receive or Wallet section)</p>
+            <p style="text-align: left; margin-bottom: 0;">3. Copy the full address starting with "EQ..." or "UQ..."</p>
+          </div>
+          
+          <div style="position: relative; margin: 20px 0;">
+            <input type="text" id="wallet-address-input" placeholder="Paste your TON wallet address here" 
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
+                          background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
+                   onclick="this.focus();">
+            <button class="wallet-button" id="submit-wallet-address" style="margin-top: 10px;">
+              <i class="fas fa-check-circle"></i> Confirm Address
+            </button>
+          </div>
+        </div>
+        
+        <div class="wallet-requirements" style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid rgba(255,215,0,0.3);">
+          <h4 style="color: #FFD700; margin-bottom: 10px;">Supported Wallets:</h4>
+          <ul style="text-align: left; padding-left: 20px;">
+            <li><strong>@wallet</strong> (TON Space in Telegram)</li>
+            <li><strong>TonKeeper</strong> (Mobile app)</li>
+            <li>Other TON-compatible wallets</li>
+          </ul>
         </div>
       </div>
     </div>
+    
+    <!-- Connected Wallet View -->
+    <div class="wallet-card" id="wallet-connected-view" style="display: none;">
+      <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 15px; color: #2ecc40;"></i>
+      <h3>Wallet Connected</h3>
+      
+      <div class="wallet-connected-info">
+        <p>Your TON wallet is successfully connected</p>
+        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 15px 0; word-break: break-all; font-size: 12px;" id="connected-wallet-address"></div>
+      </div>
+      
+      <button class="wallet-button secondary" id="disconnect-wallet-btn">
+        <i class="fas fa-unlink"></i> Disconnect Wallet
+      </button>
+    </div>
+    
+    <div class="wallet-info">
+      <p>Securely connect your TON wallet to receive rewards</p>
+    </div>
   </div>
 </div>
-
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
@@ -2009,241 +1826,184 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
-    
 <script>
-// Wallet Connection Manager
-class WalletConnection {
-  constructor() {
-    this.connector = new TonConnectSDK.TonConnect({
-      manifestUrl: "https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json"
-    });
-    this.currentUser = null;
-    this.currentWallet = null;
-    this.connectionInProgress = false;
-  }
+// Wallet Connection Logic (Updated)
+document.addEventListener('DOMContentLoaded', function() {
+  const startConnectBtn = document.getElementById('start-connect-wallet');
+  const walletInstructions = document.getElementById('wallet-instructions');
+  const submitWalletBtn = document.getElementById('submit-wallet-address');
+  const walletInput = document.getElementById('wallet-address-input');
+  const disconnectWalletBtn = document.getElementById('disconnect-wallet-btn');
+  const connectFlow = document.getElementById('wallet-connect-flow');
+  const connectedView = document.getElementById('wallet-connected-view');
+  const connectedAddress = document.getElementById('connected-wallet-address');
+  
+  // Initialize wallet connection state
+  let isWalletConnected = false;
+  let walletAddress = '';
 
-  async init(userId) {
-    this.currentUser = userId;
-    await this.setupEventListeners();
-    await this.checkExistingConnection();
-  }
+  // Check initial connection status when page loads
+  initWalletConnection();
 
-  async setupEventListeners() {
-    document.getElementById('connect-wallet-btn').addEventListener('click', () => this.connectWallet());
-    document.getElementById('disconnect-btn').addEventListener('click', () => this.disconnectWallet());
-    document.getElementById('wallet-error-ok').addEventListener('click', () => this.hideError());
+  // Start connection process - removed automatic redirection
+  startConnectBtn.addEventListener('click', function() {
+    walletInstructions.style.display = 'block';
+    walletInput.focus();
+  });
+  
+  // Submit wallet address
+  submitWalletBtn.addEventListener('click', async function() {
+    const address = walletInput.value.trim();
     
-    this.connector.onStatusChange(async (wallet) => {
-      if (!wallet) {
-        await this.handleDisconnect();
-        return;
-      }
-      await this.handleNewConnection(wallet);
-    });
-  }
-
-  async checkExistingConnection() {
-    try {
-      const response = await fetch(`/api/user/${this.currentUser}/wallet-status`);
-      const data = await response.json();
-      
-      if (data.connected && data.walletAddress) {
-        this.currentWallet = data.walletAddress;
-        this.updateUI(true, data.walletAddress);
-      }
-    } catch (error) {
-      console.error("Connection check failed:", error);
+    // Enhanced validation with better error message
+    if (!address.match(/^(EQ|UQ)[a-zA-Z0-9_-]{43,}$/)) {
+      alert('Please enter a valid TON wallet address starting with EQ or UQ');
+      return;
     }
-  }
-
-  async connectWallet() {
-    if (this.connectionInProgress) return;
-    this.connectionInProgress = true;
     
-    this.updateStep(1);
-    this.showLoading(true);
-
     try {
-      // Step 1: Pre-verify user eligibility
-      const preCheck = await fetch('/api/wallet/pre-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: this.currentUser })
-      });
-
-      if (!preCheck.ok) {
-        throw new Error("Connection not allowed at this time");
-      }
-
-      // Step 2: Initiate wallet connection
-      this.updateStep(2);
-      const universalLink = this.connector.connect({
-        universalLink: "https://app.tonkeeper.com/ton-connect",
-        bridgeUrl: "https://bridge.tonapi.io/bridge"
-      });
+      submitWalletBtn.disabled = true;
+      submitWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
       
-      window.open(universalLink, "_blank");
-    } catch (error) {
-      this.showError(`Connection failed: ${error.message}`);
-      this.resetConnection();
-    }
-  }
-
-  async handleNewConnection(wallet) {
-    this.updateStep(3);
-    const rawAddress = wallet.account.address;
-    
-    try {
-      // Verify wallet ownership and check for conflicts
-      const verification = await fetch('/api/wallet/verify', {
+      // Call backend API
+      const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: this.currentUser,
-          walletAddress: rawAddress
+          userId: userData.id,
+          walletAddress: address
         })
       });
-
-      const result = await verification.json();
-
-      if (!verification.ok) {
-        if (verification.status === 409) {
-          // Wallet already connected to another user
-          await this.connector.disconnect();
-          this.showError(`
-            This wallet is already connected to another account.
-            Please use a different wallet address.
-            
-            Connected to user: ${result.existingUserId}
-            Since: ${new Date(result.connectedAt).toLocaleString()}
-          `);
-        } else {
-          throw new Error(result.message || "Verification failed");
-        }
-        return;
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to connect wallet');
       }
-
-      // Successful connection
-      this.currentWallet = rawAddress;
-      this.updateUI(true, rawAddress);
-      this.showSuccess("Wallet connected successfully!");
+      
+      // Update local state
+      isWalletConnected = true;
+      walletAddress = address;
+      
+      // Update UI
+      updateWalletUI();
+      
+      // Show success message with wallet address snippet
+      const shortAddress = address.substring(0, 6) + '...' + address.substring(address.length - 4);
+      alert(`✅ Wallet connected successfully!\n\nAddress: ${shortAddress}`);
       
     } catch (error) {
-      this.showError(`Verification failed: ${error.message}`);
-      await this.connector.disconnect();
+      console.error('Connection error:', error);
+      alert(`❌ Error: ${error.message}\n\nPlease check your wallet address and try again.`);
     } finally {
-      this.resetConnection();
+      submitWalletBtn.disabled = false;
+      submitWalletBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Address';
     }
-  }
-
-  async disconnectWallet() {
+  });
+  
+  // Disconnect wallet with confirmation
+  disconnectWalletBtn.addEventListener('click', async function() {
+    if (!confirm('Are you sure you want to disconnect your wallet?\n\nYou will need to reconnect to withdraw rewards.')) return;
+    
     try {
-      await fetch('/api/wallet/disconnect', {
+      disconnectWalletBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+      
+      // Call backend API
+      const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: this.currentUser,
-          walletAddress: this.currentWallet
-        })
+        body: JSON.stringify({ userId: userData.id })
       });
       
-      await this.connector.disconnect();
-      this.currentWallet = null;
-      this.updateUI(false);
-      this.showSuccess("Wallet disconnected successfully!");
+      if (!response.ok) throw new Error('Disconnect failed');
+      
+      // Update local state
+      isWalletConnected = false;
+      walletAddress = '';
+      
+      // Update UI
+      updateWalletUI();
+      walletInput.value = '';
+      
+      alert('Wallet successfully disconnected');
+      
     } catch (error) {
-      this.showError(`Disconnect failed: ${error.message}`);
+      console.error('Disconnection error:', error);
+      alert('Error disconnecting wallet: ' + error.message);
+    } finally {
+      disconnectWalletBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect Wallet';
     }
-  }
-
-  async handleDisconnect() {
-    this.updateUI(false);
-    this.currentWallet = null;
-  }
-
-  // UI Helpers
-  updateUI(connected, address = null) {
-    const connectBtn = document.getElementById('connect-wallet-btn');
-    const statusDiv = document.getElementById('wallet-status');
-    const addressSpan = document.getElementById('wallet-address-text');
-    
-    if (connected) {
-      connectBtn.style.display = 'none';
-      statusDiv.style.display = 'block';
-      addressSpan.textContent = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-      addressSpan.title = address;
-    } else {
-      connectBtn.style.display = 'block';
-      statusDiv.style.display = 'none';
-    }
-    
-    this.resetSteps();
-    this.showLoading(false);
-    this.connectionInProgress = false;
-  }
-
-  updateStep(stepNumber) {
-    // Reset all steps
-    document.querySelectorAll('.step').forEach(step => {
-      step.classList.remove('active', 'completed');
-    });
-    
-    // Activate current and complete previous steps
-    for (let i = 1; i <= 3; i++) {
-      const step = document.getElementById(`step${i}`);
-      if (i < stepNumber) {
-        step.classList.add('completed');
-      } else if (i === stepNumber) {
-        step.classList.add('active');
+  });
+  
+  // Initialize wallet connection
+  async function initWalletConnection() {
+    try {
+      const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/wallet`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.walletAddress) {
+          isWalletConnected = true;
+          walletAddress = data.walletAddress;
+        }
       }
+    } catch (error) {
+      console.log('Wallet check error:', error);
+      // Fallback to localStorage if API fails
+      checkLocalStorage();
+    } finally {
+      updateWalletUI();
     }
   }
 
-  resetSteps() {
-    document.querySelectorAll('.step').forEach(step => {
-      step.classList.remove('active', 'completed');
+  // Update UI based on connection state
+  function updateWalletUI() {
+    if (isWalletConnected && walletAddress) {
+      connectFlow.style.display = 'none';
+      connectedView.style.display = 'block';
+      connectedAddress.textContent = walletAddress;
+      
+      // Store in localStorage as fallback
+      localStorage.setItem('vifa_wallet_address', walletAddress);
+      
+      // Update any wallet indicators in the app
+      updateWalletIndicators(true);
+    } else {
+      connectFlow.style.display = 'block';
+      connectedView.style.display = 'none';
+      connectedAddress.textContent = '';
+      
+      // Clear localStorage
+      localStorage.removeItem('vifa_wallet_address');
+      
+      // Update any wallet indicators in the app
+      updateWalletIndicators(false);
+    }
+  }
+
+  // Check for wallet address in localStorage as fallback
+  function checkLocalStorage() {
+    const savedAddress = localStorage.getItem('vifa_wallet_address');
+    if (savedAddress && savedAddress.match(/^(EQ|UQ)[a-zA-Z0-9_-]{43,}$/)) {
+      walletAddress = savedAddress;
+      isWalletConnected = true;
+    }
+  }
+
+  // Update wallet indicators throughout the app
+  function updateWalletIndicators(connected) {
+    const walletIcons = document.querySelectorAll('.wallet-icon');
+    walletIcons.forEach(icon => {
+      if (connected) {
+        icon.classList.add('connected');
+        icon.title = 'Wallet connected';
+      } else {
+        icon.classList.remove('connected');
+        icon.title = 'Connect wallet';
+      }
     });
   }
 
-  showLoading(show) {
-    const btn = document.getElementById('connect-wallet-btn');
-    if (show) {
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-      btn.disabled = true;
-    } else {
-      btn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
-      btn.disabled = false;
-    }
-  }
-
-  showError(message) {
-    const modal = document.getElementById('wallet-error-modal');
-    const messageEl = document.getElementById('wallet-error-message');
-    
-    messageEl.textContent = message;
-    modal.style.display = 'flex';
-  }
-
-  hideError() {
-    document.getElementById('wallet-error-modal').style.display = 'none';
-  }
-
-  showSuccess(message) {
-    // Implement your success notification system here
-    console.log("Success:", message);
-  }
-
-  resetConnection() {
-    this.showLoading(false);
-    this.resetSteps();
-    this.connectionInProgress = false;
-  }
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-  const walletManager = new WalletConnection();
-  walletManager.init(userData.id); // Pass the current user ID
+  // Initialize with localStorage check
+  checkLocalStorage();
 });
 </script>
 
@@ -2264,3 +2024,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+
+

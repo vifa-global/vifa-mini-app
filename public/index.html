@@ -375,37 +375,81 @@
 
 
 /* Wallet Page Styles */
+/* Wallet Page Styles */
 .wallet-container {
-  padding: 80px 20px 70px;
+  padding: 20px 15px 80px;
   height: 100%;
   overflow-y: auto;
-  text-align: center;
 }
 
 .wallet-title {
   color: #FFD700;
-  font-size: 20px;
-  margin-bottom: 30px;
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 5px;
 }
 
-.wallet-card {
-  background: rgba(0, 136, 204, 0.1);
+.wallet-subtitle {
+  color: #7fdbff;
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.wallet-steps {
+  background: rgba(10, 0, 62, 0.7);
   border-radius: 15px;
-  padding: 25px;
-  margin: 0 auto;
+  padding: 15px;
+  margin-bottom: 20px;
   border: 1px solid rgba(0, 136, 204, 0.3);
-  max-width: 320px;
 }
 
-.wallet-button {
+.wallet-step {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.wallet-step:last-child {
+  margin-bottom: 0;
+}
+
+.step-number {
   background: #FFD700;
   color: #0A003E;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: bold;
-  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.step-content h3 {
+  color: #FFD700;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.step-content p {
+  color: #b3d9ff;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.wallet-link-button, 
+.wallet-connect-button {
+  background: rgba(0, 136, 204, 0.2);
+  color: white;
+  border: 1px solid rgba(0, 136, 204, 0.5);
+  padding: 12px;
+  border-radius: 10px;
   width: 100%;
+  text-align: center;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -413,19 +457,97 @@
   transition: all 0.3s;
 }
 
-.wallet-button:hover {
+.wallet-connect-button {
+  background: #FFD700;
+  color: #0A003E;
+  border: none;
+}
+
+.wallet-link-button:hover {
+  background: rgba(0, 136, 204, 0.3);
+}
+
+.wallet-connect-button:hover {
   opacity: 0.9;
 }
 
-.wallet-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.wallet-status-container {
+  background: rgba(10, 0, 62, 0.7);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 20px;
+  border: 1px solid rgba(0, 136, 204, 0.3);
 }
 
-.wallet-button.secondary {
-  background: rgba(255, 215, 0, 0.1);
+.wallet-connected {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.connected-icon {
+  color: #2ecc40;
+  font-size: 30px;
+}
+
+.connection-details h3 {
   color: #FFD700;
-  border: 1px solid rgba(255, 215, 0, 0.5);
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.wallet-address {
+  color: #7fdbff;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.wallet-disconnect-button {
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wallet-benefits {
+  background: rgba(10, 0, 62, 0.7);
+  border-radius: 15px;
+  padding: 15px;
+  border: 1px solid rgba(0, 136, 204, 0.3);
+}
+
+.wallet-benefits h3 {
+  color: #FFD700;
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-benefits ul {
+  list-style: none;
+}
+
+.wallet-benefits li {
+  color: #b3d9ff;
+  font-size: 13px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-benefits li i {
+  color: #2ecc40;
 }
         /* FRIENDS PAGE STYLES */
         .friends-container {
@@ -1098,23 +1220,59 @@
         </div>
         
         <!-- Wallet Page -->
+<!-- Wallet Page -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
-    <h2 class="wallet-title">Connect Wallet</h2>
+    <h2 class="wallet-title">Connect Your Wallet</h2>
+    <p class="wallet-subtitle">Link your TON wallet to earn and withdraw VP</p>
     
-    <div class="wallet-card">
-      <!-- Single Connect Button -->
-      <button id="connect-wallet-btn" class="wallet-button">
-        <i class="fas fa-wallet"></i> Connect Wallet
-      </button>
+    <div class="wallet-steps">
+      <!-- Step 1 -->
+      <div class="wallet-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Install Tonkeeper</h3>
+          <p>Get the Tonkeeper app if you don't have it yet</p>
+          <a href="https://tonkeeper.com" target="_blank" class="wallet-link-button">
+            <i class="fas fa-download"></i> Download Tonkeeper
+          </a>
+        </div>
+      </div>
+      
+      <!-- Step 2 -->
+      <div class="wallet-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Connect Wallet</h3>
+          <p>Link your wallet to start earning rewards</p>
+          <button id="connect-wallet-btn" class="wallet-connect-button">
+            <i class="fas fa-wallet"></i> Connect Tonkeeper
+          </button>
+        </div>
+      </div>
       
       <!-- Connection Status -->
-      <div id="wallet-status" style="display: none; margin-top: 15px;">
-        <p style="color: #7fdbff;">Connected: <span id="wallet-address"></span></p>
-        <button id="disconnect-btn" class="wallet-button secondary" style="margin-top: 10px;">
+      <div id="wallet-status" class="wallet-status-container" style="display: none;">
+        <div class="wallet-connected">
+          <i class="fas fa-check-circle connected-icon"></i>
+          <div class="connection-details">
+            <h3>Wallet Connected</h3>
+            <p class="wallet-address" id="wallet-address"></p>
+          </div>
+        </div>
+        <button id="disconnect-btn" class="wallet-disconnect-button">
           <i class="fas fa-unlink"></i> Disconnect
         </button>
       </div>
+    </div>
+    
+    <div class="wallet-benefits">
+      <h3><i class="fas fa-gem"></i> Wallet Benefits</h3>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Earn VP for completing tasks</li>
+        <li><i class="fas fa-check-circle"></i> Withdraw rewards to your wallet</li>
+        <li><i class="fas fa-check-circle"></i> Participate in exclusive events</li>
+      </ul>
     </div>
   </div>
 </div>

@@ -287,3 +287,14 @@ main {
   margin: 10px 0;
   font-size: 14px;
 }
+
+.wallet-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-top: 5px;
+  display: none;
+}
+
+.wallet-input.error {
+  border-color: #ff6b6b;
+}

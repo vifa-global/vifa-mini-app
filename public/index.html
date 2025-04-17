@@ -1070,6 +1070,17 @@
                         <i class="fab fa-whatsapp"></i>
                     </div>
                 </div>
+
+                <div style="position: relative; margin: 20px 0;">
+  <input type="text" id="wallet-address-input" placeholder="Paste your TON wallet address here" 
+         style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #FFD700; 
+                background: rgba(0,0,0,0.3); color: white; margin-bottom: 10px;"
+         onclick="this.focus();">
+  <div class="wallet-error" id="wallet-error"></div>
+  <button class="wallet-button" id="submit-wallet-address" style="margin-top: 10px;">
+    <i class="fas fa-check-circle"></i> Confirm Address
+  </button>
+</div>
                 
                 <div class="invites-list">
                     <div class="invites-title">Your Referral Network (Ex.)</div>

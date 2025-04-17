@@ -1769,6 +1769,16 @@ document.addEventListener('DOMContentLoaded', () => {
 // Ensure home page is active on startup
 showPage('home-page');
     </script>
+
+
+
+
+
+
+
+
+
+
     
 <script>
 // Wallet Connection Code for Mini-App
@@ -1867,15 +1877,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        walletAddress: rawAddress
+                        walletAddress: rawAddress,
+                        isTelegramWallet: false // Mark as not from Telegram command
                     })
                 });
 
                 if (!response.ok) {
-                    console.error("Backend save failed");
+                    const errorData = await response.json();
+                    if (errorData.error.includes("already connected")) {
+                        alert("This wallet is already connected to another account");
+                        connector.disconnect();
+                        return;
+                    }
+                    throw new Error('Backend save failed');
                 }
+
+                // Show success message
+                alert("Wallet connected successfully!");
+
             } catch (e) {
                 console.error("Backend save error:", e);
+                alert("Failed to save wallet: " + (e.message || "Unknown error"));
+                connector.disconnect();
             }
         } else {
             // Disconnected - Only update UI, backend handled in disconnectWallet()

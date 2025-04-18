@@ -1955,7 +1955,7 @@ showPage('home-page');
 
 
 
-
+// maga
     
     
 <script>
@@ -1963,7 +1963,7 @@ showPage('home-page');
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize TON Connect
     const connector = new TonConnect.TonConnect({
-        manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json'
+        manifestUrl: 'https://yourdomain.com/tonconnect-manifest.json' // MUST be HTTPS
     });
 
     // UI Elements
@@ -1972,15 +1972,37 @@ document.addEventListener('DOMContentLoaded', async function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
 
-    // Check if connection is already established
-    async function checkConnection() {
+    // Initialize connection
+    async function initTonConnect() {
+        // Check if connection is already established
         const walletConnectionSource = {
             jsBridgeKey: 'tonconnect'
         };
         
-        const connected = await connector.connect(walletConnectionSource);
-        if (connected) {
-            updateUIForWallet(connected);
+        try {
+            // Restore existing connection if available
+            await connector.restoreConnection();
+            
+            // Get current wallet
+            const wallet = connector.wallet;
+            
+            if (wallet) {
+                // We have a connected wallet
+                updateUIForWallet(wallet);
+            }
+            
+            // Subscribe to connection status changes
+            connector.onStatusChange((wallet) => {
+                if (wallet) {
+                    updateUIForWallet(wallet);
+                    saveWalletToBackend(wallet);
+                } else {
+                    updateUIForWallet(null);
+                }
+            });
+            
+        } catch (error) {
+            console.error("Initialization error:", error);
         }
     }
 
@@ -1990,29 +2012,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             connectBtn.disabled = true;
             
-            // Get available wallets list
-            const wallets = await connector.getWallets();
-            
-            // You can filter wallets if needed
-            const availableWallets = wallets.filter(wallet => 
-                wallet.appName.toLowerCase() !== 'some-wallet-to-exclude'
-            );
-            
-            // Open wallet selection modal
-            connector.connect({
+            // This will automatically show the wallet selection modal
+            await connector.connect({
                 jsBridgeKey: 'tonconnect'
-            }, {
-                wallets: availableWallets
-            }).then(wallet => {
-                if (wallet) {
-                    // Wallet connected successfully
-                    updateUIForWallet(wallet);
-                    saveWalletToBackend(wallet);
-                }
-            }).catch(error => {
-                console.error("Connection error:", error);
-                resetConnectButton();
-                alert("Failed to connect. Please try again.");
             });
             
         } catch (error) {
@@ -2110,17 +2112,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     connectBtn.addEventListener('click', connectWallet);
     disconnectBtn.addEventListener('click', disconnectWallet);
 
-    // Initialize connection check
-    checkConnection();
-
-    // Handle wallet connection changes
-    connector.onStatusChange((wallet) => {
-        if (wallet) {
-            updateUIForWallet(wallet);
-        } else {
-            updateUIForWallet(null);
-        }
-    });
+    // Initialize when user data is loaded
+    window.onUserDataLoaded = initTonConnect;
 });
 </script>
 

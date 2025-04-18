@@ -375,7 +375,55 @@
 
 
 /* Wallet Page Styles */
+.wallet-connect-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+  background: #1E1E1E;
+  border-radius: 16px;
+  color: white;
+}
 
+.telegram-wallet-button {
+  background: #0088CC;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin: 15px 0;
+  cursor: pointer;
+  width: 100%;
+}
+
+.wallet-options {
+  margin: 20px 0;
+}
+
+.wallet-icons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.wallet-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.wallet-icon img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.ton-connect-badge {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #888;
+}
 
         /* New referral design styles */
         .referral-header {
@@ -886,7 +934,44 @@
         </div>
         
         <!-- Wallet Page -->
-
+ <div className="wallet-connect-container">
+      <h2>Connect your wallet</h2>
+      <p>Open Wallet in Telegram or select your wallet to connect</p>
+      
+      <div id="connect-wallet-button-root"></div>
+      
+      <button 
+        className="telegram-wallet-button"
+        onClick={connectWallet}
+      >
+        Open Wallet in Telegram
+      </button>
+      
+      <div className="wallet-options">
+        <p>Other wallet options:</p>
+        <div className="wallet-icons">
+          <button className="wallet-icon" onClick={() => tonConnectUI.openModal('tonkeeper')}>
+            <img src="/tonkeeper-icon.png" alt="Tonkeeper" />
+          </button>
+          <button className="wallet-icon" onClick={() => tonConnectUI.openModal('mytonwallet')}>
+            <img src="/mytonwallet-icon.png" alt="MyTonWallet" />
+          </button>
+          <button className="wallet-icon" onClick={() => tonConnectUI.openModal('tonhub')}>
+            <img src="/tonhub-icon.png" alt="Tonhub" />
+          </button>
+          <button className="wallet-icon" onClick={() => tonConnectUI.openModal('bitget')}>
+            <img src="/bitget-icon.png" alt="Bitget Wallet" />
+          </button>
+          <button className="wallet-icon" onClick={() => tonConnectUI.openModal('viewwall')}>
+            <img src="/viewwall-icon.png" alt="Viewwall" />
+          </button>
+        </div>
+      </div>
+      
+      <div className="ton-connect-badge">
+        <span>TON Connect</span>
+      </div>
+    </div>
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
@@ -1555,6 +1640,51 @@ showPage('home-page');
     
     
 <script>
+// In your frontend component (React example)
+import { TonConnectUI } from '@tonconnect/ui';
+
+// Initialize TonConnect
+const tonConnectUI = new TonConnectUI({
+  manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
+  buttonRootId: 'connect-wallet-button-root',
+  language: 'en',
+  uiPreferences: {
+    theme: 'DARK',
+    colorsSet: {
+      connectButton: {
+        background: '#0088CC',
+        foreground: '#FFFFFF'
+      }
+    }
+  }
+});
+
+// Wallet connection handler
+async function connectWallet() {
+  try {
+    // Check if already connected
+    if (tonConnectUI.connected) {
+      const wallet = tonConnectUI.wallet;
+      console.log('Already connected to:', wallet);
+      return;
+    }
+
+    // Open connection modal
+    tonConnectUI.openModal();
+
+    // Subscribe to connection status changes
+    const unsubscribe = tonConnectUI.onStatusChange((wallet) => {
+      if (wallet) {
+        console.log('Connected to wallet:', wallet);
+        // Handle successful connection
+        // You can get wallet address: wallet.account.address
+        unsubscribe();
+      }
+    });
+  } catch (error) {
+    console.error('Wallet connection error:', error);
+  }
+}
 
 </script>
 

@@ -1939,7 +1939,7 @@ showPage('home-page');
     
     
 <script>
-// Wallet Connection Code with duplicate wallet detection
+// Wallet Connection Code with persistent connection
 document.addEventListener('DOMContentLoaded', function() {
     const connector = new TonConnectSDK.TonConnect({
         manifestUrl: "https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json"
@@ -2005,6 +2005,45 @@ document.addEventListener('DOMContentLoaded', function() {
         disconnectBtn.disabled = false;
     }
 
+    // Update UI based on connection status
+    function updateUIForWallet(wallet) {
+        if (wallet) {
+            const rawAddress = wallet.account.address;
+            const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+            
+            connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
+            connectBtn.style.background = '#4CAF50';
+            statusDiv.style.display = 'block';
+            addressSpan.textContent = shortAddress;
+            disconnectBtn.disabled = false;
+            
+            // Also check backend status
+            checkBackendWalletStatus(rawAddress);
+        } else {
+            resetConnectButton();
+            statusDiv.style.display = 'none';
+        }
+    }
+
+    // Check wallet status with backend
+    async function checkBackendWalletStatus(walletAddress) {
+        try {
+            const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/wallet-status`);
+            const data = await response.json();
+            
+            if (data.connected && data.walletAddress) {
+                // Wallet is connected in backend
+                if (walletAddress && !walletAddress.includes(data.walletAddress)) {
+                    console.log("Wallet mismatch between frontend and backend");
+                }
+            } else {
+                console.log("Wallet not connected in backend");
+            }
+        } catch (error) {
+            console.error("Error checking backend wallet status:", error);
+        }
+    }
+
     // Handle Connection Status Changes
     connector.onStatusChange(async (wallet) => {
         console.log("Connection status changed:", wallet);
@@ -2015,9 +2054,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
                 
                 const rawAddress = wallet.account.address;
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
                 
-                // Check if wallet is already connected to another user
+                // Save wallet to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2031,7 +2069,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (!response.ok) {
                     if (result.error === "Duplicate wallet connection detected") {
-                        // Wallet belongs to another user - show Telegram-like notification
                         showWalletErrorNotification("This wallet is already connected to another account");
                         connector.disconnect();
                         return;
@@ -2039,12 +2076,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(result.error || "Failed to save wallet");
                 }
 
-                // Successfully connected
-                connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
-                connectBtn.style.background = '#4CAF50';
-                statusDiv.style.display = 'block';
-                addressSpan.textContent = shortAddress;
-                disconnectBtn.disabled = false;
+                // Update UI for successful connection
+                updateUIForWallet(wallet);
                 
             } catch (error) {
                 console.error("Wallet verification error:", error);
@@ -2054,8 +2087,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else {
             // Disconnected
-            resetConnectButton();
-            statusDiv.style.display = 'none';
+            updateUIForWallet(null);
         }
     });
 
@@ -2094,14 +2126,45 @@ document.addEventListener('DOMContentLoaded', function() {
     connectBtn.addEventListener('click', connectWallet);
     disconnectBtn.addEventListener('click', disconnectWallet);
 
-    // Restore existing connection
-    (async function() {
+    // Initialize wallet connection on page load
+    async function initWalletConnection() {
         try {
+            // First restore any existing connection
             await connector.restoreConnection();
+            
+            // Then check if we have a wallet connected
+            const wallet = await connector.getWallet();
+            
+            if (wallet) {
+                // We have a connected wallet, update UI
+                updateUIForWallet(wallet);
+                
+                // Also check backend status
+                const rawAddress = wallet.account.address;
+                await checkBackendWalletStatus(rawAddress);
+            } else {
+                // No wallet connected, check if we have one in backend
+                const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/wallet-status`);
+                const data = await response.json();
+                
+                if (data.connected && data.walletAddress) {
+                    // Wallet is connected in backend but not in frontend
+                    // Prompt user to reconnect
+                    showWalletErrorNotification("Please reconnect your wallet");
+                }
+            }
         } catch (error) {
-            console.log("No existing connection to restore");
+            console.log("Wallet initialization error:", error);
         }
-    })();
+    }
+
+    // Call initialization when user data is loaded
+    function onUserDataLoaded() {
+        initWalletConnection();
+    }
+
+    // Make this function available globally
+    window.onUserDataLoaded = onUserDataLoaded;
 });
 </script>
 

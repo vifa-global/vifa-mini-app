@@ -1325,16 +1325,16 @@
 <!-- Wallet Page -->
 <div class="page" id="wallet-page">
   <div class="wallet-container" style="padding: 20px; height: calc(100vh - 150px); overflow-y: auto;">
-    <!-- New Header with Animated Icon -->
+    <!-- Header -->
     <div class="wallet-header">
       <i class="fas fa-wallet wallet-header-icon"></i>
       <h2 class="wallet-title">TON Wallet Connection</h2>
       <p class="wallet-subtitle">Connect to manage your VIFA Points and rewards</p>
     </div>
     
-    <!-- Connection Flow Container -->
-    <div class="connection-flow">
-      <!-- Step 1 - Simplified -->
+    <!-- Connection Flow (shown when wallet not connected) -->
+    <div id="connection-flow" style="display: none;">
+      <!-- Step 1 -->
       <div class="connection-step">
         <div class="step-indicator">
           <div class="step-number">1</div>
@@ -1343,26 +1343,24 @@
         <div class="step-content">
           <h3>Select Your Wallet</h3>
           <p>Choose from popular TON wallets to connect</p>
-          <!-- TON Connect button will be injected here -->
           <div id="ton-connect-button" class="ton-connect-button-wrapper"></div>
         </div>
       </div>
       
-      <!-- Step 2 - Visual Feedback -->
+      <!-- Step 2 - Compact mobile design -->
       <div class="connection-step">
         <div class="step-indicator">
           <div class="step-number">2</div>
-          <div class="step-line"></div>
         </div>
         <div class="step-content">
           <h3>Verify Connection</h3>
           <p>Approve the connection in your wallet app</p>
-          <div class="verification-visual">
-            <div class="phone-mockup">
+          <div class="verification-visual" style="height: 150px;">
+            <div class="phone-mockup" style="height: 150px; width: 80px;">
               <div class="phone-screen">
                 <div class="wallet-approval-screen">
                   <i class="fas fa-check-circle approval-icon"></i>
-                  <p>Approve connection in your wallet</p>
+                  <p style="font-size: 12px;">Approve connection</p>
                 </div>
               </div>
             </div>
@@ -1371,62 +1369,9 @@
       </div>
     </div>
     
-    <!-- Connection Status - Redesigned -->
-    <div id="wallet-status" class="wallet-status-container" style="display: none; margin-top: 20px;">
-      <div class="connection-success">
-        <div class="success-animation">
-          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
-            <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-          </svg>
-        </div>
-        <h3>Wallet Connected!</h3>
-        <div class="wallet-details">
-          <div class="wallet-address-container">
-            <span class="wallet-label">Connected Address:</span>
-            <span class="wallet-address" id="wallet-address"></span>
-            <i class="fas fa-copy copy-address" onclick="copyWalletAddress()"></i>
-          </div>
-          <div class="connection-time">
-            <i class="fas fa-clock"></i>
-            <span id="connection-time">Just now</span>
-          </div>
-        </div>
-        <button id="disconnect-btn" class="wallet-disconnect-button">
-          <i class="fas fa-unlink"></i> Disconnect Wallet
-        </button>
-      </div>
-    </div>
-    
-    <!-- Benefits Section - Enhanced -->
-    <div class="wallet-benefits" style="margin-top: 30px;">
-      <div class="benefits-header" style="text-align: center; margin-bottom: 15px;">
-        <i class="fas fa-gem" style="color: #FFD700; font-size: 24px;"></i>
-        <h3 style="color: #FFD700; margin-top: 10px;">Wallet Benefits</h3>
-      </div>
-      <div class="benefits-grid">
-        <div class="benefit-card">
-          <div class="benefit-icon earn-icon">
-            <i class="fas fa-coins"></i>
-          </div>
-          <h4>Earn VP</h4>
-          <p>Complete tasks and earn VIFA Points</p>
-        </div>
-        <div class="benefit-card">
-          <div class="benefit-icon withdraw-icon">
-            <i class="fas fa-wallet"></i>
-          </div>
-          <h4>Withdraw</h4>
-          <p>Transfer rewards to your wallet</p>
-        </div>
-        <div class="benefit-card">
-          <div class="benefit-icon exclusive-icon">
-            <i class="fas fa-star"></i>
-          </div>
-          <h4>Exclusive Access</h4>
-          <p>Participate in special events</p>
-        </div>
-      </div>
+    <!-- Connection Status (shown when wallet connected) -->
+    <div id="wallet-status" class="wallet-status-container" style="display: none;">
+      <!-- ... existing wallet status content ... -->
     </div>
   </div>
 </div>
@@ -2115,9 +2060,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
     const connectionTimeSpan = document.getElementById('connection-time');
+    const connectionFlow = document.getElementById('connection-flow');
 
     // Handle connection status changes
     tonConnectUI.onStatusChange(async (wallet) => {
+        await handleWalletConnection(wallet);
+    });
+
+    async function handleWalletConnection(wallet) {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
@@ -2125,10 +2075,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update UI
                 statusDiv.style.display = 'block';
+                if (connectionFlow) connectionFlow.style.display = 'none';
                 addressSpan.textContent = shortAddress;
                 updateConnectionTime();
                 
-                // Save wallet to backend
+                // Verify and save wallet to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2143,7 +2094,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) {
                     if (result.error === "Duplicate wallet connection detected") {
                         showWalletErrorNotification("This wallet is already connected to another account");
-                        tonConnectUI.disconnect();
+                        await tonConnectUI.disconnect();
                         return;
                     }
                     throw new Error(result.error || "Failed to save wallet");
@@ -2155,13 +2106,24 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error("Wallet verification error:", error);
                 showWalletErrorNotification(error.message || "Wallet verification failed");
-                tonConnectUI.disconnect();
+                await tonConnectUI.disconnect();
             }
         } else {
-            // Disconnected
+            // Disconnected - update UI and backend
             statusDiv.style.display = 'none';
+            if (connectionFlow) connectionFlow.style.display = 'block';
+            
+            try {
+                await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userData.id })
+                });
+            } catch (error) {
+                console.error("Failed to update backend on disconnect:", error);
+            }
         }
-    });
+    }
 
     // Update connection time display
     function updateConnectionTime() {
@@ -2169,9 +2131,15 @@ document.addEventListener('DOMContentLoaded', function() {
         connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
         
         // Update every minute
-        setInterval(() => {
+        const intervalId = setInterval(() => {
             connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
         }, 60000);
+        
+        // Store interval ID to clear later if needed
+        if (window.connectionTimeInterval) {
+            clearInterval(window.connectionTimeInterval);
+        }
+        window.connectionTimeInterval = intervalId;
     }
     
     function formatTime(date) {
@@ -2186,10 +2154,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show success animation
     function showSuccessAnimation() {
         const successAnim = document.querySelector('.success-animation');
-        successAnim.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-            successAnim.style.transform = 'scale(1)';
-        }, 300);
+        if (successAnim) {
+            successAnim.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                successAnim.style.transform = 'scale(1)';
+            }, 300);
+        }
     }
 
     // Handle disconnect button
@@ -2209,6 +2179,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to update backend');
 
             statusDiv.style.display = 'none';
+            if (connectionFlow) connectionFlow.style.display = 'block';
             
         } catch (error) {
             console.error("Disconnection error:", error);
@@ -2266,33 +2237,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize connection status on page load
     async function checkInitialConnection() {
-        const wallet = await tonConnectUI.getWallet();
-        if (wallet) {
-            const rawAddress = wallet.account.address;
-            const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
-            statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
-            updateConnectionTime();
+        try {
+            const wallet = await tonConnectUI.getWallet();
+            if (wallet) {
+                const rawAddress = wallet.account.address;
+                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                statusDiv.style.display = 'block';
+                if (connectionFlow) connectionFlow.style.display = 'none';
+                addressSpan.textContent = shortAddress;
+                updateConnectionTime();
+                
+                // Verify wallet with backend
+                const response = await fetch('https://vifa-backend.onrender.com/api/verify-wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userData.id,
+                        walletAddress: rawAddress
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Wallet verification failed');
+                }
+            } else {
+                statusDiv.style.display = 'none';
+                if (connectionFlow) connectionFlow.style.display = 'block';
+            }
+        } catch (error) {
+            console.error("Initial connection check error:", error);
+            statusDiv.style.display = 'none';
+            if (connectionFlow) connectionFlow.style.display = 'block';
         }
     }
     
+    // Initialize
     checkInitialConnection();
 });
+
+// Analytics script remains the same
 </script>
 
-    <script 
-    async 
-    src="https://tganalytics.xyz/index.js" 
-    onload="initAnalytics()" 
-    type="text/javascript"
-></script>
+<script async src="https://tganalytics.xyz/index.js" onload="initAnalytics()" type="text/javascript"></script>
 
 <script>
     function initAnalytics() {
-      window.telegramAnalytics.init({
-        token: 'eyJhcHBfbmFtZSI6IlZJRkEiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL1ZJRkFDb2luQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdmlmYS1taW5pLWFwcC1mcm9udGVuZC5vbnJlbmRlci5jb20ifQ==!f3AdmpZwPZP+2HF1NTXXfK4maAx5Mvb5e0unkyID6XY=', // SDK Auth token received via @DataChief_bot
-        appName: 'VIFA', // The analytics identifier you entered in @DataChief_bot
-      });
+        window.telegramAnalytics.init({
+            token: 'eyJhcHBfbmFtZSI6IlZJRkEiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL1ZJRkFDb2luQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdmlmYS1taW5pLWFwcC1mcm9udGVuZC5vbnJlbmRlci5jb20ifQ==!f3AdmpZwPZP+2HF1NTXXfK4maAx5Mvb5e0unkyID6XY=',
+            appName: 'VIFA',
+        });
     }
 </script>
 </body>

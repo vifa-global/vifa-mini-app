@@ -1946,8 +1946,9 @@ showPage('home-page');
     
     
 <script>
-// Wallet Connection Code with standard overlay
+// Wallet Connection Code with error handling
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize TonConnect with proper manifest
     const connector = new TonConnectSDK.TonConnect({
         manifestUrl: "https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json"
     });
@@ -1958,40 +1959,65 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
 
-    // Connect Wallet Function
+    // Connect Wallet Function with proper error handling
     async function connectWallet() {
         try {
+            // Check if connector is properly initialized
+            if (!connector) {
+                throw new Error("Wallet connector not initialized");
+            }
+
+            // Update UI to show connecting state
             connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             connectBtn.disabled = true;
-            
-            // Get available wallets list
-            const walletsList = await connector.getWallets();
-            
+
+            // Get available wallets
+            const wallets = await connector.getWallets();
+            if (!wallets || wallets.length === 0) {
+                throw new Error("No wallets available");
+            }
+
             // Subscribe to connection status changes
-            const unsubscribe = connector.onStatusChange((wallet) => {
+            const unsubscribe = connector.onStatusChange(async (wallet) => {
                 if (wallet) {
-                    // Wallet connected
-                    handleWalletConnection(wallet);
+                    try {
+                        // Wallet connected - verify and save
+                        await handleWalletConnection(wallet);
+                    } catch (error) {
+                        console.error("Connection verification error:", error);
+                        showWalletErrorNotification("Connection verification failed");
+                        connector.disconnect();
+                    }
                 } else {
                     // Wallet disconnected
                     updateUIForWallet(null);
                 }
                 unsubscribe();
             });
-            
-            // Open standard TonConnect modal
-            connector.connect({ jsBridgeKey: 'tonconnect' });
-            
+
+            // Open standard connection modal
+            await connector.connect({ jsBridgeKey: 'tonconnect' });
+
         } catch (error) {
             console.error("Connection error:", error);
             resetConnectButton();
-            alert("Failed to connect. Please try again.");
+            
+            // Show user-friendly error message
+            let errorMessage = "Failed to connect. Please try again.";
+            if (error.message.includes("injected wallet")) {
+                errorMessage = "Please install a TON wallet app first";
+            }
+            showWalletErrorNotification(errorMessage);
         }
     }
 
     // Handle successful wallet connection
     async function handleWalletConnection(wallet) {
         try {
+            if (!wallet || !wallet.account || !wallet.account.address) {
+                throw new Error("Invalid wallet connection");
+            }
+
             connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
             
             const rawAddress = wallet.account.address;
@@ -2011,9 +2037,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!response.ok) {
                 if (result.error === "Duplicate wallet connection detected") {
-                    showWalletErrorNotification("This wallet is already connected to another account");
-                    connector.disconnect();
-                    return;
+                    throw new Error("This wallet is already connected to another account");
                 }
                 throw new Error(result.error || "Failed to save wallet");
             }
@@ -2023,9 +2047,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Wallet verification error:", error);
-            showWalletErrorNotification(error.message || "Wallet verification failed");
-            connector.disconnect();
-            resetConnectButton();
+            throw error; // Re-throw to be caught by caller
         }
     }
 
@@ -2035,7 +2057,7 @@ document.addEventListener('DOMContentLoaded', function() {
             disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
             disconnectBtn.disabled = true;
             
-            connector.disconnect();
+            await connector.disconnect();
             
             const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
                 method: 'POST',
@@ -2050,7 +2072,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Disconnection error:", error);
-            alert("Disconnected from app but failed to update server. Use /disconnect in bot.");
+            showWalletErrorNotification("Disconnected from app but failed to update server");
             resetConnectButton();
         }
     }
@@ -2065,7 +2087,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update UI based on connection status
     function updateUIForWallet(wallet) {
-        if (wallet) {
+        if (wallet && wallet.account && wallet.account.address) {
             const rawAddress = wallet.account.address;
             const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
             
@@ -2080,15 +2102,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Show Telegram-style error notification
+    // Show user-friendly error notification
     function showWalletErrorNotification(message) {
-        // Create notification element
         const notification = document.createElement('div');
         notification.style.position = 'fixed';
         notification.style.bottom = '20px';
         notification.style.left = '50%';
         notification.style.transform = 'translateX(-50%)';
-        notification.style.backgroundColor = '#182634';
+        notification.style.backgroundColor = '#ff4444';
         notification.style.color = 'white';
         notification.style.padding = '12px 20px';
         notification.style.borderRadius = '12px';
@@ -2096,14 +2117,12 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.style.zIndex = '1000';
         notification.style.maxWidth = '80%';
         notification.style.textAlign = 'center';
-        notification.style.fontFamily = 'Roboto, sans-serif';
+        notification.style.fontFamily = "'Exo 2', sans-serif";
         notification.style.fontSize = '14px';
-        notification.style.border = '1px solid #2d3e50';
         notification.textContent = message;
         
         document.body.appendChild(notification);
         
-        // Auto-remove after 3 seconds
         setTimeout(() => {
             notification.style.transition = 'opacity 0.5s';
             notification.style.opacity = '0';
@@ -2118,10 +2137,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize wallet connection on page load
     async function initWalletConnection() {
         try {
-            // First restore any existing connection
+            // Restore existing connection if any
             await connector.restoreConnection();
             
-            // Then check if we have a wallet connected
+            // Get current wallet connection
             const wallet = await connector.getWallet();
             
             if (wallet) {
@@ -2130,16 +2149,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.log("Wallet initialization error:", error);
+            // Don't show error to user for initialization
         }
     }
 
     // Call initialization when user data is loaded
-    function onUserDataLoaded() {
-        initWalletConnection();
-    }
-
-    // Make this function available globally
-    window.onUserDataLoaded = onUserDataLoaded;
+    window.onUserDataLoaded = initWalletConnection;
 });
 </script>
 

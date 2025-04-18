@@ -1953,8 +1953,17 @@ showPage('home-page');
     
     
 <script>
-// Updated Wallet Connection Code with TON Connect standard overlay
+// Enhanced Wallet Connection Code with TON Connect
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if TON Connect SDK is available
+    if (typeof TonConnectSDK === 'undefined') {
+        console.error('TON Connect SDK not loaded');
+        showWalletErrorNotification("Wallet features disabled - missing components");
+        document.getElementById('standard-connect-btn').disabled = true;
+        return;
+    }
+
+    // Initialize TON Connect
     const connector = new TonConnectSDK.TonConnect({
         manifestUrl: "https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json"
     });
@@ -1965,60 +1974,90 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusDiv = document.getElementById('wallet-status');
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
+    const walletConnectContainer = document.querySelector('.wallet-connect-container');
 
     // Standard TON Connect flow
     standardConnectBtn.addEventListener('click', async () => {
         try {
-            standardConnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+            standardConnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             standardConnectBtn.disabled = true;
             
             // Get all available wallets
             const wallets = await connector.getWallets();
             
+            if (!wallets || wallets.length === 0) {
+                throw new Error('No TON wallets detected. Please install Tonkeeper or another compatible wallet.');
+            }
+            
             // Use standard TON Connect overlay
             const walletConnectionSource = {
-                jsBridgeKey: 'tonconnect' // This triggers the standard overlay
+                jsBridgeKey: 'tonconnect'
             };
             
-            connector.connect(walletConnectionSource, wallets);
+            await connector.connect(walletConnectionSource, wallets);
+            
         } catch (error) {
             console.error("Connection error:", error);
             resetConnectButton();
-            showWalletErrorNotification("Failed to connect. Please try again.");
+            
+            // Special handling for different error types
+            if (error.message.includes('injected wallet')) {
+                showWalletErrorNotification("Please install a TON wallet extension like Tonkeeper");
+            } else {
+                showWalletErrorNotification(error.message || "Failed to connect. Please try again.");
+            }
+            
+            // If in Telegram environment, suggest using Telegram Wallet
+            if (window.Telegram && Telegram.WebApp.openWallet) {
+                setTimeout(() => {
+                    if (confirm('Try connecting with Telegram Wallet instead?')) {
+                        Telegram.WebApp.openWallet();
+                    }
+                }, 1000);
+            }
         }
     });
 
-    // Telegram Wallet direct connection (optional fallback)
+    // Telegram Wallet direct connection (fallback)
     telegramWalletBtn.addEventListener('click', () => {
         if (window.Telegram && Telegram.WebApp.openWallet) {
             Telegram.WebApp.openWallet();
         } else {
-            showWalletErrorNotification("Telegram Wallet is not available");
+            showWalletErrorNotification("Telegram Wallet is only available in the Telegram app");
         }
     });
 
     // Disconnect Wallet Function
     async function disconnectWallet() {
         try {
+            if (!confirm('Are you sure you want to disconnect your wallet?')) return;
+            
             disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
             disconnectBtn.disabled = true;
             
-            connector.disconnect();
+            // Disconnect from TON Connect
+            await connector.disconnect();
             
+            // Update backend
             const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: userData.id })
             });
 
-            if (!response.ok) throw new Error('Failed to update backend');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update backend');
+            }
 
+            // Update UI
             resetConnectButton();
             statusDiv.style.display = 'none';
+            showWalletErrorNotification("Wallet disconnected successfully");
             
         } catch (error) {
             console.error("Disconnection error:", error);
-            showWalletErrorNotification("Disconnected from app but failed to update server.");
+            showWalletErrorNotification(error.message || "Disconnection failed");
             resetConnectButton();
         }
     }
@@ -2038,6 +2077,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             statusDiv.style.display = 'block';
             addressSpan.textContent = shortAddress;
+            addressSpan.title = rawAddress; // Show full address on hover
             disconnectBtn.disabled = false;
             
             // Update backend status
@@ -2051,11 +2091,18 @@ document.addEventListener('DOMContentLoaded', function() {
     async function checkBackendWalletStatus(walletAddress) {
         try {
             const response = await fetch(`https://vifa-backend.onrender.com/api/user/${userData.id}/wallet-status`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
             
             if (data.connected && data.walletAddress) {
                 if (walletAddress && !walletAddress.includes(data.walletAddress)) {
-                    console.log("Wallet mismatch between frontend and backend");
+                    console.warn("Wallet address mismatch between frontend and backend");
+                    showWalletErrorNotification("Wallet verification needed - please reconnect");
+                    connector.disconnect();
                 }
             }
         } catch (error) {
@@ -2077,7 +2124,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        walletAddress: rawAddress
+                        walletAddress: rawAddress,
+                        deviceInfo: navigator.userAgent
                     })
                 });
 
@@ -2086,57 +2134,71 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) {
                     if (result.error === "Duplicate wallet connection detected") {
                         showWalletErrorNotification("This wallet is already connected to another account");
-                        connector.disconnect();
+                        await connector.disconnect();
                         return;
                     }
                     throw new Error(result.error || "Failed to save wallet");
                 }
 
                 updateUIForWallet(wallet);
+                showWalletErrorNotification("Wallet connected successfully!");
                 
             } catch (error) {
                 console.error("Wallet verification error:", error);
                 showWalletErrorNotification(error.message || "Wallet verification failed");
-                connector.disconnect();
+                await connector.disconnect();
             }
         } else {
             updateUIForWallet(null);
         }
     });
 
-    // Show Telegram-style error notification
-    function showWalletErrorNotification(message) {
+    // Show user-friendly error notification
+    function showWalletErrorNotification(message, isSuccess = false) {
+        // Remove any existing notifications first
+        const existing = document.querySelector('.wallet-notification');
+        if (existing) existing.remove();
+        
         const notification = document.createElement('div');
+        notification.className = 'wallet-notification';
         notification.style.position = 'fixed';
         notification.style.bottom = '20px';
         notification.style.left = '50%';
         notification.style.transform = 'translateX(-50%)';
-        notification.style.backgroundColor = '#182634';
+        notification.style.backgroundColor = isSuccess ? '#4CAF50' : '#182634';
         notification.style.color = 'white';
         notification.style.padding = '12px 20px';
         notification.style.borderRadius = '12px';
         notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
         notification.style.zIndex = '1000';
-        notification.style.maxWidth = '80%';
+        notification.style.maxWidth = '90%';
         notification.style.textAlign = 'center';
         notification.style.fontSize = '14px';
+        notification.style.transition = 'all 0.3s ease';
         notification.textContent = message;
         
         document.body.appendChild(notification);
         
         setTimeout(() => {
-            notification.style.transition = 'opacity 0.5s';
             notification.style.opacity = '0';
-            setTimeout(() => notification.remove(), 500);
+            setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
 
     // Event Listeners
     disconnectBtn.addEventListener('click', disconnectWallet);
 
-    // Initialize wallet connection
-    async function initWalletConnection() {
+    // Initialize wallet connection when user data is ready
+    window.onUserDataLoaded = async function() {
         try {
+            // Show/hide Telegram Wallet button based on environment
+            if (window.Telegram && Telegram.WebApp.openWallet) {
+                telegramWalletBtn.style.display = 'flex';
+            } else {
+                telegramWalletBtn.style.display = 'none';
+            }
+            
+            // Restore any existing connection
             await connector.restoreConnection();
             const wallet = await connector.getWallet();
             
@@ -2147,9 +2209,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.log("Wallet initialization error:", error);
         }
-    }
-
-    window.onUserDataLoaded = initWalletConnection;
+    };
 });
 </script>
 

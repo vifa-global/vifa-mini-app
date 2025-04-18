@@ -375,44 +375,47 @@
 
 
 /* Wallet Page Styles */
-/* Wallet Page Styles */
-.wallet-container {
-  padding: 20px 15px 80px;
-  height: 100%;
-  overflow-y: auto;
+/* Wallet Page - Redesigned Styles */
+.wallet-header {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.wallet-title {
+.wallet-header-icon {
+  font-size: 48px;
   color: #FFD700;
-  font-size: 22px;
-  text-align: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  animation: pulse 2s infinite;
 }
 
-.wallet-subtitle {
-  color: #7fdbff;
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 14px;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
-.wallet-steps {
+.connection-flow {
   background: rgba(10, 0, 62, 0.7);
   border-radius: 15px;
-  padding: 15px;
-  margin-bottom: 20px;
+  padding: 20px;
+  margin-bottom: 25px;
   border: 1px solid rgba(0, 136, 204, 0.3);
 }
 
-.wallet-step {
+.connection-step {
   display: flex;
   gap: 15px;
-  margin-bottom: 25px;
-  position: relative;
+  margin-bottom: 30px;
 }
 
-.wallet-step:last-child {
+.connection-step:last-child {
   margin-bottom: 0;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .step-number {
@@ -428,127 +431,226 @@
   flex-shrink: 0;
 }
 
+.step-line {
+  flex-grow: 1;
+  width: 2px;
+  background: rgba(255, 215, 0, 0.3);
+  margin: 10px 0;
+}
+
+.step-content {
+  flex-grow: 1;
+}
+
 .step-content h3 {
   color: #FFD700;
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 5px;
 }
 
 .step-content p {
   color: #b3d9ff;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.wallet-link-button, 
-.wallet-connect-button {
-  background: rgba(0, 136, 204, 0.2);
-  color: white;
-  border: 1px solid rgba(0, 136, 204, 0.5);
-  padding: 12px;
-  border-radius: 10px;
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s;
-}
-
-.wallet-connect-button {
-  background: #FFD700;
-  color: #0A003E;
-  border: none;
-}
-
-.wallet-link-button:hover {
-  background: rgba(0, 136, 204, 0.3);
-}
-
-.wallet-connect-button:hover {
-  opacity: 0.9;
-}
-
-.wallet-status-container {
-  background: rgba(10, 0, 62, 0.7);
-  border-radius: 15px;
-  padding: 15px;
-  margin-top: 20px;
-  border: 1px solid rgba(0, 136, 204, 0.3);
-}
-
-.wallet-connected {
-  display: flex;
-  gap: 15px;
-  align-items: center;
+  font-size: 14px;
   margin-bottom: 15px;
 }
 
-.connected-icon {
-  color: #2ecc40;
-  font-size: 30px;
+.ton-connect-button-wrapper {
+  margin-top: 15px;
 }
 
-.connection-details h3 {
+.verification-visual {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+}
+
+.phone-mockup {
+  width: 160px;
+  height: 300px;
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  border-radius: 20px;
+  padding: 10px;
+  background: #0A003E;
+  position: relative;
+  overflow: hidden;
+}
+
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #121212;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wallet-approval-screen {
+  text-align: center;
+  padding: 20px;
+}
+
+.approval-icon {
+  font-size: 40px;
+  color: #2ecc40;
+  margin-bottom: 15px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-10px);}
+  60% {transform: translateY(-5px);}
+}
+
+.wallet-approval-screen p {
+  color: white;
+  font-size: 14px;
+}
+
+/* Connection Success Styles */
+.connection-success {
+  text-align: center;
+}
+
+.success-animation {
+  margin: 0 auto 20px;
+  width: 80px;
+  height: 80px;
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  stroke: #FFD700;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke: #FFD700;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.connection-success h3 {
   color: #FFD700;
-  font-size: 16px;
-  margin-bottom: 5px;
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+.wallet-details {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.wallet-address-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.wallet-label {
+  color: #7fdbff;
+  font-size: 14px;
 }
 
 .wallet-address {
-  color: #7fdbff;
+  font-family: monospace;
+  color: white;
   font-size: 12px;
   word-break: break-all;
 }
 
-.wallet-disconnect-button {
-  background: rgba(255, 59, 48, 0.1);
-  color: #ff3b30;
-  border: 1px solid rgba(255, 59, 48, 0.3);
-  padding: 10px;
-  border-radius: 10px;
-  width: 100%;
-  font-weight: bold;
+.copy-address {
+  color: #FFD700;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.copy-address:hover {
+  opacity: 0.8;
+}
+
+.connection-time {
+  color: #b3d9ff;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
 }
 
-.wallet-benefits {
-  background: rgba(10, 0, 62, 0.7);
-  border-radius: 15px;
+/* Benefits Grid */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.benefit-card {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
   padding: 15px;
-  border: 1px solid rgba(0, 136, 204, 0.3);
+  text-align: center;
 }
 
-.wallet-benefits h3 {
-  color: #FFD700;
-  font-size: 16px;
-  margin-bottom: 10px;
+.benefit-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 20px;
 }
 
-.wallet-benefits ul {
-  list-style: none;
+.earn-icon {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
 }
 
-.wallet-benefits li {
+.withdraw-icon {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+}
+
+.exclusive-icon {
+  background: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+}
+
+.benefit-card h4 {
+  color: white;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.benefit-card p {
   color: #b3d9ff;
-  font-size: 13px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 12px;
+  margin: 0;
 }
-
-.wallet-benefits li i {
-  color: #2ecc40;
-}
+        
         /* FRIENDS PAGE STYLES */
         .friends-container {
             padding: 80px 20px 70px;
@@ -1223,54 +1325,109 @@
         <!-- Wallet Page -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
-    <h2 class="wallet-title">Connect Your Wallet</h2>
-    <p class="wallet-subtitle">Link your TON wallet to earn and withdraw VP</p>
+    <!-- New Header with Animated Icon -->
+    <div class="wallet-header">
+      <i class="fas fa-wallet wallet-header-icon"></i>
+      <h2 class="wallet-title">TON Wallet Connection</h2>
+    </div>
     
-    <div class="wallet-steps">
-      <!-- Step 1 -->
-      <div class="wallet-step">
-        <div class="step-number">1</div>
+    <p class="wallet-subtitle">Connect to manage your VIFA Points and rewards</p>
+    
+    <!-- Connection Flow Container -->
+    <div class="connection-flow">
+      <!-- Step 1 - Simplified -->
+      <div class="connection-step">
+        <div class="step-indicator">
+          <div class="step-number">1</div>
+          <div class="step-line"></div>
+        </div>
         <div class="step-content">
-          <h3>Get a Wallet</h3>
-          <p>Install Tonkeeper or another TON wallet if you don't have one</p>
-          <a href="https://tonkeeper.com" target="_blank" class="wallet-link-button">
-            <i class="fas fa-download"></i> Download Tonkeeper
-          </a>
+          <h3>Select Your Wallet</h3>
+          <p>Choose from popular TON wallets to connect</p>
+          <!-- TON Connect button will be injected here -->
+          <div id="ton-connect-button" class="ton-connect-button-wrapper"></div>
         </div>
       </div>
       
-      <!-- Step 2 -->
-      <div class="wallet-step">
-        <div class="step-number">2</div>
+      <!-- Step 2 - Visual Feedback -->
+      <div class="connection-step">
+        <div class="step-indicator">
+          <div class="step-number">2</div>
+          <div class="step-line"></div>
+        </div>
         <div class="step-content">
-          <h3>Connect Wallet</h3>
-          <p>Link your wallet to start earning rewards</p>
-          <div id="ton-connect-button"></div>
+          <h3>Verify Connection</h3>
+          <p>Approve the connection in your wallet app</p>
+          <div class="verification-visual">
+            <div class="phone-mockup">
+              <div class="phone-screen">
+                <div class="wallet-approval-screen">
+                  <i class="fas fa-check-circle approval-icon"></i>
+                  <p>Approve connection in your wallet</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      
-      <!-- Connection Status -->
-      <div id="wallet-status" class="wallet-status-container" style="display: none;">
-        <div class="wallet-connected">
-          <i class="fas fa-check-circle connected-icon"></i>
-          <div class="connection-details">
-            <h3>Wallet Connected</h3>
-            <p class="wallet-address" id="wallet-address"></p>
+    </div>
+    
+    <!-- Connection Status - Redesigned -->
+    <div id="wallet-status" class="wallet-status-container" style="display: none;">
+      <div class="connection-success">
+        <div class="success-animation">
+          <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
+        <h3>Wallet Connected!</h3>
+        <div class="wallet-details">
+          <div class="wallet-address-container">
+            <span class="wallet-label">Connected Address:</span>
+            <span class="wallet-address" id="wallet-address"></span>
+            <i class="fas fa-copy copy-address" onclick="copyWalletAddress()"></i>
+          </div>
+          <div class="connection-time">
+            <i class="fas fa-clock"></i>
+            <span id="connection-time">Just now</span>
           </div>
         </div>
         <button id="disconnect-btn" class="wallet-disconnect-button">
-          <i class="fas fa-unlink"></i> Disconnect
+          <i class="fas fa-unlink"></i> Disconnect Wallet
         </button>
       </div>
     </div>
     
+    <!-- Benefits Section - Enhanced -->
     <div class="wallet-benefits">
-      <h3><i class="fas fa-gem"></i> Wallet Benefits</h3>
-      <ul>
-        <li><i class="fas fa-check-circle"></i> Earn VP for completing tasks</li>
-        <li><i class="fas fa-check-circle"></i> Withdraw rewards to your wallet</li>
-        <li><i class="fas fa-check-circle"></i> Participate in exclusive events</li>
-      </ul>
+      <div class="benefits-header">
+        <i class="fas fa-gem"></i>
+        <h3>Wallet Benefits</h3>
+      </div>
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon earn-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <h4>Earn VP</h4>
+          <p>Complete tasks and earn VIFA Points</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon withdraw-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <h4>Withdraw</h4>
+          <p>Transfer rewards to your wallet</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon exclusive-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <h4>Exclusive Access</h4>
+          <p>Participate in special events</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1942,24 +2099,26 @@ showPage('home-page');
     
     
 <script>
-// Remove all existing wallet connection code and replace with:
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize TonConnectUI
+    // Initialize TonConnectUI with custom button
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-button'
+        buttonRootId: 'ton-connect-button',
+        buttonTheme: {
+            backgroundColor: '#FFD700',
+            textColor: '#0A003E',
+            iconColor: '#0A003E'
+        }
     });
 
     // UI Elements
     const statusDiv = document.getElementById('wallet-status');
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
+    const connectionTimeSpan = document.getElementById('connection-time');
 
     // Handle connection status changes
     tonConnectUI.onStatusChange(async (wallet) => {
-        console.log("Connection status changed:", wallet);
-        
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
@@ -1968,6 +2127,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update UI
                 statusDiv.style.display = 'block';
                 addressSpan.textContent = shortAddress;
+                updateConnectionTime();
                 
                 // Save wallet to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
@@ -1990,6 +2150,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(result.error || "Failed to save wallet");
                 }
                 
+                // Show success animation
+                showSuccessAnimation();
+                
             } catch (error) {
                 console.error("Wallet verification error:", error);
                 showWalletErrorNotification(error.message || "Wallet verification failed");
@@ -2000,6 +2163,35 @@ document.addEventListener('DOMContentLoaded', function() {
             statusDiv.style.display = 'none';
         }
     });
+
+    // Update connection time display
+    function updateConnectionTime() {
+        const now = new Date();
+        connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
+        
+        // Update every minute
+        setInterval(() => {
+            connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
+        }, 60000);
+    }
+    
+    function formatTime(date) {
+        const diff = Math.floor((new Date() - date) / 1000);
+        
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+        return Math.floor(diff / 86400) + ' days ago';
+    }
+
+    // Show success animation
+    function showSuccessAnimation() {
+        const successAnim = document.querySelector('.success-animation');
+        successAnim.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            successAnim.style.transform = 'scale(1)';
+        }, 300);
+    }
 
     // Handle disconnect button
     disconnectBtn.addEventListener('click', async () => {
@@ -2021,38 +2213,54 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Disconnection error:", error);
-            alert("Disconnected from app but failed to update server. Use /disconnect in bot.");
+            showWalletErrorNotification("Failed to disconnect. Please try again.");
         } finally {
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect Wallet';
             disconnectBtn.disabled = false;
         }
     });
 
-    // Show Telegram-style error notification
-    function showWalletErrorNotification(message) {
+    // Copy wallet address function
+    window.copyWalletAddress = function() {
+        const wallet = tonConnectUI.getWallet();
+        if (wallet) {
+            navigator.clipboard.writeText(wallet.account.address).then(() => {
+                showWalletNotification("Wallet address copied!");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showWalletErrorNotification("Failed to copy address");
+            });
+        }
+    };
+
+    // Show wallet notification
+    function showWalletNotification(message) {
         const notification = document.createElement('div');
-        notification.style.position = 'fixed';
-        notification.style.bottom = '20px';
-        notification.style.left = '50%';
-        notification.style.transform = 'translateX(-50%)';
-        notification.style.backgroundColor = '#182634';
-        notification.style.color = 'white';
-        notification.style.padding = '12px 20px';
-        notification.style.borderRadius = '12px';
-        notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-        notification.style.zIndex = '1000';
-        notification.style.maxWidth = '80%';
-        notification.style.textAlign = 'center';
-        notification.style.fontFamily = 'Roboto, sans-serif';
-        notification.style.fontSize = '14px';
-        notification.style.border = '1px solid #2d3e50';
-        notification.textContent = message;
-        
+        notification.className = 'wallet-notification';
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        `;
         document.body.appendChild(notification);
         
         setTimeout(() => {
-            notification.style.transition = 'opacity 0.5s';
-            notification.style.opacity = '0';
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
+    }
+
+    // Show wallet error notification
+    function showWalletErrorNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'wallet-notification error';
+        notification.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('fade-out');
             setTimeout(() => notification.remove(), 500);
         }, 3000);
     }
@@ -2065,6 +2273,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
             statusDiv.style.display = 'block';
             addressSpan.textContent = shortAddress;
+            updateConnectionTime();
         }
     }
     

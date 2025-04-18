@@ -1763,6 +1763,7 @@ function setupEventListeners() {
 }
 
 // Load user data from backend
+// Load user data from backend
 async function loadUserData() {
     try {
         console.log("Loading user data for ID:", userData.id);
@@ -1803,6 +1804,11 @@ async function loadUserData() {
         updateUserInterface(userData.points, userData.streak);
         checkCheckinStatus();
         updateCompletedTasksUI();
+        
+        // Initialize wallet connection after user data is loaded
+        if (window.onUserDataLoaded) {
+            window.onUserDataLoaded();
+        }
         
     } catch (error) {
         console.error("Error loading user data:", error);

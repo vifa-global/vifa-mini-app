@@ -575,6 +575,10 @@
     color: white;
     font-weight: bold;
   }
+#connect-wallet-btn {
+    position: relative;
+    z-index: 10;
+}
         
         /* FRIENDS PAGE STYLES */
         .friends-container {
@@ -784,6 +788,9 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+    <script>
+console.log('TONConnect loaded?', typeof TonConnect !== 'undefined');
+</script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 </head>
@@ -1959,11 +1966,10 @@ showPage('home-page');
     
     
 <script>
-// Wallet Connection using official TON Connect SDK
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize TON Connect
     const connector = new TonConnect.TonConnect({
-        manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json' // MUST be HTTPS
+        manifestUrl: 'https://yourdomain.com/tonconnect-manifest.json'
     });
 
     // UI Elements
@@ -1972,47 +1978,41 @@ document.addEventListener('DOMContentLoaded', async function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
 
+    // Make button clickable immediately
+    connectBtn.style.pointerEvents = 'auto';
+    connectBtn.style.opacity = '1';
+    connectBtn.disabled = false;
+
     // Initialize connection
     async function initTonConnect() {
-        // Check if connection is already established
-        const walletConnectionSource = {
-            jsBridgeKey: 'tonconnect'
-        };
-        
         try {
-            // Restore existing connection if available
+            // Restore existing connection
             await connector.restoreConnection();
             
-            // Get current wallet
-            const wallet = connector.wallet;
-            
-            if (wallet) {
-                // We have a connected wallet
-                updateUIForWallet(wallet);
+            if (connector.connected) {
+                updateUIForWallet(connector.wallet);
             }
             
-            // Subscribe to connection status changes
+            // Subscribe to connection changes
             connector.onStatusChange((wallet) => {
-                if (wallet) {
-                    updateUIForWallet(wallet);
-                    saveWalletToBackend(wallet);
-                } else {
-                    updateUIForWallet(null);
-                }
+                updateUIForWallet(wallet);
+                if (wallet) saveWalletToBackend(wallet);
             });
             
         } catch (error) {
             console.error("Initialization error:", error);
+            resetConnectButton();
         }
     }
 
     // Connect Wallet Function
     async function connectWallet() {
         try {
+            // Visual feedback
             connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             connectBtn.disabled = true;
             
-            // This will automatically show the wallet selection modal
+            // Connect with standard options
             await connector.connect({
                 jsBridgeKey: 'tonconnect'
             });
@@ -2032,6 +2032,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             await connector.disconnect();
             
+            // Update backend
             const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2045,58 +2046,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             
         } catch (error) {
             console.error("Disconnection error:", error);
-            alert("Disconnected from app but failed to update server.");
             resetConnectButton();
         }
     }
 
-    // Save wallet to backend
-    async function saveWalletToBackend(wallet) {
-        try {
-            const rawAddress = wallet.account.address;
-            
-            const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: userData.id,
-                    walletAddress: rawAddress
-                })
-            });
-
-            const result = await response.json();
-            
-            if (!response.ok) {
-                if (result.error === "Duplicate wallet connection detected") {
-                    showWalletErrorNotification("This wallet is already connected to another account");
-                    connector.disconnect();
-                    return;
-                }
-                throw new Error(result.error || "Failed to save wallet");
-            }
-            
-        } catch (error) {
-            console.error("Error saving wallet:", error);
-            showWalletErrorNotification(error.message || "Wallet verification failed");
-            connector.disconnect();
-            resetConnectButton();
-        }
-    }
-
-    // Update UI based on connection status
+    // Update UI
     function updateUIForWallet(wallet) {
         if (wallet) {
-            const rawAddress = wallet.account.address;
-            const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
-            
+            const shortAddress = `${wallet.account.address.substring(0, 6)}...${wallet.account.address.substring(wallet.account.address.length - 4)}`;
+            addressSpan.textContent = shortAddress;
+            statusDiv.style.display = 'block';
             connectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
             connectBtn.style.background = '#4CAF50';
-            statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
-            disconnectBtn.disabled = false;
         } else {
             resetConnectButton();
-            statusDiv.style.display = 'none';
         }
     }
 
@@ -2104,15 +2067,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         connectBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet';
         connectBtn.style.background = '';
         connectBtn.disabled = false;
-        disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-        disconnectBtn.disabled = false;
     }
 
-    // Event Listeners
+    // Event listeners
     connectBtn.addEventListener('click', connectWallet);
     disconnectBtn.addEventListener('click', disconnectWallet);
 
-    // Initialize when user data is loaded
+    // Initialize when ready
     window.onUserDataLoaded = initTonConnect;
 });
 </script>

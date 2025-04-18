@@ -375,7 +375,6 @@
 
 
 /* Wallet Page Styles */
-/* Wallet Page - Redesigned Styles */
 .wallet-header {
   text-align: center;
   margin-bottom: 20px;
@@ -1323,15 +1322,15 @@
         </div>
         
         <!-- Wallet Page -->
+<!-- Wallet Page -->
 <div class="page" id="wallet-page">
-  <div class="wallet-container">
+  <div class="wallet-container" style="padding: 20px; height: calc(100vh - 150px); overflow-y: auto;">
     <!-- New Header with Animated Icon -->
     <div class="wallet-header">
       <i class="fas fa-wallet wallet-header-icon"></i>
       <h2 class="wallet-title">TON Wallet Connection</h2>
+      <p class="wallet-subtitle">Connect to manage your VIFA Points and rewards</p>
     </div>
-    
-    <p class="wallet-subtitle">Connect to manage your VIFA Points and rewards</p>
     
     <!-- Connection Flow Container -->
     <div class="connection-flow">
@@ -1373,7 +1372,7 @@
     </div>
     
     <!-- Connection Status - Redesigned -->
-    <div id="wallet-status" class="wallet-status-container" style="display: none;">
+    <div id="wallet-status" class="wallet-status-container" style="display: none; margin-top: 20px;">
       <div class="connection-success">
         <div class="success-animation">
           <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -1400,10 +1399,10 @@
     </div>
     
     <!-- Benefits Section - Enhanced -->
-    <div class="wallet-benefits">
-      <div class="benefits-header">
-        <i class="fas fa-gem"></i>
-        <h3>Wallet Benefits</h3>
+    <div class="wallet-benefits" style="margin-top: 30px;">
+      <div class="benefits-header" style="text-align: center; margin-bottom: 15px;">
+        <i class="fas fa-gem" style="color: #FFD700; font-size: 24px;"></i>
+        <h3 style="color: #FFD700; margin-top: 10px;">Wallet Benefits</h3>
       </div>
       <div class="benefits-grid">
         <div class="benefit-card">

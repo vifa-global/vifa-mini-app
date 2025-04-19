@@ -1929,10 +1929,13 @@ showPage('home-page');
     
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize TonConnectUI
+    // Initialize TonConnectUI with enhanced configuration
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-button'
+        buttonRootId: 'ton-connect-button',
+        connectRequestParameters: {
+            returnStrategy: 'none' // Disable automatic redirects
+        }
     });
 
     // UI Elements
@@ -1987,13 +1990,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Handle connection status changes
+    // Handle connection status changes with wallet validation
     tonConnectUI.onStatusChange(async (wallet) => {
         console.log("Connection status changed:", wallet);
         
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
+                
+                // Validate wallet address starts with UQBI
+                if (!rawAddress.startsWith('UQBI')) {
+                    await tonConnectUI.disconnect();
+                    showWalletErrorNotification("Please connect only your UQBI wallet");
+                    return;
+                }
+
                 const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
                 
                 // Update UI immediately
@@ -2108,6 +2119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+    
 
     <script 
     async 

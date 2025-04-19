@@ -1929,10 +1929,15 @@ showPage('home-page');
     
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize TonConnectUI
+    // Initialize TonConnectUI with persistence
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-button'
+        buttonRootId: 'ton-connect-button',
+        language: 'en',
+        uiPreferences: {
+            theme: 'DARK',
+            borderRadius: 'm'
+        }
     });
 
     // UI Elements
@@ -1941,50 +1946,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const disconnectBtn = document.getElementById('disconnect-btn');
     const walletPage = document.getElementById('wallet-page');
 
-    // Function to check wallet connection status from backend
-    async function checkWalletStatus() {
-        try {
-            const response = await fetch(`https://vifa-backend.onrender.com/api/wallet-status/${userData.id}`);
-            if (!response.ok) throw new Error('Failed to check wallet status');
-            
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error("Wallet status check error:", error);
-            return { connected: false };
-        }
-    }
-
-    // Update UI based on wallet connection status
-    async function updateWalletUI() {
-        const status = await checkWalletStatus();
-        const wallet = await tonConnectUI.getWallet();
-        
-        if (status.connected) {
-            // Wallet is connected in backend
-            const shortAddress = `${status.walletAddress.substring(0, 6)}...${status.walletAddress.substring(status.walletAddress.length - 4)}`;
-            
-            statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
-            
-            // Check if TonConnect also has this wallet connected
-            if (!wallet || wallet.account.address !== status.walletAddress) {
-                // Show "Reconnect" button since backend has connection but frontend doesn't
-                disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
-            } else {
-                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-            }
-        } else {
-            // No wallet connected
-            statusDiv.style.display = 'none';
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-        }
-    }
-
-    // Handle connection status changes
-    tonConnectUI.onStatusChange(async (wallet) => {
-        console.log("Connection status changed:", wallet);
-        
+    // Function to handle wallet connection state
+    async function handleWalletConnection(wallet) {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
@@ -1996,55 +1959,102 @@ document.addEventListener('DOMContentLoaded', function() {
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
                 disconnectBtn.disabled = false;
                 
-                // Check backend status
+                // Check if wallet is already connected in backend
                 const backendStatus = await checkWalletStatus();
                 
-                if (backendStatus.connected && backendStatus.walletAddress === rawAddress) {
-                    // Already connected in backend, no need to save again
-                    return;
-                }
-                
-                // Save wallet to backend
-                const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: userData.id,
-                        walletAddress: rawAddress
-                    })
-                });
+                if (!backendStatus.connected || backendStatus.walletAddress !== rawAddress) {
+                    // Save wallet to backend if not already connected
+                    const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: userData.id,
+                            walletAddress: rawAddress
+                        })
+                    });
 
-                if (!response.ok) {
-                    const result = await response.json();
-                    if (result.error === "Duplicate wallet connection detected") {
-                        showWalletErrorNotification("This wallet is already connected to another account");
-                        tonConnectUI.disconnect();
-                        return;
+                    if (!response.ok) {
+                        const result = await response.json();
+                        if (result.error === "Duplicate wallet connection detected") {
+                            showWalletErrorNotification("This wallet is already connected to another account");
+                            await tonConnectUI.disconnect();
+                            return;
+                        }
+                        throw new Error(result.error || "Failed to save wallet");
                     }
-                    throw new Error(result.error || "Failed to save wallet");
                 }
                 
             } catch (error) {
                 console.error("Wallet verification error:", error);
                 showWalletErrorNotification(error.message || "Wallet verification failed");
-                tonConnectUI.disconnect();
+                await tonConnectUI.disconnect();
             }
         } else {
-            // Disconnected - check backend status
+            // No wallet connected - check backend status
             const backendStatus = await checkWalletStatus();
-            if (!backendStatus.connected) {
+            if (backendStatus.connected) {
+                // Wallet is connected in backend but not in frontend - show "Reconnect" state
+                statusDiv.style.display = 'block';
+                const shortAddress = `${backendStatus.walletAddress.substring(0, 6)}...${backendStatus.walletAddress.substring(backendStatus.walletAddress.length - 4)}`;
+                addressSpan.textContent = shortAddress;
+                disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+                disconnectBtn.disabled = false;
+            } else {
+                // No connection at all
                 statusDiv.style.display = 'none';
             }
-            // UI will be updated by updateWalletUI()
         }
+    }
+
+    // Check wallet status from backend
+    async function checkWalletStatus() {
+        try {
+            const response = await fetch(`https://vifa-backend.onrender.com/api/wallet-status/${userData.id}`);
+            if (!response.ok) throw new Error('Failed to check wallet status');
+            return await response.json();
+        } catch (error) {
+            console.error("Wallet status check error:", error);
+            return { connected: false };
+        }
+    }
+
+    // Initialize wallet connection on app load
+    async function initializeWalletConnection() {
+        // First check backend status
+        const backendStatus = await checkWalletStatus();
         
-        // Refresh UI state
-        await updateWalletUI();
-    });
+        // Then check TonConnect state
+        const wallet = await tonConnectUI.getWallet();
+        
+        if (wallet) {
+            // If TonConnect has active session, verify it matches backend
+            if (backendStatus.connected && backendStatus.walletAddress === wallet.account.address) {
+                // Everything matches - show connected state
+                await handleWalletConnection(wallet);
+            } else {
+                // Mismatch - disconnect and let user reconnect
+                await tonConnectUI.disconnect();
+                await handleWalletConnection(null);
+            }
+        } else if (backendStatus.connected) {
+            // Backend says connected but frontend isn't - show reconnect option
+            statusDiv.style.display = 'block';
+            const shortAddress = `${backendStatus.walletAddress.substring(0, 6)}...${backendStatus.walletAddress.substring(backendStatus.walletAddress.length - 4)}`;
+            addressSpan.textContent = shortAddress;
+            disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+            disconnectBtn.disabled = false;
+        } else {
+            // No connection at all
+            statusDiv.style.display = 'none';
+        }
+    }
+
+    // Set up status change listener
+    tonConnectUI.onStatusChange(handleWalletConnection);
 
     // Handle disconnect/reconnect button
     disconnectBtn.addEventListener('click', async () => {
-        const isReconnect = disconnectBtn.innerHTML.includes('sync-alt'); // Check for reconnect icon
+        const isReconnect = disconnectBtn.innerHTML.includes('sync-alt');
         
         if (isReconnect) {
             // Reconnect flow
@@ -2081,12 +2091,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Disconnection error:", error);
             showWalletErrorNotification("Disconnected from app but failed to update server");
         } finally {
-            await updateWalletUI();
             disconnectBtn.disabled = false;
+            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
         }
     });
 
-    // Show Telegram-style error notification
+    // Show error notification
     function showWalletErrorNotification(message) {
         const notification = document.createElement('div');
         notification.style.position = 'fixed';
@@ -2115,19 +2125,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // Check wallet status when wallet page is opened
-    walletPage.addEventListener('click', updateWalletUI);
-    
     // Initialize when user data is loaded
-    window.onUserDataLoaded = updateWalletUI;
+    window.onUserDataLoaded = initializeWalletConnection;
+    
+    // Also check wallet status when wallet page is opened
+    walletPage.addEventListener('click', initializeWalletConnection);
 });
-</script>
-
-    <script 
-    async 
-    src="https://tganalytics.xyz/index.js" 
-    onload="initAnalytics()" 
-    type="text/javascript"
 ></script>
 
 <script>

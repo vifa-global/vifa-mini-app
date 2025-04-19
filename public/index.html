@@ -1948,6 +1948,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
 
+    // Function to check wallet connection status from backend
+    async function checkWalletConnection() {
+        try {
+            const response = await fetch(`https://vifa-backend.onrender.com/api/wallet-status/${userData.id}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.connected && data.walletAddress) {
+                    return data.walletAddress;
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error("Error checking wallet status:", error);
+            return null;
+        }
+    }
+
     // Handle connection status changes
     tonConnectUI.onStatusChange(async (wallet) => {
         console.log("Connection status changed:", wallet);
@@ -1960,6 +1977,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update UI
                 statusDiv.style.display = 'block';
                 addressSpan.textContent = shortAddress;
+                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+                disconnectBtn.disabled = false;
+                
+                // Check if this is a reconnection of the same wallet
+                const backendWalletAddress = await checkWalletConnection();
+                if (backendWalletAddress === rawAddress) {
+                    // Already connected in backend, no need to save again
+                    return;
+                }
                 
                 // Save wallet to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
@@ -1988,14 +2014,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 tonConnectUI.disconnect();
             }
         } else {
-            // Disconnected
-            statusDiv.style.display = 'none';
+            // Disconnected - but don't hide if backend still has a connection
+            const backendWalletAddress = await checkWalletConnection();
+            if (!backendWalletAddress) {
+                statusDiv.style.display = 'none';
+            } else {
+                // Show "Reconnect" option
+                disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+            }
         }
     });
 
-    // Handle disconnect button
+    // Handle disconnect/reconnect button
     disconnectBtn.addEventListener('click', async () => {
         try {
+            const backendWalletAddress = await checkWalletConnection();
+            const currentAction = disconnectBtn.textContent.includes('Reconnect') ? 'reconnect' : 'disconnect';
+            
+            if (currentAction === 'reconnect') {
+                // Reconnect flow
+                disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+                await tonConnectUI.connectWallet();
+                return;
+            }
+            
+            // Disconnect flow
             disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
             disconnectBtn.disabled = true;
             
@@ -2013,9 +2056,19 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Disconnection error:", error);
-            alert("Disconnected from app but failed to update server. Use /disconnect in bot.");
+            showWalletErrorNotification("Disconnected from app but failed to update server. Use /disconnect in bot.");
         } finally {
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            const wallet = await tonConnectUI.getWallet();
+            if (wallet) {
+                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            } else {
+                const backendWalletAddress = await checkWalletConnection();
+                if (backendWalletAddress) {
+                    disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+                } else {
+                    disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+                }
+            }
             disconnectBtn.disabled = false;
         }
     });
@@ -2052,15 +2105,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize connection status on page load
     async function checkInitialConnection() {
         const wallet = await tonConnectUI.getWallet();
+        const backendWalletAddress = await checkWalletConnection();
+        
         if (wallet) {
+            // If TonConnect has an active wallet connection
             const rawAddress = wallet.account.address;
             const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
             statusDiv.style.display = 'block';
             addressSpan.textContent = shortAddress;
+            
+            // Verify the connected wallet matches the backend record
+            if (backendWalletAddress && backendWalletAddress !== rawAddress) {
+                // Handle mismatch - disconnect or show warning
+                showWalletErrorNotification("Wallet mismatch detected. Please reconnect.");
+                tonConnectUI.disconnect();
+                statusDiv.style.display = 'none';
+            }
+        } else if (backendWalletAddress) {
+            // If backend has a wallet but TonConnect doesn't
+            const shortAddress = `${backendWalletAddress.substring(0, 6)}...${backendWalletAddress.substring(backendWalletAddress.length - 4)}`;
+            statusDiv.style.display = 'block';
+            addressSpan.textContent = shortAddress;
+            
+            // Add a "Reconnect" button option
+            disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
         }
     }
     
-    checkInitialConnection();
+    // Call this when user data is loaded
+    window.onUserDataLoaded = checkInitialConnection;
 });
 </script>
 

@@ -1929,7 +1929,7 @@ showPage('home-page');
     
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Make tonConnectUI available globally
+    // Initialize TonConnectUI
     window.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
         buttonRootId: 'ton-connect-button',
@@ -1945,6 +1945,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
     const walletPage = document.getElementById('wallet-page');
+    const walletConnectBtn = document.getElementById('ton-connect-button');
 
     // Function to check wallet connection status from backend
     async function checkWalletStatus() {
@@ -1958,18 +1959,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Handle wallet connection state
+    // Update UI based on wallet connection status
+    async function updateWalletUI() {
+        try {
+            const status = await checkWalletStatus();
+            const wallet = await window.tonConnectUI.connection.getWallet();
+            
+            if (wallet || status.connected) {
+                // Wallet is connected - show green state
+                statusDiv.style.display = 'block';
+                const address = wallet?.account?.address || status.walletAddress;
+                const shortAddress = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+                addressSpan.textContent = shortAddress;
+                
+                // Style for connected state (green)
+                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+                disconnectBtn.style.backgroundColor = 'rgba(46, 204, 64, 0.1)';
+                disconnectBtn.style.borderColor = 'rgba(46, 204, 64, 0.3)';
+                disconnectBtn.style.color = '#2ecc40';
+                disconnectBtn.disabled = false;
+                
+                // Hide the connect button when connected
+                if (walletConnectBtn) {
+                    walletConnectBtn.style.display = 'none';
+                }
+            } else {
+                // Wallet is disconnected - show red state
+                statusDiv.style.display = 'none';
+                
+                // Style for disconnected state (red)
+                disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+                disconnectBtn.style.backgroundColor = 'rgba(255, 59, 48, 0.1)';
+                disconnectBtn.style.borderColor = 'rgba(255, 59, 48, 0.3)';
+                disconnectBtn.style.color = '#ff3b30';
+                
+                // Show the connect button when disconnected
+                if (walletConnectBtn) {
+                    walletConnectBtn.style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error("Update wallet UI error:", error);
+        }
+    }
+
+    // Handle wallet connection
     async function handleWalletConnection(wallet) {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
                 
                 // Update UI immediately
-                statusDiv.style.display = 'block';
-                addressSpan.textContent = shortAddress;
-                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-                disconnectBtn.disabled = false;
+                await updateWalletUI();
                 
                 // Check backend status
                 const backendStatus = await checkWalletStatus();
@@ -2001,32 +2042,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else {
             // Handle disconnection
-            statusDiv.style.display = 'none';
+            await updateWalletUI();
         }
     }
 
-    // Initialize wallet connection
-    async function initializeWallet() {
-        try {
-            // Check current connection state
-            const wallet = await window.tonConnectUI.connection.getWallet();
-            if (wallet) {
-                await handleWalletConnection(wallet);
-            }
-            
-            // Set up status change listener
-            window.tonConnectUI.connection.onStatusChange(handleWalletConnection);
-        } catch (error) {
-            console.error("Wallet initialization error:", error);
-        }
-    }
-
-    // Handle disconnect button
+    // Handle disconnect/reconnect button
     disconnectBtn.addEventListener('click', async () => {
-        try {
-            disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+        const isReconnect = disconnectBtn.innerHTML.includes('sync-alt');
+        
+        if (isReconnect) {
+            // Reconnect flow
+            disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             disconnectBtn.disabled = true;
-            
+            try {
+                await window.tonConnectUI.connectWallet();
+            } catch (error) {
+                console.error("Reconnection error:", error);
+                await updateWalletUI();
+            }
+            return;
+        }
+
+        // Disconnect flow
+        disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+        disconnectBtn.disabled = true;
+        
+        try {
             // Disconnect from TonConnect
             await window.tonConnectUI.disconnect();
             
@@ -2039,14 +2080,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!response.ok) throw new Error('Failed to update backend');
             
-            // Update UI
-            statusDiv.style.display = 'none';
         } catch (error) {
             console.error("Disconnection error:", error);
             showWalletErrorNotification("Failed to disconnect wallet");
         } finally {
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-            disconnectBtn.disabled = false;
+            await updateWalletUI();
         }
     });
 
@@ -2079,8 +2117,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
+    // Initialize wallet connection
+    async function initializeWallet() {
+        try {
+            // Set up status change listener
+            window.tonConnectUI.connection.onStatusChange(handleWalletConnection);
+            
+            // Check current connection state
+            const wallet = await window.tonConnectUI.connection.getWallet();
+            await handleWalletConnection(wallet);
+        } catch (error) {
+            console.error("Wallet initialization error:", error);
+        }
+    }
+
     // Initialize when user data is loaded
     window.onUserDataLoaded = initializeWallet;
+    
+    // Also check wallet status when wallet page is opened
+    walletPage.addEventListener('click', updateWalletUI);
 });
 </script>
 

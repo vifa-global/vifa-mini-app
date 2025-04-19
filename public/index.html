@@ -1929,123 +1929,81 @@ showPage('home-page');
     
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. INITIALIZATION WITH ERROR HANDLING
-    let tonConnectUI;
-    try {
-        tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-button',
-            language: 'en'
-        });
-    } catch (e) {
-        console.error("TON Connect initialization failed:", e);
-        showErrorNotification("Wallet service unavailable - please refresh");
-        return;
-    }
+    // 1. INITIALIZATION
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://vifa-mini-app-frontend.onrender.com/tonconnect-manifest.json',
+        buttonRootId: 'ton-connect-button'
+    });
 
-    // 2. UI ELEMENTS
-    const statusDiv = document.getElementById('wallet-status');
-    const addressSpan = document.getElementById('wallet-address');
-    const disconnectBtn = document.getElementById('disconnect-btn');
-    const connectButton = document.getElementById('ton-connect-button');
-
-    // 3. STATE MANAGEMENT
-    let connectionState = {
-        isConnecting: false,
-        isDisconnecting: false,
-        lastWalletAddress: null,
-        backendAddress: null
-    };
-
-    // 4. ADDRESS CONVERSION UTILITIES
+    // 2. ADDRESS CONVERSION UTILITIES
     const AddressConverter = {
-        toUserFriendly: (address) => {
-            if (!address) return null;
+        // Convert raw (0:...) or EQ format to user-friendly UQ format
+        toDisplayFormat: (address) => {
+            if (!address) return '';
             if (address.startsWith('UQ')) return address;
-            if (address.startsWith('EQ')) return 'UQ' + address.slice(2);
-            if (address.startsWith('0:')) return 'UQ' + address.slice(2);
-            return address;
+            return 'UQ' + address.replace(/^(0:|EQ)/, '');
         },
         
+        // Convert any format to raw (0:...) for comparison
         toRawFormat: (address) => {
-            if (!address) return null;
+            if (!address) return '';
             if (address.startsWith('0:')) return address;
-            if (address.startsWith('UQ')) return '0:' + address.slice(2);
-            if (address.startsWith('EQ')) return '0:' + address.slice(2);
-            return address;
+            return '0:' + address.replace(/^(UQ|EQ)/, '');
         },
         
+        // Convert any format to backend EQ format
         toBackendFormat: (address) => {
-            if (!address) return null;
+            if (!address) return '';
             if (address.startsWith('EQ')) return address;
-            if (address.startsWith('UQ')) return 'EQ' + address.slice(2);
-            if (address.startsWith('0:')) return 'EQ' + address.slice(2);
-            return address;
+            return 'EQ' + address.replace(/^(UQ|0:)/, '');
         },
         
+        // Compare any two addresses in any format
         areEqual: (addr1, addr2) => {
             if (!addr1 || !addr2) return false;
-            return this.toBackendFormat(addr1) === this.toBackendFormat(addr2);
+            return this.toRawFormat(addr1) === this.toRawFormat(addr2);
         }
     };
 
-    // 5. WALLET STATE MANAGEMENT
-    async function getCurrentWallet() {
+    // 3. WALLET STATE MANAGEMENT
+    async function getWalletState() {
         try {
-            // Try standard method first
-            if (tonConnectUI.getWallet) {
-                return await tonConnectUI.getWallet();
-            }
+            // Get frontend wallet state
+            const wallet = await tonConnectUI.getWallet();
+            const frontendAddress = wallet?.account?.address;
             
-            // Fallback method if getWallet not available
-            console.warn("Using fallback method to get wallet");
-            const provider = await tonConnectUI.connectionBridge?.getProvider();
-            if (provider?.account) {
-                return {
-                    account: provider.account,
-                    device: provider.device,
-                    provider: 'http'
-                };
-            }
-            return null;
-        } catch (e) {
-            console.error("Failed to get wallet:", e);
-            return null;
-        }
-    }
-
-    // 6. BACKEND COMMUNICATION
-    async function syncWithBackend() {
-        try {
-            const response = await fetch(`https://vifa-backend.onrender.com/api/wallet-status/${userData.id}`);
-            if (!response.ok) throw new Error('Backend error');
+            // Get backend wallet state
+            const backendResponse = await fetch(`https://vifa-backend.onrender.com/api/wallet-status/${userData.id}`);
+            const backendData = await backendResponse.json();
+            const backendAddress = backendData.walletAddress;
             
-            const data = await response.json();
-            connectionState.backendAddress = AddressConverter.toUserFriendly(data.walletAddress);
-            return data.connected;
+            return {
+                frontendAddress,
+                backendAddress,
+                connected: backendData.connected && AddressConverter.areEqual(frontendAddress, backendAddress)
+            };
         } catch (error) {
-            console.error("Backend sync failed:", error);
-            return false;
+            console.error("Failed to get wallet state:", error);
+            return { connected: false };
         }
     }
 
-    // 7. UI UPDATE HANDLER
-    async function updateConnectionUI() {
+    // 4. UI UPDATE FUNCTION
+    async function updateWalletUI() {
+        const statusDiv = document.getElementById('wallet-status');
+        const addressSpan = document.getElementById('wallet-address');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        
         try {
-            // Reset UI first
+            const { frontendAddress, backendAddress, connected } = await getWalletState();
+            
+            // Always reset UI first
             statusDiv.style.display = 'none';
             disconnectBtn.disabled = true;
             
-            const wallet = await getCurrentWallet();
-            const walletAddress = wallet?.account?.address;
-            connectionState.lastWalletAddress = walletAddress;
-            
-            const isBackendConnected = await syncWithBackend();
-            const addressesMatch = AddressConverter.areEqual(walletAddress, connectionState.backendAddress);
-            
-            if (walletAddress && isBackendConnected && addressesMatch) {
-                const friendlyAddress = AddressConverter.toUserFriendly(walletAddress);
-                const shortAddress = `${friendlyAddress.substring(0, 6)}...${friendlyAddress.substring(friendlyAddress.length - 4)}`;
+            if (connected && frontendAddress) {
+                const displayAddress = AddressConverter.toDisplayFormat(frontendAddress);
+                const shortAddress = `${displayAddress.substring(0, 6)}...${displayAddress.substring(displayAddress.length - 4)}`;
                 
                 statusDiv.style.display = 'block';
                 addressSpan.textContent = shortAddress;
@@ -2053,26 +2011,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 disconnectBtn.disabled = false;
             }
         } catch (error) {
-            console.error("UI update failed:", error);
+            console.error("UI update error:", error);
             statusDiv.style.display = 'none';
         }
     }
 
-    // 8. CONNECTION HANDLER
+    // 5. CONNECTION HANDLER
     tonConnectUI.onStatusChange(async (wallet) => {
-        if (connectionState.isConnecting) return;
-        connectionState.isConnecting = true;
+        if (!wallet?.account?.address) {
+            await updateWalletUI();
+            return;
+        }
         
         try {
-            statusDiv.style.display = 'none';
-            
-            if (!wallet?.account?.address) {
-                await tonConnectUI.disconnect();
-                return;
-            }
-            
-            const rawAddress = AddressConverter.toRawFormat(wallet.account.address);
-            const backendAddress = AddressConverter.toBackendFormat(wallet.account.address);
+            const backendFormat = AddressConverter.toBackendFormat(wallet.account.address);
             
             // Save to backend
             const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
@@ -2080,39 +2032,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: userData.id,
-                    walletAddress: backendAddress
+                    walletAddress: backendFormat
                 })
             });
 
             if (!response.ok) {
                 const result = await response.json();
                 if (result.error?.includes("Duplicate")) {
-                    showErrorNotification("Wallet already connected to another account");
+                    showNotification("Wallet already connected to another account");
                     await tonConnectUI.disconnect();
                     return;
                 }
-                throw new Error(result.error || "Backend save failed");
+                throw new Error(result.error || "Failed to save wallet");
             }
             
-            await updateConnectionUI();
+            await updateWalletUI();
         } catch (error) {
             console.error("Connection error:", error);
-            showErrorNotification(error.message || "Connection failed");
+            showNotification(error.message || "Connection failed");
             await tonConnectUI.disconnect();
-        } finally {
-            connectionState.isConnecting = false;
         }
     });
 
-    // 9. DISCONNECTION HANDLER
-    disconnectBtn.addEventListener('click', async () => {
-        if (connectionState.isDisconnecting) return;
-        connectionState.isDisconnecting = true;
-        
+    // 6. DISCONNECTION HANDLER
+    document.getElementById('disconnect-btn')?.addEventListener('click', async () => {
         try {
-            disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
-            disconnectBtn.disabled = true;
-            
             await Promise.all([
                 fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
                     method: 'POST',
@@ -2121,68 +2065,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 }),
                 tonConnectUI.disconnect()
             ]);
-            
-            connectionState.lastWalletAddress = null;
-            connectionState.backendAddress = null;
-            statusDiv.style.display = 'none';
+            await updateWalletUI();
         } catch (error) {
             console.error("Disconnection error:", error);
-            showErrorNotification("Disconnect failed - try again");
-        } finally {
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-            disconnectBtn.disabled = false;
-            connectionState.isDisconnecting = false;
+            showNotification("Disconnect failed - try again");
         }
     });
 
-    // 10. NOTIFICATION SYSTEM
-    function showErrorNotification(message) {
-        const existing = document.querySelector('.wallet-notification');
-        if (existing) existing.remove();
-        
-        const notification = document.createElement('div');
-        notification.className = 'wallet-notification';
-        Object.assign(notification.style, {
-            position: 'fixed',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: '#ff3b30',
-            color: 'white',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            zIndex: '1000',
-            maxWidth: '80%',
-            textAlign: 'center',
-            fontFamily: 'Roboto, sans-serif',
-            fontSize: '14px'
-        });
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 3500);
-    }
-
-    // 11. INITIALIZATION
+    // 7. INITIALIZATION
     window.onUserDataLoaded = async function() {
-        try {
-            // Wait for any pending connection restoration
-            await tonConnectUI.connectionRestored;
-            
-            // Initial UI update
-            await updateConnectionUI();
-            
-            // Refresh when wallet page is focused
-            document.getElementById('wallet-page')?.addEventListener('click', () => {
-                if (!connectionState.isConnecting && !connectionState.isDisconnecting) {
-                    updateConnectionUI();
-                }
-            });
-        } catch (error) {
-            console.error("Initialization error:", error);
-        }
+        await tonConnectUI.connectionRestored;
+        await updateWalletUI();
+        
+        // Refresh when wallet page is opened
+        document.getElementById('wallet-page')?.addEventListener('click', updateWalletUI);
     };
+
+    // Helper function for notifications
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.position = 'fixed';
+        notification.style.bottom = '20px';
+        notification.style.left = '50%';
+        notification.style.transform = 'translateX(-50%)';
+        notification.style.backgroundColor = '#182634';
+        notification.style.color = 'white';
+        notification.style.padding = '12px 20px';
+        notification.style.borderRadius = '12px';
+        notification.style.zIndex = '1000';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    }
 });
 </script>
 

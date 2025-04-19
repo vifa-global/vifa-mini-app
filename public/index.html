@@ -1935,6 +1935,17 @@ document.addEventListener('DOMContentLoaded', function() {
         buttonRootId: 'ton-connect-button'
     });
 
+    // Function to convert EQ address to user-friendly format
+    function toUserFriendlyAddress(rawAddress, isTestnet = false) {
+        if (!rawAddress) return '';
+        
+        // Remove the "EQ" prefix if present
+        const hex = rawAddress.startsWith('EQ') ? rawAddress.substring(2) : rawAddress;
+        
+        // Convert to user-friendly format (UQ)
+        return 'UQ' + hex + (isTestnet ? '_test' : '');
+    }
+
     // UI Elements
     const statusDiv = document.getElementById('wallet-status');
     const addressSpan = document.getElementById('wallet-address');
@@ -1948,6 +1959,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to check wallet status');
             
             const data = await response.json();
+            
+            // Convert stored address to user-friendly format if needed
+            if (data.connected && data.walletAddress) {
+                data.walletAddress = toUserFriendlyAddress(data.walletAddress);
+            }
             return data;
         } catch (error) {
             console.error("Wallet status check error:", error);
@@ -1961,21 +1977,26 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (status.connected) {
             // Wallet is connected in backend
-            const shortAddress = `${status.walletAddress.substring(0, 6)}...${status.walletAddress.substring(status.walletAddress.length - 4)}`;
+            const fullAddress = status.walletAddress;
             
             statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
+            addressSpan.textContent = fullAddress; // Show full user-friendly address
             disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
             
             // Try to restore TonConnect connection if possible
             try {
                 const wallet = await tonConnectUI.getWallet();
-                if (!wallet || wallet.account.address !== status.walletAddress) {
-                    // Try to reconnect silently without showing modal
+                if (!wallet) {
+                    return;
+                }
+                
+                // Compare addresses in same format
+                const currentAddress = toUserFriendlyAddress(wallet.account.address);
+                if (currentAddress !== fullAddress) {
                     await tonConnectUI.connectWallet({
                         jsBridgeKey: 'tonconnect'
                     }, {
-                        returnStrategy: 'none' // Don't show modal if can't connect
+                        returnStrategy: 'none'
                     });
                 }
             } catch (e) {
@@ -1994,19 +2015,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                const friendlyAddress = toUserFriendlyAddress(rawAddress);
                 
                 // Update UI immediately
                 statusDiv.style.display = 'block';
-                addressSpan.textContent = shortAddress;
+                addressSpan.textContent = friendlyAddress; // Show user-friendly format
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
                 disconnectBtn.disabled = false;
                 
                 // Check backend status
                 const backendStatus = await checkWalletStatus();
                 
-                if (backendStatus.connected && backendStatus.walletAddress === rawAddress) {
-                    // Already connected in backend, no need to save again
+                if (backendStatus.connected && backendStatus.walletAddress === friendlyAddress) {
+                    // Already connected in backend
                     return;
                 }
                 
@@ -2016,7 +2037,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        walletAddress: rawAddress
+                        walletAddress: rawAddress // Store raw address in backend
                     })
                 });
 
@@ -2085,7 +2106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.style.zIndex = '1000';
         notification.style.maxWidth = '80%';
         notification.style.textAlign = 'center';
-        notification.style.fontFamily = 'Roboto, sans-serif';
+        notification.style.fontFamily: 'Roboto, sans-serif';
         notification.style.fontSize = '14px';
         notification.style.border = '1px solid #2d3e50';
         notification.textContent = message;

@@ -1945,13 +1945,39 @@ document.addEventListener('DOMContentLoaded', function() {
     let isConnecting = false;
     let isDisconnecting = false;
 
+    // Function to convert between address formats
+    function convertAddressFormat(address) {
+        if (!address) return address;
+        
+        // If it's already in UQ format, return as-is
+        if (address.startsWith('UQ')) {
+            return address;
+        }
+        
+        // If it's in EQ format (raw), convert to user-friendly format
+        if (address.startsWith('EQ')) {
+            // This is a simplified conversion - you may need a proper TON library
+            // for accurate conversion between formats
+            return 'UQ' + address.substring(2);
+        }
+        
+        return address;
+    }
+
     // Function to check wallet connection status from backend
     async function checkWalletStatus() {
         try {
             const response = await fetch(`https://vifa-backend.onrender.com/api/wallet-status/${userData.id}`);
             if (!response.ok) throw new Error('Failed to check wallet status');
             
-            return await response.json();
+            const data = await response.json();
+            
+            // Convert backend address to frontend format for comparison
+            if (data.connected && data.walletAddress) {
+                data.walletAddress = convertAddressFormat(data.walletAddress);
+            }
+            
+            return data;
         } catch (error) {
             console.error("Wallet status check error:", error);
             return { connected: false };
@@ -1970,12 +1996,25 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             
             // Only show if both TonConnect and backend agree on connection
-            if (status.connected && wallet && wallet.account.address === status.walletAddress) {
-                const shortAddress = `${status.walletAddress.substring(0, 6)}...${status.walletAddress.substring(status.walletAddress.length - 4)}`;
-                statusDiv.style.display = 'block';
-                addressSpan.textContent = shortAddress;
-                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-                disconnectBtn.disabled = false;
+            if (status.connected && wallet) {
+                const frontendAddress = convertAddressFormat(wallet.account.address);
+                const backendAddress = convertAddressFormat(status.walletAddress);
+                
+                if (frontendAddress === backendAddress) {
+                    const shortAddress = `${frontendAddress.substring(0, 6)}...${frontendAddress.substring(frontendAddress.length - 4)}`;
+                    statusDiv.style.display = 'block';
+                    addressSpan.textContent = shortAddress;
+                    disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+                    disconnectBtn.disabled = false;
+                } else {
+                    // Address mismatch - force disconnect
+                    await tonConnectUI.disconnect();
+                    await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: userData.id })
+                    });
+                }
             }
         } catch (error) {
             console.error("Wallet UI update error:", error);
@@ -1997,6 +2036,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
+                const normalizedAddress = convertAddressFormat(rawAddress);
                 
                 // Save wallet to backend first
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
@@ -2004,7 +2044,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        walletAddress: rawAddress
+                        walletAddress: normalizedAddress
                     })
                 });
 
@@ -2019,7 +2059,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Only show UI after successful backend save
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                const shortAddress = `${normalizedAddress.substring(0, 6)}...${normalizedAddress.substring(normalizedAddress.length - 4)}`;
                 statusDiv.style.display = 'block';
                 addressSpan.textContent = shortAddress;
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';

@@ -549,6 +549,20 @@
 .wallet-benefits li i {
   color: #2ecc40;
 }
+
+.wallet-status {
+    color: #2ecc40;
+    font-size: 12px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.wallet-status i {
+    font-size: 14px;
+}
+        
         /* FRIENDS PAGE STYLES */
         .friends-container {
             padding: 80px 20px 70px;
@@ -1255,6 +1269,14 @@
         </button>
       </div>
     </div>
+
+      <div class="points-container">
+    <div class="points-display" id="vp-balance">0 VP</div>
+    <div class="streak-display" id="streak-display">Streak: 0 days</div>
+    <div class="wallet-status" id="header-wallet-status" style="display: none;">
+        <i class="fas fa-wallet"></i> Connected
+    </div>
+</div>
     
     <div class="wallet-benefits">
       <h3><i class="fas fa-gem"></i> Wallet Benefits</h3>
@@ -1940,6 +1962,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
     const walletPage = document.getElementById('wallet-page');
+    const headerWalletStatus = document.getElementById('header-wallet-status');
+
+    // Function to update wallet status UI in both header and wallet page
+    function updateWalletStatusUI(connected, address = '') {
+        if (connected) {
+            // Update wallet page UI
+            statusDiv.style.display = 'block';
+            const shortAddress = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+            addressSpan.textContent = shortAddress;
+            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            disconnectBtn.disabled = false;
+            
+            // Update header UI
+            headerWalletStatus.style.display = 'flex';
+        } else {
+            // Update wallet page UI
+            statusDiv.style.display = 'none';
+            
+            // Update header UI
+            headerWalletStatus.style.display = 'none';
+        }
+    }
 
     // Function to check wallet connection status from backend
     async function checkWalletStatus() {
@@ -1960,12 +2004,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const status = await checkWalletStatus();
         
         if (status.connected) {
-            // Wallet is connected in backend
-            const shortAddress = `${status.walletAddress.substring(0, 6)}...${status.walletAddress.substring(status.walletAddress.length - 4)}`;
-            
-            statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            // Update both UIs with connected state
+            updateWalletStatusUI(true, status.walletAddress);
             
             // Try to restore TonConnect connection if possible
             try {
@@ -1982,8 +2022,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Silent reconnect failed, showing connect button");
             }
         } else {
-            // No wallet connected
-            statusDiv.style.display = 'none';
+            // Update both UIs with disconnected state
+            updateWalletStatusUI(false);
         }
     }
 
@@ -1994,13 +2034,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
                 
-                // Update UI immediately
-                statusDiv.style.display = 'block';
-                addressSpan.textContent = shortAddress;
-                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-                disconnectBtn.disabled = false;
+                // Update both UIs immediately
+                updateWalletStatusUI(true, rawAddress);
                 
                 // Check backend status
                 const backendStatus = await checkWalletStatus();
@@ -2034,10 +2070,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error("Wallet verification error:", error);
                 showWalletErrorNotification(error.message || "Wallet verification failed");
                 tonConnectUI.disconnect();
+                updateWalletStatusUI(false); // Ensure UI shows disconnected state
             }
         } else {
-            // Disconnected - update UI
-            statusDiv.style.display = 'none';
+            // Disconnected - update both UIs
+            updateWalletStatusUI(false);
         }
     });
 
@@ -2059,8 +2096,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!response.ok) throw new Error('Failed to update backend');
             
-            // Update UI
-            statusDiv.style.display = 'none';
+            // Update both UIs
+            updateWalletStatusUI(false);
         } catch (error) {
             console.error("Disconnection error:", error);
             showWalletErrorNotification("Disconnected from app but failed to update server");

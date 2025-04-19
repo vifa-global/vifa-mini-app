@@ -375,7 +375,7 @@
 
 
 /* Wallet Page Styles */
-/* Updated Wallet Page Styles */
+/* Updated Wallet CSS */
 .wallet-container {
   padding: 20px 15px 80px;
   height: 100%;
@@ -396,52 +396,25 @@
   font-size: 14px;
 }
 
-.wallet-steps {
-  background: rgba(10, 0, 62, 0.7);
-  border-radius: 15px;
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(0, 136, 204, 0.3);
-}
-
-/* Hide the connect step when wallet is connected */
-.wallet-status-container[style*="display: block"] ~ .wallet-step {
+/* Hide the entire steps container when connected */
+.wallet-status-container[style*="display: block"] ~ .wallet-steps {
   display: none;
-}
-
-.wallet-step {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-  position: relative;
-}
-
-.step-number {
-  background: #FFD700;
-  color: #0A003E;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  flex-shrink: 0;
 }
 
 .wallet-status-container {
   background: rgba(10, 0, 62, 0.7);
   border-radius: 15px;
   padding: 15px;
-  margin-top: 0;
+  margin: 0 auto 20px;
   border: 1px solid rgba(0, 136, 204, 0.3);
+  max-width: 100%;
 }
 
 .wallet-connected {
   display: flex;
-  gap: 15px;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 15px;
+  gap: 10px;
 }
 
 .connected-icon {
@@ -449,17 +422,26 @@
   font-size: 30px;
 }
 
+.connection-details {
+  text-align: center;
+  width: 100%;
+}
+
 .connection-details h3 {
   color: #FFD700;
   font-size: 16px;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .wallet-address {
-  color: #FFD700; /* Changed to gold color */
-  font-size: 16px; /* Larger font size */
-  font-weight: bold; /* Bold text */
+  color: #FFD700;
+  font-size: 16px;
+  font-weight: bold;
   word-break: break-all;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px dashed #FFD700;
   margin: 10px 0;
 }
 
@@ -475,6 +457,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .wallet-benefits {
@@ -508,11 +491,6 @@
 
 .wallet-benefits li i {
   color: #2ecc40;
-}
-
-/* Hide the tonconnect button when wallet is connected */
-.wallet-status-container[style*="display: block"] #ton-connect-button {
-  display: none;
 }
 
 
@@ -1189,39 +1167,35 @@
         </div>
         
         <!-- Wallet Page -->
-<!-- Wallet Page -->
-<!-- Updated Wallet Page HTML -->
+<!-- Updated Wallet HTML -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
     <h2 class="wallet-title">VIFA Wallet</h2>
     <p class="wallet-subtitle">Link your TON wallet to earn and withdraw VP</p>
     
-    <div class="wallet-steps">
-      <!-- Connection Step (will be hidden when connected) -->
-      <div class="wallet-step">
-        <div class="step-number">1</div>
-        <div class="step-content">
-          <h3>Connect Wallet</h3>
-          <p>Link your TON wallet using Tonkeeper or another compatible wallet</p>
-          <div id="ton-connect-button"></div>
-          <p style="margin-top: 10px; font-size: 12px; color: #b3d9ff;">
-            <i class="fas fa-info-circle"></i> You'll need a TON-compatible wallet installed
-          </p>
-        </div>
-      </div>
-      
-      <!-- Connection Status (shown when connected) -->
-      <div id="wallet-status" class="wallet-status-container" style="display: none;">
-        <div class="wallet-connected">
-          <i class="fas fa-check-circle connected-icon"></i>
-          <div class="connection-details">
-            <h3>Wallet Connected</h3>
-            <p class="wallet-address" id="wallet-address"></p>
-          </div>
+    <!-- Connection Status (shown when connected) -->
+    <div id="wallet-status" class="wallet-status-container" style="display: none;">
+      <div class="wallet-connected">
+        <i class="fas fa-check-circle connected-icon"></i>
+        <div class="connection-details">
+          <h3>Wallet Connected</h3>
+          <div class="wallet-address" id="wallet-address"></div>
         </div>
         <button id="disconnect-btn" class="wallet-disconnect-button">
           <i class="fas fa-unlink"></i> Disconnect
         </button>
+      </div>
+    </div>
+    
+    <!-- Connect Steps (hidden when connected) -->
+    <div class="wallet-steps">
+      <div class="wallet-step">
+        <div class="step-content">
+          <div id="ton-connect-button"></div>
+          <p style="margin-top: 10px; font-size: 12px; color: #b3d9ff; text-align: center;">
+            <i class="fas fa-info-circle"></i> You'll need a TON-compatible wallet installed
+          </p>
+        </div>
       </div>
     </div>
     

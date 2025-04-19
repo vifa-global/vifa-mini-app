@@ -375,7 +375,7 @@
 
 
 /* Wallet Page Styles */
-/* Wallet Page Styles */
+/* Updated Wallet Page Styles */
 .wallet-container {
   padding: 20px 15px 80px;
   height: 100%;
@@ -404,15 +404,16 @@
   border: 1px solid rgba(0, 136, 204, 0.3);
 }
 
+/* Hide the connect step when wallet is connected */
+.wallet-status-container[style*="display: block"] ~ .wallet-step {
+  display: none;
+}
+
 .wallet-step {
   display: flex;
   gap: 15px;
   margin-bottom: 25px;
   position: relative;
-}
-
-.wallet-step:last-child {
-  margin-bottom: 0;
 }
 
 .step-number {
@@ -428,54 +429,11 @@
   flex-shrink: 0;
 }
 
-.step-content h3 {
-  color: #FFD700;
-  font-size: 16px;
-  margin-bottom: 5px;
-}
-
-.step-content p {
-  color: #b3d9ff;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.wallet-link-button, 
-.wallet-connect-button {
-  background: rgba(0, 136, 204, 0.2);
-  color: white;
-  border: 1px solid rgba(0, 136, 204, 0.5);
-  padding: 12px;
-  border-radius: 10px;
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s;
-}
-
-.wallet-connect-button {
-  background: #FFD700;
-  color: #0A003E;
-  border: none;
-}
-
-.wallet-link-button:hover {
-  background: rgba(0, 136, 204, 0.3);
-}
-
-.wallet-connect-button:hover {
-  opacity: 0.9;
-}
-
 .wallet-status-container {
   background: rgba(10, 0, 62, 0.7);
   border-radius: 15px;
   padding: 15px;
-  margin-top: 20px;
+  margin-top: 0;
   border: 1px solid rgba(0, 136, 204, 0.3);
 }
 
@@ -498,9 +456,11 @@
 }
 
 .wallet-address {
-  color: #7fdbff;
-  font-size: 12px;
+  color: #FFD700; /* Changed to gold color */
+  font-size: 16px; /* Larger font size */
+  font-weight: bold; /* Bold text */
   word-break: break-all;
+  margin: 10px 0;
 }
 
 .wallet-disconnect-button {
@@ -550,23 +510,10 @@
   color: #2ecc40;
 }
 
-        /* Add this to your existing CSS */
-.wallet-connected ~ #ton-connect-button {
-    display: none;
+/* Hide the tonconnect button when wallet is connected */
+.wallet-status-container[style*="display: block"] #ton-connect-button {
+  display: none;
 }
-
-.wallet-connected ~ .step-content p {
-    display: none;
-}
-
-.wallet-connected ~ .step-content h3 {
-    display: none;
-}
-
-.wallet-connected ~ .step-number {
-    display: none;
-}
-
 
 
         
@@ -1243,13 +1190,14 @@
         
         <!-- Wallet Page -->
 <!-- Wallet Page -->
+<!-- Updated Wallet Page HTML -->
 <div class="page" id="wallet-page">
   <div class="wallet-container">
-    <h2 class="wallet-title">Connect Your Wallet</h2>
+    <h2 class="wallet-title">VIFA Wallet</h2>
     <p class="wallet-subtitle">Link your TON wallet to earn and withdraw VP</p>
     
     <div class="wallet-steps">
-      <!-- Simplified connection step -->
+      <!-- Connection Step (will be hidden when connected) -->
       <div class="wallet-step">
         <div class="step-number">1</div>
         <div class="step-content">
@@ -1262,7 +1210,7 @@
         </div>
       </div>
       
-      <!-- Connection Status -->
+      <!-- Connection Status (shown when connected) -->
       <div id="wallet-status" class="wallet-status-container" style="display: none;">
         <div class="wallet-connected">
           <i class="fas fa-check-circle connected-icon"></i>

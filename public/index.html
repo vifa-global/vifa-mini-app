@@ -2130,16 +2130,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const now = new Date();
         connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
         
-        // Update every minute
-        const intervalId = setInterval(() => {
-            connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
-        }, 60000);
-        
-        // Store interval ID to clear later if needed
+        // Clear any existing interval
         if (window.connectionTimeInterval) {
             clearInterval(window.connectionTimeInterval);
         }
-        window.connectionTimeInterval = intervalId;
+        
+        // Update every minute
+        window.connectionTimeInterval = setInterval(() => {
+            connectionTimeSpan.textContent = 'Connected ' + formatTime(now);
+        }, 60000);
     }
     
     function formatTime(date) {
@@ -2275,17 +2274,34 @@ document.addEventListener('DOMContentLoaded', function() {
     checkInitialConnection();
 });
 
-// Analytics script remains the same
+// Analytics script
+(function() {
+    var script = document.createElement('script');
+    script.src = 'https://tganalytics.xyz/index.js';
+    script.async = true;
+    script.onload = function() {
+        window.telegramAnalytics.init({
+            token: 'eyJhcHBfbmFtZSI6IlZJRkEiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL1ZJRkFDb2luQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdmlmYS1taW5pLWFwcC1mcm9udGVuZC5vbnJlbmRlci5jb20ifQ==!f3AdmpZwPZP+2HF1NTXXfK4maAx5Mvb5e0unkyID6XY=',
+            appName: 'VIFA'
+        });
+    };
+    document.head.appendChild(script);
+})();
 </script>
 
-<script async src="https://tganalytics.xyz/index.js" onload="initAnalytics()" type="text/javascript"></script>
+<script 
+    async 
+    src="https://tganalytics.xyz/index.js" 
+    onload="initAnalytics()" 
+    type="text/javascript"
+></script>
 
 <script>
     function initAnalytics() {
-        window.telegramAnalytics.init({
-            token: 'eyJhcHBfbmFtZSI6IlZJRkEiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL1ZJRkFDb2luQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdmlmYS1taW5pLWFwcC1mcm9udGVuZC5vbnJlbmRlci5jb20ifQ==!f3AdmpZwPZP+2HF1NTXXfK4maAx5Mvb5e0unkyID6XY=',
-            appName: 'VIFA',
-        });
+      window.telegramAnalytics.init({
+        token: 'eyJhcHBfbmFtZSI6IlZJRkEiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL1ZJRkFDb2luQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdmlmYS1taW5pLWFwcC1mcm9udGVuZC5vbnJlbmRlci5jb20ifQ==!f3AdmpZwPZP+2HF1NTXXfK4maAx5Mvb5e0unkyID6XY=', // SDK Auth token received via @DataChief_bot
+        appName: 'VIFA', // The analytics identifier you entered in @DataChief_bot
+      });
     }
 </script>
 </body>

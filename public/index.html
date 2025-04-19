@@ -2002,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', function() {
             disconnectBtn.disabled = true;
             
             if (connected && frontendAddress) {
-                const displayAddress = AddressConverter.toDisplayFormat(frontendAddress);
+                const displayAddress = 'UQ' + backendAddress.replace('EQ', '');
                 const shortAddress = `${displayAddress.substring(0, 6)}...${displayAddress.substring(displayAddress.length - 4)}`;
                 
                 statusDiv.style.display = 'block';

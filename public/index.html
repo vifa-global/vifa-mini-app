@@ -1958,6 +1958,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update UI based on wallet connection status
     async function updateWalletUI() {
         const status = await checkWalletStatus();
+        const wallet = await tonConnectUI.getWallet();
         
         if (status.connected) {
             // Wallet is connected in backend
@@ -1965,25 +1966,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             statusDiv.style.display = 'block';
             addressSpan.textContent = shortAddress;
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
             
-            // Try to restore TonConnect connection if possible
-            try {
-                const wallet = await tonConnectUI.getWallet();
-                if (!wallet || wallet.account.address !== status.walletAddress) {
-                    // Try to reconnect silently without showing modal
-                    await tonConnectUI.connectWallet({
-                        jsBridgeKey: 'tonconnect'
-                    }, {
-                        returnStrategy: 'none' // Don't show modal if can't connect
-                    });
-                }
-            } catch (e) {
-                console.log("Silent reconnect failed, showing connect button");
+            // Check if TonConnect also has this wallet connected
+            if (!wallet || wallet.account.address !== status.walletAddress) {
+                // Show "Reconnect" button since backend has connection but frontend doesn't
+                disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+            } else {
+                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
             }
         } else {
             // No wallet connected
             statusDiv.style.display = 'none';
+            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
         }
     }
 
@@ -2036,13 +2030,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 tonConnectUI.disconnect();
             }
         } else {
-            // Disconnected - update UI
-            statusDiv.style.display = 'none';
+            // Disconnected - check backend status
+            const backendStatus = await checkWalletStatus();
+            if (!backendStatus.connected) {
+                statusDiv.style.display = 'none';
+            }
+            // UI will be updated by updateWalletUI()
         }
+        
+        // Refresh UI state
+        await updateWalletUI();
     });
 
-    // Handle disconnect button
+    // Handle disconnect/reconnect button
     disconnectBtn.addEventListener('click', async () => {
+        const isReconnect = disconnectBtn.innerHTML.includes('sync-alt'); // Check for reconnect icon
+        
+        if (isReconnect) {
+            // Reconnect flow
+            disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+            try {
+                await tonConnectUI.connectWallet();
+            } catch (error) {
+                console.error("Reconnection error:", error);
+                disconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Reconnect';
+            }
+            return;
+        }
+
+        // Disconnect flow
         disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
         disconnectBtn.disabled = true;
         
@@ -2065,7 +2081,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Disconnection error:", error);
             showWalletErrorNotification("Disconnected from app but failed to update server");
         } finally {
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            await updateWalletUI();
             disconnectBtn.disabled = false;
         }
     });
@@ -2099,13 +2115,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // Initialize wallet connection when app starts
-    window.onUserDataLoaded = async function() {
-        await updateWalletUI();
-        
-        // Also check wallet status when wallet page is opened
-        walletPage.addEventListener('click', updateWalletUI);
-    };
+    // Check wallet status when wallet page is opened
+    walletPage.addEventListener('click', updateWalletUI);
+    
+    // Initialize when user data is loaded
+    window.onUserDataLoaded = updateWalletUI;
 });
 </script>
 
@@ -2126,3 +2140,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
+

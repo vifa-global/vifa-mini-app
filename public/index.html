@@ -2059,34 +2059,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle disconnect button
-    disconnectBtn.addEventListener('click', async () => {
-        disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
-        disconnectBtn.disabled = true;
-        
-        try {
-            // Disconnect from TonConnect
+ // Handle disconnect button
+disconnectBtn.addEventListener('click', async () => {
+    disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+    disconnectBtn.disabled = true;
+    
+    try {
+        // First check if we're actually connected
+        const wallet = await tonConnectUI.getWallet();
+        if (!wallet) {
+            // If not connected, just update the backend
+            console.log("No active wallet connection to disconnect");
+        } else {
+            // Disconnect from TonConnect if connected
             await tonConnectUI.disconnect();
-            
-            // Send disconnect to backend
-            const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: userData.id })
-            });
-
-            if (!response.ok) throw new Error('Failed to update backend');
-            
-            // Update UI
-            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
-            statusDiv.style.display = 'none';
-        } catch (error) {
-            console.error("Disconnection error:", error);
-            showWalletErrorNotification("Disconnected from app but failed to update server");
-        } finally {
-            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-            disconnectBtn.disabled = false;
         }
-    });
+        
+        // Send disconnect to backend regardless of TonConnect state
+        const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userData.id })
+        });
+
+        if (!response.ok) throw new Error('Failed to update backend');
+        
+        // Update UI
+        if (connectButtonContainer) connectButtonContainer.style.display = 'block';
+        statusDiv.style.display = 'none';
+    } catch (error) {
+        console.error("Disconnection error:", error);
+        // Even if there's an error, ensure UI reflects disconnected state
+        if (connectButtonContainer) connectButtonContainer.style.display = 'block';
+        statusDiv.style.display = 'none';
+        showWalletErrorNotification("Disconnected from app but failed to update server");
+    } finally {
+        disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+        disconnectBtn.disabled = false;
+    }
+});
 
     // Show Telegram-style error notification
     function showWalletErrorNotification(message) {

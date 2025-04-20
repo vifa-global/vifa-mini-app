@@ -2003,20 +2003,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Handle connection status changes
-   tonConnectUI.onStatusChange(async (wallet) => {
-  if (wallet) {
-    try {
-      const rawAddress = wallet.account.address; // This will be the UQ address
-      
-      // Save wallet to backend without any conversion
-      const response = await fetch('/api/save-wallet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: userData.id,
-          walletAddress: rawAddress // Send exactly what we get
-        })
-      });
+    tonConnectUI.onStatusChange(async (wallet) => {
+        console.log("Connection status changed:", wallet);
+        
+        if (wallet) {
+            try {
+                const rawAddress = wallet.account.address;
+                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                
+                // Update UI immediately
+                if (connectButtonContainer) connectButtonContainer.style.display = 'none';
+                statusDiv.style.display = 'block';
+                addressSpan.textContent = shortAddress;
+                disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+                disconnectBtn.disabled = false;
+                
+                // Check backend status
+                const backendStatus = await checkWalletStatus();
+                
+                if (backendStatus.connected && backendStatus.walletAddress === rawAddress) {
+                    // Already connected in backend, no need to save again
+                    return;
+                }
+                
+                // Save wallet to backend
+                const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userData.id,
+                        walletAddress: rawAddress
+                    })
+                });
 
                 if (!response.ok) {
                     const result = await response.json();

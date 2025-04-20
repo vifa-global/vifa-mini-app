@@ -768,6 +768,7 @@ ton-connect-button {
             100% { transform: rotate(360deg); }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
@@ -1953,6 +1954,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const walletPage = document.getElementById('wallet-page');
     const connectButtonContainer = document.querySelector('#ton-connect-button');
 
+    // Function to convert EQ address to raw hex (UQ) format
+    function eqToUq(eqAddress) {
+        // Remove the "EQ" prefix
+        const base64 = eqAddress.substring(2);
+        // Convert base64 to hex
+        const hex = Buffer.from(base64, 'base64').toString('hex');
+        return `0x${hex}`;
+    }
+
     // Function to check wallet connection status from backend
     async function checkWalletStatus() {
         try {
@@ -1972,13 +1982,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const status = await checkWalletStatus();
         
         if (status.connected) {
-            // Wallet is connected in backend
-            const shortAddress = `${status.walletAddress.substring(0, 6)}...${status.walletAddress.substring(status.walletAddress.length - 4)}`;
+            // Convert EQ to UQ format
+            const uqAddress = eqToUq(status.walletAddress);
             
             // Hide connect button and show status
             if (connectButtonContainer) connectButtonContainer.style.display = 'none';
             statusDiv.style.display = 'block';
-            addressSpan.textContent = shortAddress;
+            addressSpan.textContent = uqAddress; // Show full UQ address
             disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
             
             // Try to restore TonConnect connection if possible
@@ -2009,12 +2019,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (wallet) {
             try {
                 const rawAddress = wallet.account.address;
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                const uqAddress = eqToUq(rawAddress);
                 
                 // Update UI immediately
                 if (connectButtonContainer) connectButtonContainer.style.display = 'none';
                 statusDiv.style.display = 'block';
-                addressSpan.textContent = shortAddress;
+                addressSpan.textContent = uqAddress; // Show full UQ address
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
                 disconnectBtn.disabled = false;
                 
@@ -2059,49 +2069,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle disconnect button
-disconnectBtn.addEventListener('click', async () => {
-    disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
-    disconnectBtn.disabled = true;
-    
-    try {
-        // Get current connection instead of getWallet()
-        const connectionSource = await tonConnectUI.connectionRestored;
+    disconnectBtn.addEventListener('click', async () => {
+        disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+        disconnectBtn.disabled = true;
         
-        // First try to disconnect from TonConnect
         try {
-            await tonConnectUI.disconnect();
-        } catch (disconnectError) {
-            console.log("TON Connect disconnect error (non-critical):", disconnectError);
-        }
-        
-        // Then update backend
-        const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userData.id })
-        });
+            // Get current connection instead of getWallet()
+            const connectionSource = await tonConnectUI.connectionRestored;
+            
+            // First try to disconnect from TonConnect
+            try {
+                await tonConnectUI.disconnect();
+            } catch (disconnectError) {
+                console.log("TON Connect disconnect error (non-critical):", disconnectError);
+            }
+            
+            // Then update backend
+            const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userData.id })
+            });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to update backend');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to update backend');
+            }
+            
+            // Update UI regardless of backend response
+            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
+            statusDiv.style.display = 'none';
+            
+        } catch (error) {
+            console.error("Disconnection error:", error);
+            showWalletErrorNotification("Disconnected locally but server update may have failed");
+            
+            // Force UI update even if backend failed
+            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
+            statusDiv.style.display = 'none';
+        } finally {
+            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            disconnectBtn.disabled = false;
         }
-        
-        // Update UI regardless of backend response
-        if (connectButtonContainer) connectButtonContainer.style.display = 'block';
-        statusDiv.style.display = 'none';
-        
-    } catch (error) {
-        console.error("Disconnection error:", error);
-        showWalletErrorNotification("Disconnected locally but server update may have failed");
-        
-        // Force UI update even if backend failed
-        if (connectButtonContainer) connectButtonContainer.style.display = 'block';
-        statusDiv.style.display = 'none';
-    } finally {
-        disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-        disconnectBtn.disabled = false;
-    }
-});
+    });
 
     // Show Telegram-style error notification
     function showWalletErrorNotification(message) {

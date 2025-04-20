@@ -1951,6 +1951,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressSpan = document.getElementById('wallet-address');
     const disconnectBtn = document.getElementById('disconnect-btn');
     const walletPage = document.getElementById('wallet-page');
+    const connectButtonContainer = document.querySelector('#ton-connect-button');
 
     // Function to check wallet connection status from backend
     async function checkWalletStatus() {
@@ -1974,6 +1975,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Wallet is connected in backend
             const shortAddress = `${status.walletAddress.substring(0, 6)}...${status.walletAddress.substring(status.walletAddress.length - 4)}`;
             
+            // Hide connect button and show status
+            if (connectButtonContainer) connectButtonContainer.style.display = 'none';
             statusDiv.style.display = 'block';
             addressSpan.textContent = shortAddress;
             disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
@@ -1993,7 +1996,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Silent reconnect failed, showing connect button");
             }
         } else {
-            // No wallet connected
+            // No wallet connected - show connect button and hide status
+            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
             statusDiv.style.display = 'none';
         }
     }
@@ -2008,6 +2012,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
                 
                 // Update UI immediately
+                if (connectButtonContainer) connectButtonContainer.style.display = 'none';
                 statusDiv.style.display = 'block';
                 addressSpan.textContent = shortAddress;
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
@@ -2048,6 +2053,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else {
             // Disconnected - update UI
+            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
             statusDiv.style.display = 'none';
         }
     });
@@ -2071,6 +2077,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to update backend');
             
             // Update UI
+            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
             statusDiv.style.display = 'none';
         } catch (error) {
             console.error("Disconnection error:", error);

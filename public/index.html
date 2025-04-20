@@ -1984,32 +1984,40 @@ document.addEventListener('DOMContentLoaded', function() {
             // Try to restore TonConnect connection if possible
             try {
                 const wallet = await tonConnectUI.getWallet();
-                if (!wallet || wallet.account.address !== status.walletAddress) {
-                    // Try to reconnect silently without showing modal
+                if (!wallet) return;
+                
+                // Get the original UQ address from wallet connection
+                const currentAddress = wallet.connectItems?.tonAddr?.address;
+                if (!currentAddress || currentAddress !== status.walletAddress) {
                     await tonConnectUI.connectWallet({
                         jsBridgeKey: 'tonconnect'
                     }, {
-                        returnStrategy: 'none' // Don't show modal if can't connect
+                        returnStrategy: 'none'
                     });
                 }
             } catch (e) {
-                console.log("Silent reconnect failed, showing connect button");
+                console.log("Silent reconnect failed", e);
             }
         } else {
-            // No wallet connected - show connect button and hide status
+            // No wallet connected
             if (connectButtonContainer) connectButtonContainer.style.display = 'block';
             statusDiv.style.display = 'none';
         }
     }
 
-    // Handle connection status changes
+    // MODIFIED: Handle connection status changes to preserve UQ address
     tonConnectUI.onStatusChange(async (wallet) => {
         console.log("Connection status changed:", wallet);
         
         if (wallet) {
             try {
-                const rawAddress = wallet.account.address;
-                const shortAddress = `${rawAddress.substring(0, 6)}...${rawAddress.substring(rawAddress.length - 4)}`;
+                // Get the original UQ address before any conversion
+                const originalAddress = wallet.connectItems?.tonAddr?.address;
+                if (!originalAddress) {
+                    throw new Error("Could not get original UQ address");
+                }
+                
+                const shortAddress = `${originalAddress.substring(0, 6)}...${originalAddress.substring(originalAddress.length - 4)}`;
                 
                 // Update UI immediately
                 if (connectButtonContainer) connectButtonContainer.style.display = 'none';
@@ -2018,21 +2026,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
                 disconnectBtn.disabled = false;
                 
-                // Check backend status
+                // Check backend status using original UQ address
                 const backendStatus = await checkWalletStatus();
                 
-                if (backendStatus.connected && backendStatus.walletAddress === rawAddress) {
-                    // Already connected in backend, no need to save again
-                    return;
+                if (backendStatus.connected && backendStatus.walletAddress === originalAddress) {
+                    return; // Already connected
                 }
                 
-                // Save wallet to backend
+                // Send ORIGINAL UQ address to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        walletAddress: rawAddress
+                        walletAddress: originalAddress // This is the UQ format
                     })
                 });
 
@@ -2052,56 +2059,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 tonConnectUI.disconnect();
             }
         } else {
-            // Disconnected - update UI
+            // Disconnected
             if (connectButtonContainer) connectButtonContainer.style.display = 'block';
             statusDiv.style.display = 'none';
         }
     });
 
     // Handle disconnect button
-disconnectBtn.addEventListener('click', async () => {
-    disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
-    disconnectBtn.disabled = true;
-    
-    try {
-        // Get current connection instead of getWallet()
-        const connectionSource = await tonConnectUI.connectionRestored;
+    disconnectBtn.addEventListener('click', async () => {
+        disconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Disconnecting...';
+        disconnectBtn.disabled = true;
         
-        // First try to disconnect from TonConnect
         try {
             await tonConnectUI.disconnect();
-        } catch (disconnectError) {
-            console.log("TON Connect disconnect error (non-critical):", disconnectError);
+            await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userData.id })
+            });
+            
+            if (connectButtonContainer) connectButtonContainer.style.display = 'block';
+            statusDiv.style.display = 'none';
+        } catch (error) {
+            console.error("Disconnection error:", error);
+            showWalletErrorNotification("Disconnected locally but server update may have failed");
+        } finally {
+            disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
+            disconnectBtn.disabled = false;
         }
-        
-        // Then update backend
-        const response = await fetch('https://vifa-backend.onrender.com/api/disconnect-wallet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userData.id })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Failed to update backend');
-        }
-        
-        // Update UI regardless of backend response
-        if (connectButtonContainer) connectButtonContainer.style.display = 'block';
-        statusDiv.style.display = 'none';
-        
-    } catch (error) {
-        console.error("Disconnection error:", error);
-        showWalletErrorNotification("Disconnected locally but server update may have failed");
-        
-        // Force UI update even if backend failed
-        if (connectButtonContainer) connectButtonContainer.style.display = 'block';
-        statusDiv.style.display = 'none';
-    } finally {
-        disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-        disconnectBtn.disabled = false;
-    }
-});
+    });
 
     // Show Telegram-style error notification
     function showWalletErrorNotification(message) {
@@ -2124,7 +2110,6 @@ disconnectBtn.addEventListener('click', async () => {
         notification.textContent = message;
         
         document.body.appendChild(notification);
-        
         setTimeout(() => {
             notification.style.transition = 'opacity 0.5s';
             notification.style.opacity = '0';
@@ -2135,8 +2120,6 @@ disconnectBtn.addEventListener('click', async () => {
     // Initialize wallet connection when app starts
     window.onUserDataLoaded = async function() {
         await updateWalletUI();
-        
-        // Also check wallet status when wallet page is opened
         walletPage.addEventListener('click', updateWalletUI);
     };
 });

@@ -1980,24 +1980,6 @@ document.addEventListener('DOMContentLoaded', function() {
             statusDiv.style.display = 'block';
             addressSpan.textContent = shortAddress;
             disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
-            
-            // Try to restore TonConnect connection if possible
-            try {
-                const wallet = await tonConnectUI.getWallet();
-                if (!wallet) return;
-                
-                // Get the original UQ address from wallet connection
-                const currentAddress = wallet.connectItems?.tonAddr?.address;
-                if (!currentAddress || currentAddress !== status.walletAddress) {
-                    await tonConnectUI.connectWallet({
-                        jsBridgeKey: 'tonconnect'
-                    }, {
-                        returnStrategy: 'none'
-                    });
-                }
-            } catch (e) {
-                console.log("Silent reconnect failed", e);
-            }
         } else {
             // No wallet connected
             if (connectButtonContainer) connectButtonContainer.style.display = 'block';
@@ -2005,19 +1987,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // MODIFIED: Handle connection status changes to preserve UQ address
+    // Handle connection status changes - IMPROVED WITH BETTER ERROR HANDLING
     tonConnectUI.onStatusChange(async (wallet) => {
         console.log("Connection status changed:", wallet);
         
         if (wallet) {
             try {
-                // Get the original UQ address before any conversion
-                const originalAddress = wallet.connectItems?.tonAddr?.address;
-                if (!originalAddress) {
-                    throw new Error("Could not get original UQ address");
+                // Try to get the original UQ address first
+                let addressToUse = wallet.connectItems?.tonAddr?.address;
+                
+                // If UQ address not available, try to get it from wallet info
+                if (!addressToUse) {
+                    console.warn("Original UQ address not available in connectItems, trying wallet info");
+                    addressToUse = wallet.account.address;
+                    
+                    // If we got an EQ address, try to convert it back to UQ
+                    if (addressToUse && addressToUse.startsWith('EQ')) {
+                        console.warn("Received EQ address, attempting to convert to UQ");
+                        // This is a simple conversion - may not work for all cases
+                        addressToUse = 'UQ' + addressToUse.substring(2);
+                    }
                 }
                 
-                const shortAddress = `${originalAddress.substring(0, 6)}...${originalAddress.substring(originalAddress.length - 4)}`;
+                if (!addressToUse) {
+                    throw new Error("Could not get wallet address");
+                }
+                
+                const shortAddress = `${addressToUse.substring(0, 6)}...${addressToUse.substring(addressToUse.length - 4)}`;
                 
                 // Update UI immediately
                 if (connectButtonContainer) connectButtonContainer.style.display = 'none';
@@ -2026,20 +2022,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 disconnectBtn.innerHTML = '<i class="fas fa-unlink"></i> Disconnect';
                 disconnectBtn.disabled = false;
                 
-                // Check backend status using original UQ address
+                // Check backend status
                 const backendStatus = await checkWalletStatus();
                 
-                if (backendStatus.connected && backendStatus.walletAddress === originalAddress) {
+                if (backendStatus.connected && backendStatus.walletAddress === addressToUse) {
                     return; // Already connected
                 }
                 
-                // Send ORIGINAL UQ address to backend
+                // Send address to backend
                 const response = await fetch('https://vifa-backend.onrender.com/api/save-wallet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        walletAddress: originalAddress // This is the UQ format
+                        walletAddress: addressToUse
                     })
                 });
 

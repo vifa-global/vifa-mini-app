@@ -1596,11 +1596,68 @@ function setupTaskVerification() {
     });
 
     // Twitter Mention
-    document.getElementById('verify-twitter-mention')?.addEventListener('click', async () => {
-        const tweetUrl = prompt("Please enter the URL of your mention tweet:");
-        if (!tweetUrl) return;
-        await verifyTask('twitter-mention', 'verify-twitter-mention', 10, { tweetUrl });
-    });
+    // Twitter Mention Task (new)
+document.getElementById('verify-twitter-mention')?.addEventListener('click', async () => {
+    const twitterHandle = prompt("Please enter your Twitter username (without @):");
+    if (!twitterHandle) return;
+    
+    const tweetUrl = prompt("Please enter the URL of your mention tweet (reply to our tweet mentioning 3 friends):");
+    if (!tweetUrl) return;
+    
+    // Basic validation
+    if (!tweetUrl.includes('twitter.com/') && !tweetUrl.includes('x.com/')) {
+        alert('❌ Please provide a valid Twitter/X URL');
+        return;
+    }
+
+    try {
+        const button = document.getElementById('verify-twitter-mention');
+        const spinner = document.getElementById('twitter-mention-spinner');
+        
+        // Show loading state
+        button.disabled = true;
+        spinner.style.display = 'inline-block';
+        
+        const response = await fetch('https://vifa-backend.onrender.com/api/verify-twitter-mention', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userData.id,
+                twitterHandle: twitterHandle,
+                tweetUrl: tweetUrl
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Verification failed");
+        }
+
+        const result = await response.json();
+        
+        // Update UI
+        userData.completedTasks.twitterMention = true;
+        userData.points += 10;
+        updateUserInterface(userData.points, userData.streak);
+        
+        document.getElementById('twitter-mention-completed').classList.add('show');
+        document.getElementById('twitter-mention-step1').classList.add('active');
+        document.getElementById('twitter-mention-step2').classList.add('active');
+        
+        alert('✅ Task verified! +10 VP');
+        
+    } catch (error) {
+        console.error('Twitter mention verification error:', error);
+        alert(`❌ Error: ${error.message}`);
+    } finally {
+        const button = document.getElementById('verify-twitter-mention');
+        const spinner = document.getElementById('twitter-mention-spinner');
+        if (button) button.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+    }
+});
 
     // YouTube Like
     document.getElementById('verify-youtube-like')?.addEventListener('click', async () => {

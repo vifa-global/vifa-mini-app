@@ -1407,6 +1407,7 @@ function handleTaskLinkClick(taskId) {
 }
 
 // Handle daily check-in button
+// New frontend code for mini app
 async function handleDailyCheckin() {
     const button = document.getElementById('daily-checkin');
     if (!button) return;
@@ -1427,10 +1428,9 @@ async function handleDailyCheckin() {
                 })
             });
 
-            // First check if the response is HTML (404 page)
+            // Handle HTML response (fallback)
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
                 userData.points += 20;
                 userData.streak += 1;
                 updateUserInterface(userData.points, userData.streak);
@@ -1442,7 +1442,6 @@ async function handleDailyCheckin() {
             const result = await response.json();
 
             if (!response.ok) {
-                // Handle cooldown error specifically
                 if (result.error && result.error.includes('hours')) {
                     const hoursLeft = result.error.match(/\d+/)?.[0] || '24';
                     updateCheckinButton(false, hoursLeft + 'H');
@@ -1454,13 +1453,18 @@ async function handleDailyCheckin() {
             // Update UI with new data
             updateUserInterface(result.points, result.streak);
             
-            // Show success message
-            alert(`✅ ${result.message}\n🔥 Streak: ${result.streak} days`);
+            // Show success message with streak info
+            let message = `✅ Daily check-in complete! +20 VP`;
+            if (result.bonusMessage) {
+                message += `\n${result.bonusMessage}`;
+            }
+            message += `\n🔥 Streak: ${result.streak} ${result.streak === 1 ? 'day' : 'days'}`;
+            alert(message);
 
             // Update button state
             updateCheckinButton(false, '24H');
             
-            // Reload user data to ensure sync with backend
+            // Reload user data
             loadUserData();
             
         } catch (error) {

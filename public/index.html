@@ -2112,13 +2112,16 @@ document.addEventListener('DOMContentLoaded', () => {
 // ======================
 // DAILY PUZZLE HANDLER
 // ======================
+// ======================
+// PUZZLE HANDLER (UPDATED)
+// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
   const button = document.getElementById('submit-puzzle');
   
-  if (!input.value || input.value.length !== 6) {
-    resultDiv.textContent = "Please enter a 6-digit code!";
+  if (!input.value || !/^\d{6}$/.test(input.value)) {
+    resultDiv.textContent = "Please enter a valid 6-digit code!";
     resultDiv.style.color = "#ff3b30";
     return;
   }
@@ -2138,23 +2141,18 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
 
     const data = await response.json();
 
-    if (response.ok) {
-      if (data.success) {
-        resultDiv.textContent = `🎉 ${data.message}`;
-        resultDiv.style.color = "#2ecc40";
-        input.disabled = true;
-        
-        // Update points display
-        userData.points += data.points;
-        updateUserInterface(userData.points, userData.streak);
-      } else {
-        resultDiv.textContent = data.error || "Try again tomorrow!";
-        resultDiv.style.color = "#ff3b30";
-        input.disabled = true;
-      }
+    if (response.ok && data.success) {
+      resultDiv.innerHTML = `🎉 ${data.message}<br>💰 New Balance: ${data.points} VP`;
+      resultDiv.style.color = "#2ecc40";
+      input.disabled = true;
+      userData.points = data.points;
+      updateUserInterface(userData.points, userData.streak);
     } else {
       resultDiv.textContent = data.error || "Verification failed!";
       resultDiv.style.color = "#ff3b30";
+      if (data.error.includes("tomorrow")) {
+        input.disabled = true;
+      }
     }
   } catch (error) {
     resultDiv.textContent = "Connection error. Try again later.";
@@ -2164,7 +2162,6 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     button.innerHTML = '🚀 Submit Answer';
   }
 });
-
 // Ensure home page is active on startup
 showPage('home-page');
     </script>

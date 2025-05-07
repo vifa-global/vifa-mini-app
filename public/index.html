@@ -2109,6 +2109,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
 // DAILY PUZZLE HANDLER
 // ======================
+// ======================
+// DAILY PUZZLE HANDLER
+// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
@@ -2136,17 +2139,22 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     const data = await response.json();
 
     if (response.ok) {
-      resultDiv.textContent = `🎉 Correct! +5000 VP added to your balance!`;
-      resultDiv.style.color = "#2ecc40";
-      input.disabled = true;
-      
-      // Update points display
-      userData.points += 5000;
-      updateUserInterface(userData.points, userData.streak);
+      if (data.success) {
+        resultDiv.textContent = `🎉 ${data.message}`;
+        resultDiv.style.color = "#2ecc40";
+        input.disabled = true;
+        
+        // Update points display
+        userData.points += data.points;
+        updateUserInterface(userData.points, userData.streak);
+      } else {
+        resultDiv.textContent = data.error || "Try again tomorrow!";
+        resultDiv.style.color = "#ff3b30";
+        input.disabled = true;
+      }
     } else {
-      resultDiv.textContent = data.error || "Try again tomorrow!";
+      resultDiv.textContent = data.error || "Verification failed!";
       resultDiv.style.color = "#ff3b30";
-      input.disabled = true;
     }
   } catch (error) {
     resultDiv.textContent = "Connection error. Try again later.";

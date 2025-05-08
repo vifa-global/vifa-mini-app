@@ -861,6 +861,43 @@ ton-connect-button {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* ====================== */
+/* COUNTDOWN TIMER STYLES */
+/* ====================== */
+.countdown-timer {
+  background: rgba(10, 0, 62, 0.7);
+  border-radius: 15px;
+  padding: 15px;
+  margin: 20px auto;
+  max-width: 300px;
+  border: 1px solid rgba(0, 136, 204, 0.3);
+  text-align: center;
+}
+
+.countdown-title {
+  color: #7fdbff;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.countdown-digits {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: #FFD700;
+  letter-spacing: 2px;
+}
+
+.countdown-digits span {
+  display: inline-block;
+  min-width: 40px;
+  text-align: center;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 5px;
+  border-radius: 5px;
+  margin: 0 2px;
+}
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -1329,7 +1366,23 @@ ton-connect-button {
   <div class="puzzle-container">
     <h2 class="puzzle-title">🎯 Daily Puzzle Challenge</h2>
     <p class="puzzle-subtitle">Solve today's code to win <span class="puzzle-reward">5000 VP</span>!</p>
-    
+
+<div class="puzzle-card">
+    <!-- ... existing puzzle card content ... -->
+</div>
+
+<!-- ADD THIS COUNTDOWN TIMER -->
+<div class="countdown-timer">
+  <div class="countdown-title">Next Puzzle In:</div>
+  <div class="countdown-digits">
+    <span id="hours">24</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+  </div>
+</div>
+
+<p class="puzzle-hint">
+    <p>ℹ️ Only 1 try per day! Choose wisely!</p>
+</p>
+      
     <div class="puzzle-card">
       <div class="puzzle-emoji">🔢🤔💡</div>
       <input type="text" id="puzzle-input" maxlength="6" placeholder="Enter 6-digit code">
@@ -2159,7 +2212,38 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     button.innerHTML = '🚀 Submit Answer';
   }
 });
+// ...existing puzzle code...
 
+// =========================================
+// ADD THIS COUNTDOWN FUNCTIONALITY BELOW
+// =========================================
+function updatePuzzleCountdown() {
+  const now = new Date();
+  const nextMidnight = new Date();
+  nextMidnight.setHours(24, 0, 0, 0);
+  
+  const diff = nextMidnight - now;
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+  document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+  document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+  
+  if (hours === 0) {
+    document.querySelector('.countdown-digits').style.animation = 'pulse 1s infinite';
+  } else {
+    document.querySelector('.countdown-digits').style.animation = 'none';
+  }
+}
+
+setInterval(updatePuzzleCountdown, 1000);
+updatePuzzleCountdown(); // Initialize immediately
+
+// Make sure this existing line stays at the bottom:
+showPage('home-page');
     
 // Ensure home page is active on startup
 showPage('home-page');

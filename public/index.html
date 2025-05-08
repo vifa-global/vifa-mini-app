@@ -2112,9 +2112,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ======================
 // DAILY PUZZLE HANDLER
 // ======================
-// ======================
-// PUZZLE HANDLER (UPDATED)
-// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
@@ -2134,7 +2131,7 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: userData.id,
+        userId: userData.id, // Make sure this is included!
         answer: input.value
       })
     });
@@ -2162,6 +2159,8 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     button.innerHTML = '🚀 Submit Answer';
   }
 });
+
+    
 // Ensure home page is active on startup
 showPage('home-page');
     </script>

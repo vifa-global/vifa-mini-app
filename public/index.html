@@ -2149,9 +2149,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
 // DAILY PUZZLE HANDLER
 // ======================
-// ======================
-// DAILY PUZZLE HANDLER (UPDATED)
-// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
@@ -2176,18 +2173,20 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       })
     });
 
-    // Handle HTML response (fallback)
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
-      resultDiv.textContent = "System error. Please try in Telegram bot.";
-      resultDiv.style.color = "#ff3b30";
-      return;
-    }
-
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Verification failed!");
+      // Handle specific error messages from backend
+      if (data.error && data.error.includes("already solved")) {
+        resultDiv.textContent = "✅ You already solved today's puzzle!";
+        resultDiv.style.color = "#2ecc40";
+      } else if (data.error && data.error.includes("attempts")) {
+        resultDiv.textContent = "❌ You've used all attempts. Try again tomorrow!";
+        resultDiv.style.color = "#ff3b30";
+      } else {
+        throw new Error(data.error || "Verification failed");
+      }
+      return;
     }
 
     if (data.success) {
@@ -2197,6 +2196,7 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       userData.points = data.points;
       updateUserInterface(userData.points, userData.streak);
     } else {
+      // This handles the case where answer is wrong but attempt is recorded
       resultDiv.textContent = data.error || "Wrong code! Try again tomorrow.";
       resultDiv.style.color = "#ff3b30";
       if (data.error && data.error.includes("tomorrow")) {
@@ -2205,7 +2205,7 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     }
   } catch (error) {
     console.error("Puzzle verification error:", error);
-    resultDiv.textContent = error.message || "Connection error. Try again later.";
+    resultDiv.textContent = "Connection error. Please try in Telegram bot.";
     resultDiv.style.color = "#ff3b30";
   } finally {
     button.disabled = false;

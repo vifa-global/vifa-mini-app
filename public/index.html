@@ -2150,7 +2150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // DAILY PUZZLE HANDLER
 // ======================
 // ======================
-// DAILY PUZZLE HANDLER
+// DAILY PUZZLE HANDLER (UPDATED)
 // ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
@@ -2176,23 +2176,36 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       })
     });
 
+    // Handle HTML response (fallback)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      resultDiv.textContent = "System error. Please try in Telegram bot.";
+      resultDiv.style.color = "#ff3b30";
+      return;
+    }
+
     const data = await response.json();
 
-    if (response.ok && data.success) {
+    if (!response.ok) {
+      throw new Error(data.error || "Verification failed!");
+    }
+
+    if (data.success) {
       resultDiv.innerHTML = `🎉 ${data.message}<br>💰 New Balance: ${data.points} VP`;
       resultDiv.style.color = "#2ecc40";
       input.disabled = true;
       userData.points = data.points;
       updateUserInterface(userData.points, userData.streak);
     } else {
-      resultDiv.textContent = data.error || "Verification failed!";
+      resultDiv.textContent = data.error || "Wrong code! Try again tomorrow.";
       resultDiv.style.color = "#ff3b30";
-      if (data.error.includes("tomorrow")) {
+      if (data.error && data.error.includes("tomorrow")) {
         input.disabled = true;
       }
     }
   } catch (error) {
-    resultDiv.textContent = "Connection error. Try again later.";
+    console.error("Puzzle verification error:", error);
+    resultDiv.textContent = error.message || "Connection error. Try again later.";
     resultDiv.style.color = "#ff3b30";
   } finally {
     button.disabled = false;

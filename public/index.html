@@ -2171,7 +2171,7 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: userData.id, // Make sure this is included!
+        userId: userData.id,
         answer: input.value
       })
     });
@@ -2200,9 +2200,7 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   }
 });
 
-// =========================================
-// ADD THIS COUNTDOWN FUNCTIONALITY BELOW
-// =========================================
+// Countdown timer for puzzle reset
 function updatePuzzleCountdown() {
   const now = new Date();
   const nextMidnight = new Date();
@@ -2225,8 +2223,9 @@ function updatePuzzleCountdown() {
   }
 }
 
+// Initialize countdown timer
 setInterval(updatePuzzleCountdown, 1000);
-updatePuzzleCountdown(); // Initialize immediately
+updatePuzzleCountdown();
 
 // Make sure this existing line stays at the bottom:
 showPage('home-page');

@@ -2150,22 +2150,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // DAILY PUZZLE HANDLER
 // ======================
 // ======================
-// DAILY PUZZLE HANDLER (UPDATED)
+// UPDATED PUZZLE HANDLER (FRONTEND CODE)
 // ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
   const button = document.getElementById('submit-puzzle');
   
+  // Clear previous messages
+  resultDiv.textContent = "";
+  resultDiv.style.color = "";
+  
+  // Validate input
   if (!input.value || !/^\d{6}$/.test(input.value)) {
     resultDiv.textContent = "⚠️ Please enter a valid 6-digit code!";
     resultDiv.style.color = "#FFD700";
     return;
   }
 
-  // Clear previous messages
-  resultDiv.textContent = "";
-  
   // Show loading state
   button.disabled = true;
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
@@ -2179,48 +2181,63 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       },
       body: JSON.stringify({
         userId: userData.id,
-        answer: input.value
+        answer: input.value.trim()
       })
     });
 
-    // First check for network errors
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // First check if response is HTML (fallback)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      throw new Error("Backend returned HTML (possible 404)");
     }
 
+    // Process JSON response
     const data = await response.json();
     
-    // Handle backend response
-    if (data.success) {
+    if (!response.ok) {
+      // Handle specific error messages from backend
+      if (data.error) {
+        if (data.error.includes("already solved")) {
+          resultDiv.textContent = "✅ You already solved today's puzzle!";
+          resultDiv.style.color = "#2ecc40";
+        } else if (data.error.includes("attempts")) {
+          resultDiv.textContent = "⏳ You've used all attempts. Try again tomorrow!";
+          resultDiv.style.color = "#FFA500";
+        } else {
+          resultDiv.textContent = data.error.includes("Wrong code") ? 
+            "❌ Wrong code! Try again tomorrow." : 
+            `⚠️ ${data.error}`;
+          resultDiv.style.color = "#ff3b30";
+        }
+      } else {
+        throw new Error("Verification failed without error message");
+      }
+    } else if (data.success) {
+      // Successful verification
       resultDiv.innerHTML = `🎉 <b>${data.message}</b><br>💰 New Balance: ${data.points} VP`;
-      resultDiv.style.color = "#2ecc40"; // Green
-      input.disabled = true;
+      resultDiv.style.color = "#2ecc40";
       
       // Update user points immediately
       userData.points = data.points;
       updateUserInterface(userData.points, userData.streak);
     } else {
-      // Handle different error cases
-      if (data.error.includes("already solved")) {
-        resultDiv.textContent = "✅ You already solved today's puzzle!";
-        resultDiv.style.color = "#2ecc40";
-      } else if (data.error.includes("attempts")) {
-        resultDiv.textContent = "⏳ You've used all attempts. Try again tomorrow!";
-        resultDiv.style.color = "#FFA500";
-      } else {
-        resultDiv.textContent = data.error || "❌ Wrong code! Try again tomorrow.";
-        resultDiv.style.color = "#ff3b30";
-      }
-      
-      if (data.error.includes("tomorrow") || data.error.includes("attempts")) {
-        input.disabled = true;
-      }
+      throw new Error("Unexpected response format");
+    }
+    
+    // Disable input if puzzle is solved or attempts exhausted
+    if (data.success || data.error?.includes("tomorrow") || data.error?.includes("attempts")) {
+      input.disabled = true;
     }
     
   } catch (error) {
     console.error("Puzzle verification error:", error);
     resultDiv.innerHTML = `⚠️ <b>Error:</b> ${error.message || "Please try again later"}`;
     resultDiv.style.color = "#ff3b30";
+    
+    // Special handling for 400 errors
+    if (error.message.includes("400")) {
+      resultDiv.innerHTML = "🔍 The code was incorrect. Try again tomorrow!";
+    }
   } finally {
     button.disabled = false;
     button.innerHTML = '🚀 Submit Answer';

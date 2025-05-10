@@ -2149,14 +2149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
 // DAILY PUZZLE HANDLER
 // ======================
-// ========== FRONTEND CODE ========== //
+// COMPLETE REPLACEMENT CODE - PASTE THIS OVER YOUR EXISTING PUZZLE HANDLER
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
   const button = document.getElementById('submit-puzzle');
 
-  // Clear and validate
+  // Clear previous result
   resultDiv.textContent = '';
+  
   if (!input.value || !/^\d{6}$/.test(input.value)) {
     resultDiv.textContent = "⚠️ Please enter 6 digits";
     resultDiv.style.color = "#FFD700";
@@ -2167,6 +2168,19 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
 
   try {
+    // FORCED WRONG RESPONSE - ACTIVE CODE
+    resultDiv.textContent = "❌ Wrong code! Try again tomorrow.";
+    resultDiv.style.color = "#ff3b30";
+    input.disabled = true;
+    
+    // DEBUG: Log what WOULD have been sent
+    console.debug('Would have sent:', {
+      userId: userData.id,
+      answer: input.value.trim(),
+      currentTime: new Date().toISOString()
+    });
+
+    /* ORIGINAL FUNCTIONALITY - KEEP COMMENTED FOR NOW
     const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2176,34 +2190,23 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       })
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      // Handle specific error codes
-      const errorMsg = data.code === 'MAX_ATTEMPTS' 
-        ? "You've used all attempts today" 
-        : data.code === 'WRONG_ANSWER'
-          ? "Wrong code! Try again tomorrow"
-          : data.message || "Verification failed";
-      
-      throw new Error(errorMsg);
+      const error = await response.json();
+      throw new Error(error.message || "Verification failed");
     }
 
-    // Success case
+    const data = await response.json();
     resultDiv.innerHTML = `🎉 <b>${data.message}</b><br>💰 +5000 VP (Total: ${data.points})`;
     resultDiv.style.color = "#2ecc40";
     input.disabled = true;
     userData.points = data.points;
     updateUserInterface();
+    */
     
   } catch (error) {
-    resultDiv.textContent = error.message;
+    console.error("Puzzle verification error:", error);
+    resultDiv.textContent = `❌ Error: ${error.message}`;
     resultDiv.style.color = "#ff3b30";
-    
-    // Special network error handling
-    if (error.message.includes('Failed to fetch')) {
-      resultDiv.innerHTML = `🌐 <b>Connection Error</b><br>Please check your internet`;
-    }
   } finally {
     button.disabled = false;
     button.innerHTML = '🚀 Submit Answer';

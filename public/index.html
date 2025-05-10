@@ -2149,7 +2149,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
 // DAILY PUZZLE HANDLER
 // ======================
-// ===== START PASTE ===== (New code)
+// ======================
+// UPDATED PUZZLE HANDLER
+// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
@@ -2171,36 +2173,33 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
 
   try {
-    // 1. Fetch today's puzzle code FIRST
-    const { puzzle: todaysCode } = await fetch('https://vifa-backend.onrender.com/api/current-puzzle')
-      .then(res => res.json())
-      .catch(() => { throw new Error("Failed to fetch today's puzzle"); });
+    // First try to verify directly with backend
+    const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId: userData.id, 
+        answer: input.value.trim() 
+      })
+    });
 
-    // 2. Compare locally
-    if (input.value.trim() === todaysCode) {
-      // 3. Submit to backend ONLY if code matches
-      const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userData.id, answer: input.value.trim() })
-      });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Verification failed");
+    }
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-
-      if (data.success) {
-        resultDiv.innerHTML = `🎉 <b>Puzzle Solved! +5000 VP</b><br>💰 New Balance: ${data.points} VP`;
-        resultDiv.style.color = "#2ecc40";
-        input.disabled = true;
-        
-        // Update points in real-time
-        userData.points = data.points;
-        updateUserInterface(userData.points, userData.streak);
-      } else {
-        throw new Error(data.error || "Verification failed");
-      }
+    const data = await response.json();
+    
+    if (data.success) {
+      resultDiv.innerHTML = `🎉 <b>Puzzle Solved! +5000 VP</b><br>💰 New Balance: ${data.points} VP`;
+      resultDiv.style.color = "#2ecc40";
+      input.disabled = true;
+      
+      // Update points in real-time
+      userData.points = data.points;
+      updateUserInterface(userData.points, userData.streak);
     } else {
-      throw new Error("❌ Wrong code! Try again tomorrow.");
+      throw new Error(data.error || "❌ Wrong code! Try again tomorrow.");
     }
   } catch (error) {
     resultDiv.textContent = error.message;
@@ -2210,6 +2209,8 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     button.innerHTML = '🚀 Submit Answer';
   }
 });
+
+    
 // ===== END PASTE =====
 // Countdown timer for puzzle reset
 function updatePuzzleCountdown() {

@@ -2165,17 +2165,18 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
 
   try {
-    const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        userId: String(userData.id), // Ensure string type
-        answer: input.value.trim()
-      })
-    });
+    // In the puzzle submission handler:
+const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
+  method: 'POST',
+  headers: { 
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  body: JSON.stringify({
+    userId: String(userData.id), // Ensure string type
+    answer: input.value.trim()
+  })
+});
 
     // Parse response safely
     let data;

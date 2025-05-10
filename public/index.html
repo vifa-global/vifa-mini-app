@@ -2149,9 +2149,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
 // DAILY PUZZLE HANDLER
 // ======================
-// ======================
-// UPDATED FRONTEND PUZZLE HANDLER
-// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
@@ -2161,14 +2158,13 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   resultDiv.textContent = "";
   resultDiv.style.color = "";
 
-  // Validate input
+  // Validate input client-side first
   if (!input.value || !/^\d{6}$/.test(input.value)) {
     resultDiv.textContent = "⚠️ Please enter a valid 6-digit code!";
     resultDiv.style.color = "#FFD700";
     return;
   }
 
-  // Show loading state
   button.disabled = true;
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
 
@@ -2185,12 +2181,6 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
       })
     });
 
-    // Handle HTML response (fallback)
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
-      throw new Error("Server returned HTML instead of JSON");
-    }
-
     const result = await response.json();
     
     if (!response.ok) {
@@ -2198,24 +2188,19 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     }
 
     if (result.success) {
-      resultDiv.innerHTML = `🎉 <b>${result.message}</b><br>💰 New Balance: ${result.points} VP`;
+      resultDiv.innerHTML = `🎉 <b>Puzzle Solved! +5000 VP</b><br>💰 New Balance: ${result.points} VP`;
       resultDiv.style.color = "#2ecc40";
       input.disabled = true;
-      
-      // Update points in real-time
       userData.points = result.points;
       updateUserInterface(userData.points, userData.streak);
     } else {
       throw new Error(result.error || "❌ Wrong code! Try again tomorrow.");
     }
   } catch (error) {
-    resultDiv.textContent = error.message;
+    resultDiv.textContent = error.message.includes("Failed to fetch") 
+      ? "❌ Network error. Please check connection."
+      : error.message;
     resultDiv.style.color = "#ff3b30";
-    
-    // Special handling for network errors
-    if (error.message.includes("Failed to fetch")) {
-      resultDiv.textContent = "❌ Connection error. Please try again.";
-    }
   } finally {
     button.disabled = false;
     button.innerHTML = '🚀 Submit Answer';

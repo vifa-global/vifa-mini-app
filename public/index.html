@@ -2150,7 +2150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // DAILY PUZZLE HANDLER
 // ======================
 // ======================
-// UPDATED PUZZLE HANDLER
+// UPDATED FRONTEND PUZZLE HANDLER
 // ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
@@ -2173,37 +2173,49 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
 
   try {
-    // First try to verify directly with backend
     const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ 
         userId: userData.id, 
         answer: input.value.trim() 
       })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Verification failed");
+    // Handle HTML response (fallback)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      throw new Error("Server returned HTML instead of JSON");
     }
 
-    const data = await response.json();
+    const result = await response.json();
     
-    if (data.success) {
-      resultDiv.innerHTML = `🎉 <b>Puzzle Solved! +5000 VP</b><br>💰 New Balance: ${data.points} VP`;
+    if (!response.ok) {
+      throw new Error(result.error || "Verification failed");
+    }
+
+    if (result.success) {
+      resultDiv.innerHTML = `🎉 <b>${result.message}</b><br>💰 New Balance: ${result.points} VP`;
       resultDiv.style.color = "#2ecc40";
       input.disabled = true;
       
       // Update points in real-time
-      userData.points = data.points;
+      userData.points = result.points;
       updateUserInterface(userData.points, userData.streak);
     } else {
-      throw new Error(data.error || "❌ Wrong code! Try again tomorrow.");
+      throw new Error(result.error || "❌ Wrong code! Try again tomorrow.");
     }
   } catch (error) {
     resultDiv.textContent = error.message;
     resultDiv.style.color = "#ff3b30";
+    
+    // Special handling for network errors
+    if (error.message.includes("Failed to fetch")) {
+      resultDiv.textContent = "❌ Connection error. Please try again.";
+    }
   } finally {
     button.disabled = false;
     button.innerHTML = '🚀 Submit Answer';

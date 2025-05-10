@@ -2167,22 +2167,20 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        userId: Number(userData.id), // Ensure numeric ID
-        answer: input.value
+        userId: userData.id, // Remove Number() conversion
+        answer: input.value.trim() // Ensure trimmed value
       })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Verification failed!");
-    }
-
     const data = await response.json();
     
+    if (!response.ok) {
+      throw new Error(data.error || "Verification failed!");
+    }
+
     if (data.success) {
       resultDiv.innerHTML = `🎉 ${data.message}<br>💰 New Balance: ${data.points} VP`;
       resultDiv.style.color = "#2ecc40";
@@ -2197,6 +2195,11 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     console.error("Puzzle verification error:", error);
     resultDiv.textContent = error.message || "Connection error. Try again later.";
     resultDiv.style.color = "#ff3b30";
+    
+    // Additional error logging
+    if (error.response) {
+      console.error("Response error:", await error.response.json());
+    }
   } finally {
     button.disabled = false;
     button.innerHTML = '🚀 Submit Answer';

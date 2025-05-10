@@ -2149,9 +2149,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
 // DAILY PUZZLE HANDLER
 // ======================
-// ======================
-// DAILY PUZZLE HANDLER (UPDATED)
-// ======================
 document.getElementById('submit-puzzle')?.addEventListener('click', async () => {
   const input = document.getElementById('puzzle-input');
   const resultDiv = document.getElementById('puzzle-result');
@@ -2169,27 +2166,23 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
   try {
     const response = await fetch('https://vifa-backend.onrender.com/api/verify-puzzle', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({
-        userId: userData.id,
+        userId: Number(userData.id), // Ensure numeric ID
         answer: input.value
       })
     });
 
-    // Handle HTML response (fallback)
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
-      resultDiv.textContent = "System error. Please try in Telegram bot.";
-      resultDiv.style.color = "#ff3b30";
-      return;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Verification failed!");
     }
 
     const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Verification failed!");
-    }
-
+    
     if (data.success) {
       resultDiv.innerHTML = `🎉 ${data.message}<br>💰 New Balance: ${data.points} VP`;
       resultDiv.style.color = "#2ecc40";
@@ -2199,9 +2192,6 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     } else {
       resultDiv.textContent = data.error || "Wrong code! Try again tomorrow.";
       resultDiv.style.color = "#ff3b30";
-      if (data.error && data.error.includes("tomorrow")) {
-        input.disabled = true;
-      }
     }
   } catch (error) {
     console.error("Puzzle verification error:", error);
@@ -2212,6 +2202,8 @@ document.getElementById('submit-puzzle')?.addEventListener('click', async () => 
     button.innerHTML = '🚀 Submit Answer';
   }
 });
+
+    
 
 // Countdown timer for puzzle reset
 function updatePuzzleCountdown() {

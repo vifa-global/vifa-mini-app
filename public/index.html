@@ -921,12 +921,12 @@ ton-connect-button {
         <div class="page active" id="home-page">
             <div class="content">
                 <div class="home-button" id="click-for-vp">
-    <div class="button-left">
-        <i class="fas fa-hand-pointer"></i>
-        <span>CLICK FOR VP (75/24h)</span>
-    </div>
-    <div class="button-right" id="vp-click-counter">0/75</div>
-</div>
+                    <div class="button-left">
+                        <i class="fas fa-hand-pointer"></i>
+                        <span>CLICK FOR 1 VP</span>
+                    </div>
+                    <div class="button-right">+1 VP</div>
+                </div>
                 
                 <div class="home-button" id="daily-checkin">
                     <div class="button-left">
@@ -1472,11 +1472,7 @@ const userData = {
         telegramEngage: false
     }
 };
-const vpClickData = {
-    count: 0,
-    lastReset: new Date(),
-    maxPerDay: 75
-};
+
 // Show specific page and hide others
 function showPage(pageId) {
     // Hide all pages
@@ -1924,97 +1920,56 @@ function initApp() {
 }
 
 // Setup event listeners
-function checkResetVpClicks() {
-    const now = new Date();
-    const lastResetDate = new Date(vpClickData.lastReset).getDate();
-    
-    // If it's a new day, reset the counter
-    if (now.getDate() !== lastResetDate) {
-        vpClickData.count = 0;
-        vpClickData.lastReset = now;
-        updateVpClickCounter();
-    }
-}
-
-// Add this function to update the counter display
-function updateVpClickCounter() {
-    const counterElement = document.getElementById('vp-click-counter');
-    if (counterElement) {
-        counterElement.textContent = `${vpClickData.count}/${vpClickData.maxPerDay}`;
-        
-        // Disable button if limit reached
-        const button = document.getElementById('click-for-vp');
-        if (vpClickData.count >= vpClickData.maxPerDay) {
-            button.style.opacity = '0.5';
-            button.style.cursor = 'not-allowed';
-            button.onclick = null;
-        } else {
-            button.style.opacity = '1';
-            button.style.cursor = 'pointer';
-        }
-    }
-}
-
-// Add this to your setupEventListeners function
-const vpButton = document.getElementById('click-for-vp');
-if (vpButton) {
-    vpButton.addEventListener('click', async function(event) {
-        checkResetVpClicks();
-        
-        if (vpClickData.count >= vpClickData.maxPerDay) {
-            alert("You've reached the daily limit of 75 VP from clicking. Try again tomorrow!");
-            return;
-        }
-
-        const rect = this.getBoundingClientRect();
-        const x = rect.left + rect.width/2;
-        const y = rect.top + rect.height/2;
-        
-        createCoinAnimation(x, y);
-        
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id
-                })
-            });
-
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior
-                userData.points += 1;
-                vpClickData.count += 1;
-                updateUserInterface(userData.points, userData.streak);
-                updateVpClickCounter();
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
+function setupEventListeners() {
+    const vpButton = document.getElementById('click-for-vp');
+    if (vpButton) {
+        vpButton.addEventListener('click', async function(event) {
+            const rect = this.getBoundingClientRect();
+            const x = rect.left + rect.width/2;
+            const y = rect.top + rect.height/2;
             
-            if (result.success) {
-                userData.points = result.points;
-                vpClickData.count += 1;
+            createCoinAnimation(x, y);
+            
+            try {
+                const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userData.id
+                    })
+                });
+
+                // Check if response is HTML (404 page)
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    // Fallback behavior when API is not available
+                    userData.points += 1;
+                    updateUserInterface(userData.points, userData.streak);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    userData.points = result.points;
+                    updateUserInterface(userData.points, userData.streak);
+                    
+                    // Reload user data to ensure sync with backend
+                    loadUserData();
+                }
+            } catch (error) {
+                console.error("Error earning VP:", error);
+                userData.points += 1;
                 updateUserInterface(userData.points, userData.streak);
-                updateVpClickCounter();
-                loadUserData();
             }
-        } catch (error) {
-            console.error("Error earning VP:", error);
-            userData.points += 1;
-            vpClickData.count += 1;
-            updateUserInterface(userData.points, userData.streak);
-            updateVpClickCounter();
-        }
-    });
-}
+        });
+    }
 
     // Add event listener for share button
     const shareButton = document.getElementById('shareButton');

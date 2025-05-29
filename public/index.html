@@ -1473,15 +1473,6 @@ const userData = {
     }
 };
 
-
-     // Add this new property:
-    clickVp: {
-        count: 0,          // Tracks clicks in current 24h period
-        lastReset: null,   // When counter was last reset
-        lastClick: null    // When user last clicked
-    }
-};
-
 // Show specific page and hide others
 function showPage(pageId) {
     // Hide all pages
@@ -1930,88 +1921,55 @@ function initApp() {
 
 // Setup event listeners
 function setupEventListeners() {
-   // Modified setupEventListeners():
-const vpButton = document.getElementById('click-for-vp');
-if (vpButton) {
-    vpButton.addEventListener('click', async function(event) {
-        // Check if 24 hours have passed since last reset
-        const now = new Date();
-        if (!userData.clickVp.lastReset || 
-            (now - new Date(userData.clickVp.lastReset)) >= 24 * 60 * 60 * 1000) {
-            userData.clickVp.count = 0;
-            userData.clickVp.lastReset = now;
-        }
-
-        // Check if limit reached
-        if (userData.clickVp.count >= 75) {
-            const nextReset = new Date(userData.clickVp.lastReset);
-            nextReset.setHours(nextReset.getHours() + 24);
-            const hoursLeft = Math.ceil((nextReset - now) / (1000 * 60 * 60));
+    const vpButton = document.getElementById('click-for-vp');
+    if (vpButton) {
+        vpButton.addEventListener('click', async function(event) {
+            const rect = this.getBoundingClientRect();
+            const x = rect.left + rect.width/2;
+            const y = rect.top + rect.height/2;
             
-            alert(`You've reached the daily limit of 75 VP from clicks. Try again in ${hoursLeft} hours.`);
-            return;
-        }
-
-        const rect = this.getBoundingClientRect();
-        const x = rect.left + rect.width/2;
-        const y = rect.top + rect.height/2;
-        
-        createCoinAnimation(x, y);
-        
-        try {
-            const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userData.id,
-                    action: 'click_vp' // Add this to identify the action
-                })
-            });
-
-            // Check if response is HTML (404 page)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Fallback behavior when API is not available
-                userData.points += 1;
-                userData.clickVp.count += 1;
-                userData.clickVp.lastClick = now;
-                updateUserInterface(userData.points, userData.streak);
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
+            createCoinAnimation(x, y);
             
-            if (result.success) {
-                userData.points = result.points;
-                userData.clickVp.count += 1;
-                userData.clickVp.lastClick = now;
-                updateUserInterface(userData.points, userData.streak);
-                
-                // Update button text to show remaining clicks
-                const remaining = 75 - userData.clickVp.count;
-                const buttonRight = this.querySelector('.button-right');
-                if (buttonRight) {
-                    buttonRight.textContent = `${remaining} left today`;
+            try {
+                const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userData.id
+                    })
+                });
+
+                // Check if response is HTML (404 page)
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    // Fallback behavior when API is not available
+                    userData.points += 1;
+                    updateUserInterface(userData.points, userData.streak);
+                    return;
                 }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
                 
-                // Reload user data to ensure sync with backend
-                loadUserData();
+                if (result.success) {
+                    userData.points = result.points;
+                    updateUserInterface(userData.points, userData.streak);
+                    
+                    // Reload user data to ensure sync with backend
+                    loadUserData();
+                }
+            } catch (error) {
+                console.error("Error earning VP:", error);
+                userData.points += 1;
+                updateUserInterface(userData.points, userData.streak);
             }
-        } catch (error) {
-            console.error("Error earning VP:", error);
-            userData.points += 1;
-            userData.clickVp.count += 1;
-            userData.clickVp.lastClick = now;
-            updateUserInterface(userData.points, userData.streak);
-        }
-    });
-}
+        });
+    }
 
     // Add event listener for share button
     const shareButton = document.getElementById('shareButton');

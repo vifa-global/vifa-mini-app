@@ -1924,60 +1924,51 @@ function setupEventListeners() {
     const vpButton = document.getElementById('click-for-vp');
     if (vpButton) {
         vpButton.addEventListener('click', async function(event) {
-            const button = this;
-    const rect = button.getBoundingClientRect();
-    const x = rect.left + rect.width/2;
-    const y = rect.top + rect.height/2;
-    
-    createCoinAnimation(x, y);
-    
-    try {
-        const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userId: userData.id
-            })
-        });
+            const rect = this.getBoundingClientRect();
+            const x = rect.left + rect.width/2;
+            const y = rect.top + rect.height/2;
+            
+            createCoinAnimation(x, y);
+            
+            try {
+                const response = await fetch('https://vifa-backend.onrender.com/api/earn_vp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userData.id
+                    })
+                });
 
-        // Handle HTML response (fallback)
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('text/html')) {
-            userData.points += 1;
-            updateUserInterface(userData.points, userData.streak);
-            return;
-        }
+                // Check if response is HTML (404 page)
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    // Fallback behavior when API is not available
+                    userData.points += 1;
+                    updateUserInterface(userData.points, userData.streak);
+                    return;
+                }
 
-        const result = await response.json();
-        
-        if (!response.ok) {
-            if (result.limitReached) {
-                alert(result.error);
-                button.disabled = true;
-                button.querySelector('.button-right').textContent = 'Limit Reached';
-                setTimeout(() => {
-                    button.disabled = false;
-                    button.querySelector('.button-right').textContent = '+1 VP';
-                }, 5000);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    userData.points = result.points;
+                    updateUserInterface(userData.points, userData.streak);
+                    
+                    // Reload user data to ensure sync with backend
+                    loadUserData();
+                }
+            } catch (error) {
+                console.error("Error earning VP:", error);
+                userData.points += 1;
+                updateUserInterface(userData.points, userData.streak);
             }
-            throw new Error(result.error || `HTTP error! status: ${response.status}`);
-        }
-
-        if (result.success) {
-            userData.points = result.points;
-            updateUserInterface(userData.points, userData.streak);
-            button.querySelector('.button-right').textContent = `+1 VP (${result.clicksToday}/75)`;
-        }
-    } catch (error) {
-        console.error("Error earning VP:", error);
-        if (!error.message.includes('Daily limit reached')) {
-            userData.points += 1;
-            updateUserInterface(userData.points, userData.streak);
-        }
-    }
-});
+        });
     }
 
     // Add event listener for share button

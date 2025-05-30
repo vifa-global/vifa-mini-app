@@ -1727,27 +1727,27 @@ function setupTaskVerification() {
     document.getElementById('verify-twitter-follow')?.addEventListener('click', async () => {
         const twitterHandle = prompt("Please enter your Twitter username (without @):");
         if (!twitterHandle) return;
-        await verifyTask('twitter-follow', 'verify-twitter-follow', 15, { twitterHandle });
+        await verifyTask('twitter-follow', 'verify-twitter-follow', 1000, { twitterHandle });
     });
 
     // Telegram Join
     document.getElementById('verify-telegram-join')?.addEventListener('click', async () => {
-        await verifyTask('telegram-join', 'verify-telegram-join', 15);
+        await verifyTask('telegram-join', 'verify-telegram-join', 1000);
     });
 
     // YouTube Subscribe
     document.getElementById('verify-youtube-subscribe')?.addEventListener('click', async () => {
-        await verifyTask('youtube-subscribe', 'verify-youtube-subscribe', 15);
+        await verifyTask('youtube-subscribe', 'verify-youtube-subscribe', 1000);
     });
 
     // Website Visit
     document.getElementById('verify-website-visit')?.addEventListener('click', async () => {
-        await verifyTask('website-visit', 'verify-website-visit', 15);
+        await verifyTask('website-visit', 'verify-website-visit', 1000);
     });
 
     // Twitter Like
     document.getElementById('verify-twitter-like')?.addEventListener('click', async () => {
-        await verifyTask('twitter-like', 'verify-twitter-like', 5);
+        await verifyTask('twitter-like', 'verify-twitter-like', 1000);
     });
 
     // Twitter Mention
@@ -1794,7 +1794,7 @@ document.getElementById('verify-twitter-mention')?.addEventListener('click', asy
         
         // Update UI
         userData.completedTasks.twitterMention = true;
-        userData.points += 10;
+        userData.points += 1000;
         updateUserInterface(userData.points, userData.streak);
         
         document.getElementById('twitter-mention-completed').classList.add('show');
@@ -1816,19 +1816,19 @@ document.getElementById('verify-twitter-mention')?.addEventListener('click', asy
 
     // YouTube Like
     document.getElementById('verify-youtube-like')?.addEventListener('click', async () => {
-        await verifyTask('youtube-like', 'verify-youtube-like', 5);
+        await verifyTask('youtube-like', 'verify-youtube-like', 1000);
     });
 
     // YouTube Comment
     document.getElementById('verify-youtube-comment')?.addEventListener('click', async () => {
         const commentText = prompt("Please enter your YouTube comment text:");
         if (!commentText) return;
-        await verifyTask('youtube-comment', 'verify-youtube-comment', 10, { commentText });
+        await verifyTask('youtube-comment', 'verify-youtube-comment', 1000, { commentText });
     });
 
     // Telegram Engage
     document.getElementById('verify-telegram-engage')?.addEventListener('click', async () => {
-        await verifyTask('telegram-engage', 'verify-telegram-engage', 10);
+        await verifyTask('telegram-engage', 'verify-telegram-engage', 1000);
     });
 }
 

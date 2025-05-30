@@ -1290,7 +1290,7 @@ ton-connect-button {
                 
                 <div class="reward-info">
                     <div class="reward-title">Direct Referral Bonus</div>
-                    <div class="reward-amount">50 VP</div>
+                    <div class="reward-amount">5000 VP</div>
                     <div>for each friend who joins</div>
                 </div>
                 
@@ -1330,11 +1330,11 @@ ton-connect-button {
                     <div class="invites-title">Your Referral Network (Ex.)</div>
                     <div class="invite-item">
                         <span>@john_doe (Level 1)</span>
-                        <span>+50 VP</span>
+                        <span>+5000 VP</span>
                     </div>
                     <div class="invite-item">
                         <span>@crypto_queen (Level 1)</span>
-                        <span>+50 VP</span>
+                        <span>+5000 VP</span>
                     </div>
                     <div class="invite-item">
                         <span>@vifa_lover (Level 2)</span>
@@ -1628,7 +1628,7 @@ async function handleDailyCheckin() {
             
             // Reset button if it's not a cooldown error
             if (!error.message.includes('hours')) {
-                updateCheckinButton(true, '+20 VP');
+                updateCheckinButton(true, '+500 VP');
             }
         }
     });
@@ -1644,7 +1644,7 @@ function updateCheckinButton(enabled, text) {
     
     const buttonRight = button.querySelector('.button-right');
     if (buttonRight) {
-        const displayText = enabled ? '+20 VP' : 
+        const displayText = enabled ? '+500 VP' : 
                             text === '24H' ? '24H' : 
                             text === 'Done' ? '✅ Done' : 
                             text.endsWith('h') ? text.replace('h', 'H') :
@@ -2078,14 +2078,14 @@ async function checkCheckinStatus() {
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
             // Fallback behavior when API is not available
-            updateCheckinButton(true, '+20 VP');
+            updateCheckinButton(true, '+500 VP');
             return;
         }
         
         if (response.ok) {
             const data = await response.json();
             if (data.canCheckIn) {
-                updateCheckinButton(true, '+20 VP');
+                updateCheckinButton(true, '+500 VP');
             } else {
                 const hoursLeft = Math.ceil((new Date(data.nextCheckIn) - new Date()) / (1000 * 60 * 60));
                 updateCheckinButton(false, `${hoursLeft}H`);
@@ -2093,7 +2093,7 @@ async function checkCheckinStatus() {
         }
     } catch (error) {
         console.error("Error checking check-in status:", error);
-        updateCheckinButton(true, '+20 VP');
+        updateCheckinButton(true, '+500 VP');
     }
 }
 
